@@ -3,51 +3,129 @@ import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AllDietType } from "@/types/Diet";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AllCategory } from "@prisma/client";
 import { ChangeEvent, useState } from "react";
-// import { useDiet } from "../context/DietProvider";
+import { toast } from "sonner";
+import { addItem } from "../server/dietAction";
+import { useRouter } from "next/navigation";
+import { useDiet } from "../hook/useDiet";
+import useDialog from "@/hook/useDialog";
+
 type itemFixedNutrientValue = {
-    food_item: string;
-    current_weight: number;
-    calories: number;
+    name: string;
+    currentWeight: number;
+    calories?: number;
     protein: number;
-    fat: number;
     carbs: number;
+    fat: number;
     sugar: number;
-    amount_per: number;
+    amountPer: number;
+    category: {
+        name: AllCategory;
+    };
 } | undefined
 
 export default function ManageItem({ isNewItem, itemFixedNutrientValue }: { isNewItem: boolean, itemFixedNutrientValue?: itemFixedNutrientValue }) {
+    const { diet, setDiet } = useDiet();
+    const { open, setOpen } = useDialog();
+
     const [newItem, setNewItem] = useState({
-        food_item: '',
+        name: '',
         calories: 0,
+        currentWeight: 0,
         protein: 0,
         carbs: 0,
         fat: 0,
         sugar: 0,
-        amount_per: 100,
+        amountPer: 100,
+        category: {
+            name: "" as AllCategory,
+        }
     });
 
     const [editItem, setEditItem] = useState({
-        food_item: itemFixedNutrientValue?.food_item,
+        name: itemFixedNutrientValue?.name,
         calories: itemFixedNutrientValue?.calories,
         protein: itemFixedNutrientValue?.protein,
         carbs: itemFixedNutrientValue?.carbs,
         fat: itemFixedNutrientValue?.fat,
         sugar: itemFixedNutrientValue?.sugar,
-        amount_per: itemFixedNutrientValue?.amount_per,
+        amountPer: itemFixedNutrientValue?.amountPer,
+        category: {
+            name: itemFixedNutrientValue?.category.name as AllCategory
+        },
     });
 
 
     const handleNewItem = (event: ChangeEvent<HTMLInputElement>) => {
         event.preventDefault();
-        setNewItem({ ...newItem, [event.target.id]: event.target.value });
+
+        if (!event.target.value)
+            return;
+
+        setNewItem({ ...newItem, [event.target.id]: event.target.id !== 'name' ? parseFloat(event.target.value) : event.target.value });
     };
 
     const handleEditItem = (event: ChangeEvent<HTMLInputElement>) => {
         event.preventDefault();
-        setEditItem({ ...editItem, [event.target.id]: event.target.value });
+
+        if (!event.target.value)
+            return;
+
+        setEditItem({ ...editItem, [event.target.id]: event.target.id !== 'name' ? parseFloat(event.target.value) : event.target.value });
     };
+
+    const handleNewItemCategory = (value: string) => {
+        if (!value) return
+
+        setNewItem({ ...newItem, category: { name: value as AllCategory } });
+    }
+
+    const handleEditItemCategory = (value: string) => {
+        if (!value) return
+
+        setEditItem({ ...editItem, category: { name: value as AllCategory } });
+    }
+
+    const handleAddNewItem = async () => {
+        // Add new item to the database
+        toast.promise(addItem([newItem]), {
+            loading: 'Item Adding...',
+            success: (data) => {
+                setDiet([
+                    ...diet,
+                    newItem,
+                ])
+
+                setNewItem({
+                    name: '',
+                    calories: 0,
+                    currentWeight: 0,
+                    protein: 0,
+                    carbs: 0,
+                    fat: 0,
+                    sugar: 0,
+                    amountPer: 100,
+                    category: {
+                        name: "" as AllCategory,
+                    }
+                })
+
+                setOpen(false);
+
+                return `${data.message}`;
+            },
+            error: (data) => {
+                if (data.error)
+                    return `${data.error}`;
+                else
+                    return `Something went wrong`;
+            },
+        })
+    }
+
+    console.log(newItem);
 
     return (
         <>
@@ -55,10 +133,10 @@ export default function ManageItem({ isNewItem, itemFixedNutrientValue }: { isNe
                 <>
                     <div className="grid gap-4">
                         <div className="w-full">
-                            <Label htmlFor="food_item" className="text-right">
+                            <Label htmlFor="name" className="text-right">
                                 Food Name
                             </Label>
-                            <Input id="food_item" value={newItem.food_item} className="col-span-3" type="text" onChange={handleNewItem} />
+                            <Input id="name" value={newItem.name} className="col-span-3" type="text" onChange={handleNewItem} />
                         </div>
                     </div>
 
@@ -67,37 +145,59 @@ export default function ManageItem({ isNewItem, itemFixedNutrientValue }: { isNe
                             <Label htmlFor="calories" className="text-right">
                                 Calories (g)
                             </Label>
-                            <Input id="calories" value={newItem.calories} className="col-span-3" type="number" onChange={handleNewItem} />
+                            <Input id="calories" value={newItem.calories} className="col-span-3" type="number" min={0} onChange={handleNewItem} />
                         </div>
                         <div className="w-full">
                             <Label htmlFor="protein" className="text-right">
                                 Protein (g)
                             </Label>
-                            <Input id="protein" value={newItem.protein} className="col-span-3" type="number" onChange={handleNewItem} />
+                            <Input id="protein" value={newItem.protein} className="col-span-3" type="number" min={0} onChange={handleNewItem} />
                         </div>
                         <div className="w-full">
                             <Label htmlFor="carbs" className="text-right">
                                 Carbs (g)
                             </Label>
-                            <Input id="carbs" value={newItem.carbs} className="col-span-3" type="number" onChange={handleNewItem} />
+                            <Input id="carbs" value={newItem.carbs} className="col-span-3" type="number" min={0} onChange={handleNewItem} />
                         </div>
                         <div className="w-full">
                             <Label htmlFor="fat" className="text-right">
                                 Fat (g)
                             </Label>
-                            <Input id="fat" value={newItem.fat} className="col-span-3" type="number" onChange={handleNewItem} />
+                            <Input id="fat" value={newItem.fat} className="col-span-3" type="number" min={0} onChange={handleNewItem} />
                         </div>
                         <div className="w-full">
                             <Label htmlFor="sugar" className="text-right">
                                 Sugar (g)
                             </Label>
-                            <Input id="sugar" value={newItem.sugar} className="col-span-3" type="number" onChange={handleNewItem} />
+                            <Input id="sugar" value={newItem.sugar} className="col-span-3" type="number" min={0} onChange={handleNewItem} />
                         </div>
                         <div className="w-full">
-                            <Label htmlFor="amount_per" className="text-right">
+                            <Label htmlFor="amountPer" className="text-right">
                                 Amount Per (g)
                             </Label>
-                            <Input id="amount_per" value={newItem.amount_per} className="col-span-3" type="number" onChange={handleNewItem} />
+                            <Input id="amountPer" value={newItem.amountPer} className="col-span-3" type="number" min={0} onChange={handleNewItem} />
+                        </div>
+                    </div>
+
+                    <div className="grid gap-4">
+                        <div className="w-full">
+                            <Label htmlFor="category" className="text-right">
+                                Category
+                            </Label>
+                            <Select onValueChange={handleNewItemCategory}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select Category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectItem value="breakfast">Breakfast</SelectItem>
+                                        <SelectItem value="lunch">Lunch</SelectItem>
+                                        <SelectItem value="dinner">Dinner</SelectItem>
+                                        <SelectItem value="snacks">Snacks</SelectItem>
+                                        <SelectItem value="other">Other</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                 </>
@@ -105,10 +205,10 @@ export default function ManageItem({ isNewItem, itemFixedNutrientValue }: { isNe
                 <>
                     <div className="grid gap-4">
                         <div className="w-full">
-                            <Label htmlFor="food_item" className="text-right">
+                            <Label htmlFor="name" className="text-right">
                                 Food Name
                             </Label>
-                            <Input id="food_item" value={editItem.food_item} className="col-span-3" type="text" onChange={handleEditItem} />
+                            <Input id="name" value={editItem.name} className="col-span-3" type="text" onChange={handleEditItem} />
                         </div>
                     </div>
 
@@ -117,44 +217,66 @@ export default function ManageItem({ isNewItem, itemFixedNutrientValue }: { isNe
                             <Label htmlFor="calories" className="text-right">
                                 Calories (g)
                             </Label>
-                            <Input id="calories" value={editItem.calories} className="col-span-3" type="number" onChange={handleEditItem} />
+                            <Input id="calories" value={editItem.calories} className="col-span-3" type="number" min={0} onChange={handleEditItem} />
                         </div>
                         <div className="w-full">
                             <Label htmlFor="protein" className="text-right">
                                 Protein (g)
                             </Label>
-                            <Input id="protein" value={editItem.protein} className="col-span-3" type="number" onChange={handleEditItem} />
+                            <Input id="protein" value={editItem.protein} className="col-span-3" type="number" min={0} onChange={handleEditItem} />
                         </div>
                         <div className="w-full">
                             <Label htmlFor="carbs" className="text-right">
                                 Carbs (g)
                             </Label>
-                            <Input id="carbs" value={editItem.carbs} className="col-span-3" type="number" onChange={handleEditItem} />
+                            <Input id="carbs" value={editItem.carbs} className="col-span-3" type="number" min={0} onChange={handleEditItem} />
                         </div>
                         <div className="w-full">
                             <Label htmlFor="fat" className="text-right">
                                 Fat (g)
                             </Label>
-                            <Input id="fat" value={editItem.fat} className="col-span-3" type="number" onChange={handleEditItem} />
+                            <Input id="fat" value={editItem.fat} className="col-span-3" type="number" min={0} onChange={handleEditItem} />
                         </div>
                         <div className="w-full">
                             <Label htmlFor="sugar" className="text-right">
                                 Sugar (g)
                             </Label>
-                            <Input id="sugar" value={editItem.sugar} className="col-span-3" type="number" onChange={handleEditItem} />
+                            <Input id="sugar" value={editItem.sugar} className="col-span-3" type="number" min={0} onChange={handleEditItem} />
                         </div>
                         <div className="w-full">
-                            <Label htmlFor="amount_per" className="text-right">
+                            <Label htmlFor="amountPer" className="text-right">
                                 Amount Per (g)
                             </Label>
-                            <Input id="amount_per" value={editItem.amount_per} className="col-span-3" type="number" onChange={handleEditItem} />
+                            <Input id="amountPer" value={editItem.amountPer} className="col-span-3" type="number" min={0} onChange={handleEditItem} />
+                        </div>
+                    </div>
+
+                    <div className="grid gap-4">
+                        <div className="w-full">
+                            <Label htmlFor="category" className="text-right">
+                                Category
+                            </Label>
+                            <Select onValueChange={handleEditItemCategory} defaultValue={editItem.category.name}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select Category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectItem value="breakfast">Breakfast</SelectItem>
+                                        <SelectItem value="lunch">Lunch</SelectItem>
+                                        <SelectItem value="dinner">Dinner</SelectItem>
+                                        <SelectItem value="snacks">Snacks</SelectItem>
+                                        <SelectItem value="other">Other</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                 </>}
 
             <DialogFooter>
                 {isNewItem
-                    ? <Button type="submit">Create Item</Button>
+                    ? <Button type="submit" onClick={handleAddNewItem}>Add Item</Button>
                     : <div className="flex justify-center items-center gap-2">
                         <Button type="submit">Delete Item</Button>
                         <Button type="submit">Update Item</Button>
