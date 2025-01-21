@@ -1,8 +1,33 @@
 import { DietData } from "@/public/data/SeedData";
 import Breakfast from "./components/Breakfast";
 import DietProvider from "./context/DietProvider";
+import prisma from "@/utils/prisma";
+import { DietType } from "@/types/Diet";
 
-export default function Home() {
+const fetchDiet = async () => {
+  const DietData = await prisma.foodItem.findMany({
+    select: {
+      name: true,
+      currentWeight: true,
+      calories: true,
+      protein: true,
+      carbs: true,
+      fat: true,
+      sugar: true,
+      amountPer: true,
+      category: {
+        select: {
+          name: true,
+        }
+      },
+    }
+  })
+
+  return DietData;
+}
+export default async function Home() {
+  const DietData = await fetchDiet();
+
   return (
     <DietProvider dietData={DietData} >
       <div id="diet_tracker" className="p-2">

@@ -62,9 +62,6 @@ export default function DietTracker({ diet }: { diet: AllDietType }) {
                         </DialogDescription>
                     </DialogHeader>
                     <ManageItem isNewItem={false} itemFixedNutrientValue={itemFixedNutrientValue} />
-                    <DialogFooter>
-                        <Button type="submit">Add Item</Button>
-                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         );

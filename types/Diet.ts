@@ -1,19 +1,15 @@
-
-export type AllDietType = {
-    food_item: string;
-    current_weight: number;
-    calories: number;
-    protein: number;
-    fat: number;
-    carbs: number;
-    sugar: number;
-    amount_per: number;
-}[]
+import { AllCategory } from "@prisma/client";
 
 export type DietType = {
-    breakfast: AllDietType,
-    lunch: AllDietType,
-    dinner: AllDietType,
-    snacks: AllDietType,
-    other: AllDietType,
-}
+    name: string;
+    currentWeight: number;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    sugar: number;
+    amountPer: number;
+    category: {
+        name: AllCategory,
+    }
+}[]

@@ -1,4 +1,6 @@
 "use client"
+import { Button } from "@/components/ui/button";
+import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AllDietType } from "@/types/Diet";
@@ -149,6 +151,16 @@ export default function ManageItem({ isNewItem, itemFixedNutrientValue }: { isNe
                         </div>
                     </div>
                 </>}
+
+            <DialogFooter>
+                {isNewItem
+                    ? <Button type="submit">Create Item</Button>
+                    : <div className="flex justify-center items-center gap-2">
+                        <Button type="submit">Delete Item</Button>
+                        <Button type="submit">Update Item</Button>
+                    </div>
+                }
+            </DialogFooter>
         </>
     )
 }
