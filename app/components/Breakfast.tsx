@@ -14,10 +14,12 @@ import SubTitle from "./SubTitle";
 export default function Breakfast() {
   const { breakfast } = useDiet();
 
+  console.log("Got BreakFAst?");
+  console.log(breakfast);
   return (
     <>
       <SubTitle label="Breakfast" />
-      <DietTracker diet={breakfast} />
+      {/* <DietTracker diet={breakfast} /> */}
     </>
 
   )

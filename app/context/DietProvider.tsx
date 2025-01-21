@@ -1,17 +1,14 @@
 "use client";
 import { DietType } from "@/types/Diet";
-import { createContext, ReactNode, SetStateAction, useState } from "react"
+import { createContext, Dispatch, ReactNode, SetStateAction, useState } from "react"
 
-type DietContextType = DietType & {
-    setDiet: React.Dispatch<SetStateAction<DietType>>;
+type DietContextType = {
+    diet: DietType
+    setDiet: Dispatch<SetStateAction<DietType>>;
 };
 
-export const DietContext = createContext<DietContextType | undefined>({
-    breakfast: [],
-    lunch: [],
-    dinner: [],
-    snacks: [],
-    other: [],
+export const DietContext = createContext<DietContextType>({
+    diet: [],
     setDiet: () => { },
 });
 
@@ -20,7 +17,7 @@ export default function DietProvider({ children, dietData }: { children: ReactNo
 
     return (
         <DietContext.Provider value={{
-            ...diet,
+            diet,
             setDiet,
         }}>
             {children}

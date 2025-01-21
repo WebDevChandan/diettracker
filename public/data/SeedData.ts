@@ -48,6 +48,26 @@ export const DietData = {
         sugar: 0,
         amount_per: 100,
     }
+    , {
+        food_item: 'Chia Seeds',
+        current_weight: 0,
+        calories: 20,
+        protein: 0.5,
+        fat: 0.1,
+        carbs: 2,
+        sugar: 0,
+        amount_per: 100,
+    }
+    , {
+        food_item: 'Chia Seeds',
+        current_weight: 0,
+        calories: 20,
+        protein: 0.5,
+        fat: 0.1,
+        carbs: 2,
+        sugar: 0,
+        amount_per: 100,
+    }
     ],
     lunch: [{
         food_item: 'Baked Salmon',

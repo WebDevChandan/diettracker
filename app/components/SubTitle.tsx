@@ -1,14 +1,8 @@
 "use client"
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { FaPlus } from "react-icons/fa";
 import { LuCirclePlus } from "react-icons/lu";
-// import { useDiet } from "../context/DietProvider";
-import { useDiet } from "../hook/useDiet";
-import DietTracker from "./DietTracker";
 import ManageItem from "./ManageItem";
 
 export default function SubTitle({ label }: { label: string }) {
@@ -31,15 +25,12 @@ export default function SubTitle({ label }: { label: string }) {
 
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Add Item</DialogTitle>
+                        <DialogTitle>Add Item for {label} </DialogTitle>
                         <DialogDescription>
-                            Add Item for {label}
+                           Added nutrients should be from verified source
                         </DialogDescription>
                     </DialogHeader>
                     <ManageItem isNewItem={true} />
-                    <DialogFooter>
-                        <Button type="submit">Add Item</Button>
-                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </h2>
