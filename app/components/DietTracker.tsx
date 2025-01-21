@@ -2,13 +2,13 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AllDietType } from "@/types/Diet";
-import { AllCommunityModule, ColDef, ModuleRegistry, RowSelectionOptions, themeQuartz } from 'ag-grid-community';
+import { AllCommunityModule, ColDef, ModuleRegistry, RowSelectionOptions, themeQuartz, ValidationModule } from 'ag-grid-community';
 import { AgGridReact } from "ag-grid-react";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "../styles.css";
 import ManageItem from "./ManageItem";
 
-ModuleRegistry.registerModules([AllCommunityModule]);
+ModuleRegistry.registerModules([AllCommunityModule, ValidationModule]);
 
 export default function DietTracker({ diet }: { diet: AllDietType }) {
     const gridRef = useRef<AgGridReact>(null);
@@ -20,7 +20,10 @@ export default function DietTracker({ diet }: { diet: AllDietType }) {
             filter: "agTextColumnFilter",
             flex: 1,
             // floatingFilter: true,
+            // maxWidth: 120,
+            minWidth: 100,
             enableCellChangeFlash: true,
+            // resizable: false
         };
     }, []);
 
@@ -67,6 +70,7 @@ export default function DietTracker({ diet }: { diet: AllDietType }) {
         );
     }
 
+
     const [colDefs, setColDefs] = useState<ColDef[]>([
         {
             field: "food_item",
@@ -75,6 +79,8 @@ export default function DietTracker({ diet }: { diet: AllDietType }) {
             filter: true,
             cellDataType: 'text',
             sortable: false,
+            // maxWidth: 200,
+            minWidth: 150,
         },
         {
             field: "current_weight",
@@ -87,43 +93,44 @@ export default function DietTracker({ diet }: { diet: AllDietType }) {
             field: "calories",
             headerName: "Calories",
             valueGetter: (p) => calcNutrientPerAmntOfWght(p, p.data.calories),
-            type: "number",
+            // type: "number",
         },
         {
             field: "protein",
             headerName: "Protein",
             valueGetter: (p) => calcNutrientPerAmntOfWght(p, p.data.protein),
-            type: "number",
+            // type: "number",
         },
         {
             field: "carbs",
             headerName: "Carbs",
             valueGetter: (p) => calcNutrientPerAmntOfWght(p, p.data.carbs),
-            type: "number",
+            // type: "number",
         },
         {
             field: "fat",
             headerName: "Fat",
             valueGetter: (p) => calcNutrientPerAmntOfWght(p, p.data.fat),
-            type: "number",
+            // type: "number",
         },
         {
             field: "sugar",
             headerName: "Sugar",
             valueGetter: (p) => calcNutrientPerAmntOfWght(p, p.data.sugar),
-            type: "number",
+            // type: "number",
         },
         {
             field: "amount_per",
             headerName: "Amount Per",
             valueFormatter: p => p.value?.toLocaleString() + " g",
-            type: "number",
+            // type: "number",
             filter: null,
         },
     ]);
 
     return (
         <div
+            id="myGrid"
             className="ag-theme-quartz"
             style={gridStyle}
         >
