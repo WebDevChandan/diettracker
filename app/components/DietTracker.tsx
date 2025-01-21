@@ -1,29 +1,25 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AllDietType } from "@/types/Diet";
 import { AllCommunityModule, ColDef, ModuleRegistry, RowSelectionOptions, themeQuartz, ValidationModule } from 'ag-grid-community';
 import { AgGridReact } from "ag-grid-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "../styles.css";
 import ManageItem from "./ManageItem";
+import { DietType } from "@/types/Diet";
 
 ModuleRegistry.registerModules([AllCommunityModule, ValidationModule]);
 
-export default function DietTracker({ diet }: { diet: AllDietType }) {
+export default function DietTracker({ diet }: { diet: DietType }) {
     const gridRef = useRef<AgGridReact>(null);
     const gridStyle = useMemo(() => ({ height: "300px", width: "100%", outline: "none", border: "none" }), []);
-    const [rowData, setRowData] = useState([...diet]);
 
-    const defaultColDef = useMemo<ColDef>(() => {
+    const defaultColDef = useMemo(() => {
         return {
             filter: "agTextColumnFilter",
             flex: 1,
-            // floatingFilter: true,
-            // maxWidth: 120,
             minWidth: 100,
             enableCellChangeFlash: true,
-            // resizable: false
         };
     }, []);
 
@@ -34,96 +30,91 @@ export default function DietTracker({ diet }: { diet: AllDietType }) {
         };
     }, []);
 
-    const rowClassRules = useMemo(() => ({
-        'red-row': (p: any) => p.data.make === "Toyota"
-    }), []);
-
-    const calcNutrientPerAmntOfWght = (p: any, currValue: number) => {
-
-        if (p.data.food_item !== "Total")
-            return parseFloat(((currValue / p.data.amount_per) * p.data.current_weight).toFixed(3));
-    };
-
-    const MyyCellComponent = (p: any) => {
-        const itemFixedNutrientValue = diet.find((diet) => diet.food_item === p.data.food_item);
-
-        return (
-            <Dialog>
-                <DialogTrigger asChild>
-                    <div style={{ cursor: "pointer" }}>{p.value}</div>
-
-                </DialogTrigger>
-
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Edit Item</DialogTitle>
-                        <DialogDescription>
-                            Edit Item for Breakfast
-                        </DialogDescription>
-                    </DialogHeader>
-                    <ManageItem isNewItem={false} itemFixedNutrientValue={itemFixedNutrientValue} />
-                </DialogContent>
-            </Dialog>
-        );
-    }
-
-
-    const [colDefs, setColDefs] = useState<ColDef[]>([
-        {
-            field: "food_item",
-            headerName: "Food Items",
-            cellRenderer: MyyCellComponent,
-            filter: true,
-            cellDataType: 'text',
-            sortable: false,
-            // maxWidth: 200,
-            minWidth: 150,
+    const calcNutrientPerAmntOfWght = useCallback(
+        (p: any, currValue: number) => {
+            if (p.data.name !== "Total") {
+                return parseFloat(((currValue / p.data.amountPer) * p.data.currentWeight).toFixed(3));
+            }
         },
-        {
-            field: "current_weight",
-            headerName: "Add Weight (g)",
-            editable: p => p.data.food_item !== "Total" ? true : false,
-            valueFormatter: p => p.value?.toLocaleString() + " g",
-            filter: null,
+        []
+    );
+
+    const MyCellComponent = useCallback(
+        (p: any) => {
+            const itemFixedNutrientValue = diet.find((item) => item.name === p.data.name);
+
+            return (
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <div style={{ cursor: "pointer" }}>{p.value}</div>
+                    </DialogTrigger>
+
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>Edit Item</DialogTitle>
+                            <DialogDescription>Edit Item for Breakfast</DialogDescription>
+                        </DialogHeader>
+                        <ManageItem isNewItem={false} itemFixedNutrientValue={itemFixedNutrientValue} />
+                    </DialogContent>
+                </Dialog>
+            );
         },
-        {
-            field: "calories",
-            headerName: "Calories",
-            valueGetter: (p) => calcNutrientPerAmntOfWght(p, p.data.calories),
-            // type: "number",
-        },
-        {
-            field: "protein",
-            headerName: "Protein",
-            valueGetter: (p) => calcNutrientPerAmntOfWght(p, p.data.protein),
-            // type: "number",
-        },
-        {
-            field: "carbs",
-            headerName: "Carbs",
-            valueGetter: (p) => calcNutrientPerAmntOfWght(p, p.data.carbs),
-            // type: "number",
-        },
-        {
-            field: "fat",
-            headerName: "Fat",
-            valueGetter: (p) => calcNutrientPerAmntOfWght(p, p.data.fat),
-            // type: "number",
-        },
-        {
-            field: "sugar",
-            headerName: "Sugar",
-            valueGetter: (p) => calcNutrientPerAmntOfWght(p, p.data.sugar),
-            // type: "number",
-        },
-        {
-            field: "amount_per",
-            headerName: "Amount Per",
-            valueFormatter: p => p.value?.toLocaleString() + " g",
-            // type: "number",
-            filter: null,
-        },
-    ]);
+        [diet]
+    );
+
+
+    const colDefs = useMemo(
+        () => [
+            {
+                field: "name",
+                headerName: "Food Items",
+                cellRenderer: MyCellComponent,
+                filter: true,
+                cellDataType: "text",
+                sortable: false,
+                minWidth: 150,
+            },
+            {
+                field: "currentWeight",
+                headerName: "Add Weight (g)",
+                editable: (p: any) => p.data.name !== "Total",
+                valueFormatter: (p: any) => p.value?.toLocaleString() + " g",
+                filter: null,
+            },
+            {
+                field: "calories",
+                headerName: "Calories",
+                valueGetter: (p: any) => calcNutrientPerAmntOfWght(p, p.data.calories),
+            },
+            {
+                field: "protein",
+                headerName: "Protein",
+                valueGetter: (p: any) => calcNutrientPerAmntOfWght(p, p.data.protein),
+            },
+            {
+                field: "carbs",
+                headerName: "Carbs",
+                valueGetter: (p: any) => calcNutrientPerAmntOfWght(p, p.data.carbs),
+            },
+            {
+                field: "fat",
+                headerName: "Fat",
+                valueGetter: (p: any) => calcNutrientPerAmntOfWght(p, p.data.fat),
+            },
+            {
+                field: "sugar",
+                headerName: "Sugar",
+                valueGetter: (p: any) => calcNutrientPerAmntOfWght(p, p.data.sugar),
+            },
+            {
+                field: "amountPer",
+                headerName: "Amount Per",
+                valueFormatter: (p: any) => p.value?.toLocaleString() + " g",
+                filter: null,
+            },
+        ],
+        [calcNutrientPerAmntOfWght, MyCellComponent]
+    );
 
     return (
         <div
@@ -135,10 +126,9 @@ export default function DietTracker({ diet }: { diet: AllDietType }) {
                 defaultColDef={defaultColDef}
                 theme={themeQuartz}
                 ref={gridRef}
-                rowData={rowData}
+                rowData={diet}
                 columnDefs={colDefs}
                 rowSelection={rowSelection}
-                rowClassRules={rowClassRules}
                 groupDefaultExpanded={1}
             />
         </div>
