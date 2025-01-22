@@ -26,7 +26,7 @@ model Category {
 
 model FoodItem {
   id            Int      @id @default(autoincrement())
-  name          String   @unique
+  name          String
   currentWeight Int      @default(0)
   calories      Int
   protein       Int
