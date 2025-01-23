@@ -52,7 +52,7 @@ export default function DietTracker({ diet }: { diet: DietType }) {
                     <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
                             <DialogTitle>Edit Item</DialogTitle>
-                            <DialogDescription>Edit Item for Breakfast</DialogDescription>
+                            <DialogDescription>Update or Delete Item from {itemFixedNutrientValue?.category.name}</DialogDescription>
                         </DialogHeader>
                         <ManageItem isNewItem={false} itemFixedNutrientValue={itemFixedNutrientValue} />
                     </DialogContent>

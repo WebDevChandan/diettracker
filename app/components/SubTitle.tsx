@@ -1,15 +1,16 @@
 "use client"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import useDialog from "@/hook/useDialog";
+import useDialog from "@/hooks/useDialog";
+import { AllCategory } from "@prisma/client";
 import { LuCirclePlus } from "react-icons/lu";
 import ManageItem from "./ManageItem";
 
-export default function SubTitle({ label }: { label: string }) {
+export default function SubTitle({ label }: { label: AllCategory }) {
     const { open, setOpen } = useDialog();
 
     return (
-        <h2 className="text-xl mr-5 flex items-center gap-3 mt-1 mb-2 ml-1">
+        <h2 className="text-xl mr-5 flex items-center gap-3 mt-1 mb-2 ml-1 capitalize">
             {label}
             <Dialog open={open} onOpenChange={setOpen}>
                 <TooltipProvider delayDuration={200}>
@@ -32,7 +33,7 @@ export default function SubTitle({ label }: { label: string }) {
                             Added nutrients should be from verified source
                         </DialogDescription>
                     </DialogHeader>
-                    <ManageItem isNewItem={true} />
+                    <ManageItem isNewItem={true} currentCategory={label} />
                 </DialogContent>
             </Dialog>
         </h2>
