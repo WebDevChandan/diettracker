@@ -3,20 +3,34 @@ import { DietType } from "@/types/Diet";
 import prisma from "@/utils/prisma";
 import { AllCategory } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { NextResponse } from "next/server";
 
 export const addItem = async ([newItem]: DietType) => {
     try {
+        if (!newItem.category.name)
+            throw new Error(`Invalid item category`);
+
         const categoryID = await prisma.category.findFirst({
             where: {
                 name: newItem.category.name
             },
         });
 
-        if (!categoryID) {
-            return {
-                error: `Category "${newItem.category.name}" not found.`,
+        if (!categoryID)
+            throw new Error(`Invalid item category`);
+
+        const isDuplicateItem = await prisma.foodItem.findFirst({
+            where: {
+                name: newItem.name,
+                categoryId: categoryID.id,
+            },
+            select: {
+                name: true,
             }
-        }
+        })
+
+        if (isDuplicateItem)
+            throw new Error(`Duplicate item found`);
 
         await prisma.foodItem.create({
             data: {
@@ -36,12 +50,8 @@ export const addItem = async ([newItem]: DietType) => {
         return {
             message: "Item added successfully",
         }
-        
-    } catch (error) {
-        console.log(error);
 
-        return {
-            error: "Failed to add item",
-        }
+    } catch (error: any) {
+        throw new Error(error.message || `Failed to add item`);
     }
 }
