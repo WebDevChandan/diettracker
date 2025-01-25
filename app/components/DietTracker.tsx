@@ -1,12 +1,15 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AllCommunityModule, ColDef, ModuleRegistry, RowSelectionOptions, themeQuartz, ValidationModule } from 'ag-grid-community';
+import { AllCommunityModule, ColDef, GridApi, ModuleRegistry, RowSelectionOptions, themeQuartz, ValidationModule } from 'ag-grid-community';
 import { AgGridReact } from "ag-grid-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "../styles.css";
 import ManageItem from "./ManageItem";
 import { DietType } from "@/types/Diet";
+import useDialog from "@/hooks/useDialog";
+import ManageItemProvider from "../context/ManageItemProvider";
+import { FoodItemType } from "@/types/FoodItem";
 
 ModuleRegistry.registerModules([AllCommunityModule, ValidationModule]);
 
@@ -23,13 +26,6 @@ export default function DietTracker({ diet }: { diet: DietType }) {
         };
     }, []);
 
-    const rowSelection = useMemo<RowSelectionOptions | "single" | "multiple">(() => {
-        return {
-            mode: "multiRow",
-            headerCheckbox: false,
-        };
-    }, []);
-
     const calcNutrientPerAmntOfWght = useCallback(
         (p: any, currValue: number) => {
             if (p.data.name !== "Total") {
@@ -39,9 +35,11 @@ export default function DietTracker({ diet }: { diet: DietType }) {
         []
     );
 
-    const MyCellComponent = useCallback(
+    const FoodItemComponent = useCallback(
         (p: any) => {
             const itemFixedNutrientValue = diet.find((item) => item.name === p.data.name);
+            if (!itemFixedNutrientValue)
+                return;
 
             return (
                 <Dialog>
@@ -51,10 +49,12 @@ export default function DietTracker({ diet }: { diet: DietType }) {
 
                     <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
-                            <DialogTitle>Edit Item</DialogTitle>
-                            <DialogDescription>Update or Delete Item from {itemFixedNutrientValue?.category.name}</DialogDescription>
+                            <DialogTitle>Edit Item for {itemFixedNutrientValue?.category.name}</DialogTitle>
+                            <DialogDescription>Delete or Update Item as <b>Amount Per (g)</b> </DialogDescription>
                         </DialogHeader>
-                        <ManageItem isNewItem={false} itemFixedNutrientValue={itemFixedNutrientValue} />
+                        <ManageItemProvider itemToManage={itemFixedNutrientValue} >
+                            <ManageItem isNewItem={false} currentCategory={itemFixedNutrientValue.category.name} />
+                        </ManageItemProvider>
                     </DialogContent>
                 </Dialog>
             );
@@ -62,13 +62,29 @@ export default function DietTracker({ diet }: { diet: DietType }) {
         [diet]
     );
 
+    const TotalComponent = useCallback(
+        (p: any) => {
+            return (
+                p.data.name !== "Total"
+                    ? <div style={{ cursor: "pointer" }}>{p.value}</div>
+                    : <div style={{ cursor: "pointer" }}>totalSum</div>
+            );
+        },
+        [diet]
+    );
+
+    const [rowData, setRowData] = useState<DietType>([]);
+
+    useEffect(() => {
+        setRowData([...diet]);
+    }, [diet]);
 
     const colDefs = useMemo(
         () => [
             {
                 field: "name",
                 headerName: "Food Items",
-                cellRenderer: MyCellComponent,
+                cellRenderer: FoodItemComponent,
                 filter: true,
                 cellDataType: "text",
                 sortable: false,
@@ -77,6 +93,7 @@ export default function DietTracker({ diet }: { diet: DietType }) {
             {
                 field: "currentWeight",
                 headerName: "Add Weight (g)",
+                // cellRenderer: TotalComponent,
                 editable: (p: any) => p.data.name !== "Total",
                 valueFormatter: (p: any) => p.value?.toLocaleString() + " g",
                 filter: null,
@@ -109,12 +126,32 @@ export default function DietTracker({ diet }: { diet: DietType }) {
             {
                 field: "amountPer",
                 headerName: "Amount Per",
+                cellRenderer: TotalComponent,
                 valueFormatter: (p: any) => p.value?.toLocaleString() + " g",
                 filter: null,
             },
         ],
-        [calcNutrientPerAmntOfWght, MyCellComponent]
+        [calcNutrientPerAmntOfWght, FoodItemComponent, TotalComponent]
     );
+
+
+    const getTotal = () => {
+        setRowData([...rowData, {
+            name: "sdf",
+            currentWeight: rowData.reduce((acc, curr) => acc + curr.currentWeight, 0),
+            calories: rowData.reduce((acc, curr) => acc + curr.calories, 0),
+            protein: rowData.reduce((acc, curr) => acc + curr.protein, 0),
+            carbs: rowData.reduce((acc, curr) => acc + curr.carbs, 0),
+            fat: rowData.reduce((acc, curr) => acc + curr.fat, 0),
+            sugar: rowData.reduce((acc, curr) => acc + curr.sugar, 0),
+            amountPer: 0,
+            category: {
+                name: `${diet[0].category.name}`,
+            }
+        }]);
+        console.log(rowData);
+    }
+
 
     return (
         <div
@@ -122,13 +159,27 @@ export default function DietTracker({ diet }: { diet: DietType }) {
             className="ag-theme-quartz"
             style={gridStyle}
         >
+            {/* <Button className="mr-2" onClick={getTotal}>Get Total</Button> */}
             <AgGridReact
                 defaultColDef={defaultColDef}
                 theme={themeQuartz}
                 ref={gridRef}
-                rowData={diet}
+                rowData={[...rowData,
+                    // {
+                    //     name: "Total",
+                    //     currentWeight: 0,
+                    //     calories: 0,
+                    //     protein: 0,
+                    //     carbs: 0,
+                    //     fat: 0,
+                    //     sugar: 0,
+                    //     amountPer: 0,
+                    //     category: {
+                    //         name: `${diet[0].category.name}`,
+                    //     }
+                    // }
+                ]}
                 columnDefs={colDefs}
-                rowSelection={rowSelection}
                 groupDefaultExpanded={1}
             />
         </div>
