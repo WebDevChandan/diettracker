@@ -1,5 +1,5 @@
-import { DialogContext } from "@/context/DialogProvider"
-import { useContext } from "react"
+import { DialogContext } from "@/context/DialogProvider";
+import { useContext } from "react";
 
 export default function useDialog() {
     const context = useContext(DialogContext);

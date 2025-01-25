@@ -4,13 +4,27 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import useDialog from "@/hooks/useDialog";
 import { AllCategory } from "@prisma/client";
 import { LuCirclePlus } from "react-icons/lu";
+import ManageItemProvider from "../context/ManageItemProvider";
 import ManageItem from "./ManageItem";
 
 export default function SubTitle({ label }: { label: AllCategory }) {
     const { open, setOpen } = useDialog();
+    const newItem = {
+        name: '',
+        calories: 0,
+        currentWeight: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        sugar: 0,
+        amountPer: 100,
+        category: {
+            name: label || "" as AllCategory,
+        }
+    }
 
     return (
-        <h2 className="text-xl mr-5 flex items-center gap-3 mt-1 mb-2 ml-1 capitalize">
+        <h2 className="text-xl mr-5 flex items-center gap-3 mt-2 mb-2 ml-1 capitalize">
             {label}
             <Dialog open={open} onOpenChange={setOpen}>
                 <TooltipProvider delayDuration={200}>
@@ -30,10 +44,12 @@ export default function SubTitle({ label }: { label: AllCategory }) {
                     <DialogHeader>
                         <DialogTitle>Add Item for {label} </DialogTitle>
                         <DialogDescription>
-                            Added nutrients should be from verified source
+                            Add nutrients as <b>Amount Per (g)</b> from verified source 
                         </DialogDescription>
                     </DialogHeader>
-                    <ManageItem isNewItem={true} currentCategory={label} />
+                    <ManageItemProvider itemToManage={newItem} >
+                        <ManageItem isNewItem={true} currentCategory={label} />
+                    </ManageItemProvider>
                 </DialogContent>
             </Dialog>
         </h2>

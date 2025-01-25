@@ -1,11 +1,9 @@
 "use server";
-import { DietType } from "@/types/Diet";
+import { FoodItemType } from "@/types/FoodItem";
 import prisma from "@/utils/prisma";
-import { AllCategory } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { NextResponse } from "next/server";
 
-export const addItem = async ([newItem]: DietType) => {
+export const addFoodItem = async (newItem: FoodItemType) => {
     try {
         if (!newItem.category.name)
             throw new Error(`Invalid item category`);
@@ -32,7 +30,7 @@ export const addItem = async ([newItem]: DietType) => {
         if (isDuplicateItem)
             throw new Error(`Duplicate item found`);
 
-        await prisma.foodItem.create({
+        const createdItem = await prisma.foodItem.create({
             data: {
                 name: newItem.name,
                 calories: newItem.calories,
@@ -49,9 +47,64 @@ export const addItem = async ([newItem]: DietType) => {
 
         return {
             message: "Item added successfully",
+            newItemId: createdItem.id, 
         }
 
     } catch (error: any) {
         throw new Error(error.message || `Failed to add item`);
+    }
+}
+
+export const updateFoodItem = async (editItem: FoodItemType) => {
+    try {
+        if (!editItem.id)
+            throw new Error(`Item ID not Found`);
+
+        await prisma.foodItem.update({
+            where: {
+                id: editItem.id,
+            },
+            data: {
+                name: editItem.name,
+                currentWeight: editItem.currentWeight,
+                calories: editItem.calories,
+                protein: editItem.protein,
+                fat: editItem.fat,
+                carbs: editItem.carbs,
+                sugar: editItem.sugar,
+                amountPer: editItem.amountPer,
+            }
+        })
+
+        revalidatePath("/");
+
+        return {
+            message: "Item updated successfully",
+        }
+
+    } catch (error: any) {
+        throw new Error(error.message || `Failed to update item`);
+    }
+}
+
+export const deleteFoodItem = async (deleteItem: FoodItemType) => {
+    try {
+        if (!deleteItem.id)
+            throw new Error(`Item ID not Found`);
+
+        await prisma.foodItem.delete({
+            where: {
+                id: deleteItem.id,
+            },
+        })
+
+        revalidatePath("/");
+
+        return {
+            message: "Item deleted successfully",
+        }
+
+    } catch (error: any) {
+        throw new Error(error.message || `Failed to delete item`);
     }
 }

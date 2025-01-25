@@ -1,6 +1,6 @@
 import { AllCategory } from "@prisma/client";
 
-export type DietType = {
+export type FoodItemType = {
     id?: number;
     name: string;
     currentWeight: number;
@@ -13,4 +13,4 @@ export type DietType = {
     category: {
         name: AllCategory,
     }
-}[]
+}

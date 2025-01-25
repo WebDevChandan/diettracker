@@ -1,12 +1,12 @@
 import prisma from "@/utils/prisma";
+import { Toaster } from "sonner";
 import Breakfast from "./components/Breakfast";
 import DietProvider from "./context/DietProvider";
-import { Toaster } from "sonner";
-import DialogProvider from "@/context/DialogProvider";
 
 const fetchDiet = async () => {
   const DietData = await prisma.foodItem.findMany({
     select: {
+      id: true,
       name: true,
       currentWeight: true,
       calories: true,
@@ -30,14 +30,11 @@ export default async function Home() {
 
   return (
     <DietProvider dietData={DietData} >
-      <DialogProvider>
-        <Toaster richColors />
-        <div id="diet_tracker" className="p-2">
-          <h1 className="text-2xl/7 font-bold text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight text-center w-full "> Track Your Diet</h1>
-
-          <Breakfast />
-        </div>
-      </DialogProvider>
+      <Toaster richColors />
+      <div id="diet_tracker" className="p-2">
+        <h1 className="text-2xl/7 font-bold text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight text-center w-full "> Track Your Diet</h1>
+        <Breakfast />
+      </div>
     </DietProvider>
   );
 }

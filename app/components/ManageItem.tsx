@@ -10,64 +10,27 @@ import { ChangeEvent, useState } from "react";
 import { toast } from "sonner";
 import { z } from 'zod';
 import { useDiet } from "../hooks/useDiet";
-import { addItem } from "../server/dietAction";
+import { useManageItemAction } from "../hooks/useManageItemAction";
+import { addFoodItem, deleteFoodItem, updateFoodItem } from "../server/dietAction";
 
 const itemSchema = z.object({
-    name: z.string().min(3, { message: 'Invalid Name' }).max(20, { message: 'Name length exceeded' }),
-    calories: z.number().min(0).max(500, { message: "Min: 0, Max: 500" }),
-    currentWeight: z.number().min(0),
-    protein: z.number().min(0).max(500, { message: "Min: 0, Max: 500" }),
-    carbs: z.number().min(0).max(500, { message: "Min: 0, Max: 500" }),
-    fat: z.number().min(0).max(500, { message: "Min: 0, Max: 500" }),
-    sugar: z.number().min(0).max(500, { message: "Min: 0, Max: 500" }),
-    amountPer: z.number().min(1, { message: "Min: 1, Max: 500" }),
+    name: z.string().min(3, { message: 'Invalid Food Name' }).max(20, { message: 'Name length exceeded' }),
+    calories: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(500, { message: "Min: 0g Max: 500g" }),
+    currentWeight: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(500, { message: "Min: 0g Max: 500g" }),
+    protein: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(500, { message: "Min: 0g Max: 500g" }),
+    carbs: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(500, { message: "Min: 0g Max: 500g" }),
+    fat: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(500, { message: "Min: 0g Max: 500g" }),
+    sugar: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(500, { message: "Min: 0g Max: 500g" }),
+    amountPer: z.number().min(1, { message: "Min: 1 Max:1kg" }).max(500, { message: "Min: 1g Max: 1kg" }),
     category: z.string().min(1, { message: "Select at least one category" }),
 })
 
-type itemFixedNutrientValue = {
-    name: string;
-    currentWeight: number;
-    calories?: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-    sugar: number;
-    amountPer: number;
-    category: {
-        name: AllCategory;
-    };
-} | undefined
-
-export default function ManageItem({ isNewItem, itemFixedNutrientValue, currentCategory }: { isNewItem: boolean, itemFixedNutrientValue?: itemFixedNutrientValue, currentCategory?: AllCategory }) {
+export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: boolean, currentCategory: AllCategory }) {
     const { diet, setDiet } = useDiet();
     const { open, setOpen } = useDialog();
+    const { foodItem, setFoodItem } = useManageItemAction();
 
-    const [newItem, setNewItem] = useState({
-        name: '',
-        calories: 0,
-        currentWeight: 0,
-        protein: 0,
-        carbs: 0,
-        fat: 0,
-        sugar: 0,
-        amountPer: 100,
-        category: {
-            name: currentCategory || "" as AllCategory,
-        }
-    });
-
-    const [editItem, setEditItem] = useState({
-        name: itemFixedNutrientValue?.name,
-        calories: itemFixedNutrientValue?.calories,
-        protein: itemFixedNutrientValue?.protein,
-        carbs: itemFixedNutrientValue?.carbs,
-        fat: itemFixedNutrientValue?.fat,
-        sugar: itemFixedNutrientValue?.sugar,
-        amountPer: itemFixedNutrientValue?.amountPer,
-        category: {
-            name: itemFixedNutrientValue?.category.name as AllCategory
-        },
-    });
+    const [initialFoodItemstate, setInitialFoodItemstate] = useState(foodItem);
 
     const [invalidItemError, setInvalidItemError] = useState({
         name: '',
@@ -78,30 +41,19 @@ export default function ManageItem({ isNewItem, itemFixedNutrientValue, currentC
         sugar: '',
         amountPer: '',
         category: '',
+        currentWeight: '',
     });
 
-    const handleNewItem = (event: ChangeEvent<HTMLInputElement>) => {
+    const handleFoodItem = (event: ChangeEvent<HTMLInputElement>) => {
         event.preventDefault();
         const value = event.target.value === '' ? 0 : parseFloat(event.target.value);
-        setNewItem({ ...newItem, [event.target.id]: event.target.id !== 'name' ? value : event.target.value });
+        setFoodItem({ ...foodItem, [event.target.id]: event.target.id !== 'name' ? value : event.target.value });
     };
 
-    const handleEditItem = (event: ChangeEvent<HTMLInputElement>) => {
-        event.preventDefault();
-        const value = event.target.value === '' ? 0 : parseFloat(event.target.value);
-        setEditItem({ ...editItem, [event.target.id]: event.target.id !== 'name' ? value : event.target.value });
-    };
-
-    const handleNewItemCategory = (value: string) => {
+    const handleFoodItemCategory = (value: string) => {
         if (!value) return
 
-        setNewItem({ ...newItem, category: { name: value as AllCategory } });
-    }
-
-    const handleEditItemCategory = (value: string) => {
-        if (!value) return
-
-        setEditItem({ ...editItem, category: { name: value as AllCategory } });
+        setFoodItem({ ...foodItem, category: { name: value as AllCategory } });
     }
 
     const handleItemValidation = () => {
@@ -114,18 +66,19 @@ export default function ManageItem({ isNewItem, itemFixedNutrientValue, currentC
             sugar: '',
             amountPer: '',
             category: '',
+            currentWeight: '',
         });
 
         const validation = itemSchema.safeParse({
-            name: newItem.name,
-            calories: newItem.calories,
-            currentWeight: newItem.currentWeight,
-            protein: newItem.protein,
-            carbs: newItem.carbs,
-            fat: newItem.fat,
-            sugar: newItem.sugar,
-            amountPer: newItem.amountPer,
-            category: newItem.category.name,
+            name: foodItem.name,
+            calories: foodItem.calories,
+            currentWeight: foodItem.currentWeight,
+            protein: foodItem.protein,
+            carbs: foodItem.carbs,
+            fat: foodItem.fat,
+            sugar: foodItem.sugar,
+            amountPer: foodItem.amountPer,
+            category: foodItem.category.name,
         })
 
         if (!validation.success) {
@@ -136,7 +89,12 @@ export default function ManageItem({ isNewItem, itemFixedNutrientValue, currentC
             })
         }
 
-        const isDuplicateItem = diet.some(item => item.name.toLocaleLowerCase() === newItem.name.toLocaleLowerCase() && item.category.name === newItem.category.name);
+        const isDuplicateItem = diet.some(item => {
+            if (isNewItem)
+                return item.name.toLocaleLowerCase() === foodItem.name.toLocaleLowerCase() && item.category.name === foodItem.category.name;
+            else
+                return foodItem.name.toLocaleLowerCase() !== initialFoodItemstate.name.toLocaleLowerCase() && item.name.toLocaleLowerCase() === foodItem.name.toLocaleLowerCase();
+        });
 
         return {
             isValidItem: validation.success,
@@ -144,28 +102,28 @@ export default function ManageItem({ isNewItem, itemFixedNutrientValue, currentC
         };
     }
 
-
-    const handleAddNewItem = async () => {
-        // Add new item to the database
+    const handleAddFoodItem = async () => {
         const { isValidItem, isDuplicateItem } = handleItemValidation() as { isValidItem: boolean, isDuplicateItem: boolean };
 
         if (isValidItem && isDuplicateItem)
-            return toast.info(`Duplicate item found in ${newItem.category.name}`);
+            return toast.info(`Duplicate item found in ${foodItem.category.name}`);
 
         if (isValidItem && !isDuplicateItem) {
 
             toast.promise(
-                addItem([newItem]),
+                addFoodItem(foodItem),
                 {
                     loading: 'Item Adding...',
                     success: (data) => {
                         if (data.message) {
                             setDiet([
-                                ...diet,
-                                newItem,
+                                ...diet, {
+                                    ...foodItem,
+                                    id: data.newItemId
+                                }
                             ]);
 
-                            setNewItem({
+                            setFoodItem({
                                 name: '',
                                 calories: 0,
                                 currentWeight: 0,
@@ -194,143 +152,145 @@ export default function ManageItem({ isNewItem, itemFixedNutrientValue, currentC
         }
     }
 
+    const handleUpdateFoodItem = async () => {
+        const { isValidItem, isDuplicateItem } = handleItemValidation() as { isValidItem: boolean, isDuplicateItem: boolean };
+
+        if (isValidItem && isDuplicateItem)
+            return toast.info(`Duplicate item found in ${foodItem.category.name}`);
+
+        if (isValidItem && !isDuplicateItem) {
+            toast.promise(
+                updateFoodItem(foodItem),
+                {
+                    loading: 'Item Updating...',
+                    success: (data) => {
+                        if (data.message) {
+                            setDiet((prevDiet) => {
+                                return prevDiet.map(item => {
+                                    if (item.id === initialFoodItemstate.id) {
+                                        return foodItem;
+                                    }
+                                    return item;
+                                })
+                            });
+
+                            setOpen(false);
+
+                            return `${data.message}`;
+                        }
+
+                        return "Unexpected response";
+                    },
+                    error: (error) => {
+                        return error.message || "Something went wrong";
+                    },
+                }
+            );
+        }
+    }
+
+    const handleDeleteFoodItem = async () => {
+        toast.promise(
+            deleteFoodItem(foodItem),
+            {
+                loading: 'Item Deleting...',
+                success: (data) => {
+                    if (data.message) {
+                        setDiet((prevDiet) => {
+                            return prevDiet.filter(item => {
+                                return item.id !== initialFoodItemstate.id;
+                            });
+                        });
+
+                        setOpen(false);
+
+                        return `${data.message}`;
+                    }
+
+                    return "Unexpected response";
+                },
+                error: (error) => {
+                    return error.message || "Something went wrong";
+                },
+            }
+        );
+    }
+
     return (
         <>
-            {isNewItem ?
-                <>
-                    <div className="grid gap-4">
-                        <div className="w-full">
-                            <Label htmlFor="name" className="text-right">Food Name*</Label>
-                            <Label htmlFor="name" className="text-red-500 text-xs ml-1">{invalidItemError.name}</Label>
-                            <Input id="name" value={newItem.name} className="col-span-3" type="text" onChange={handleNewItem} minLength={3} maxLength={20} />
-                        </div>
-                    </div>
+            <div className="grid gap-4">
+                <div className="w-full">
+                    <Label htmlFor="name" className="text-right">Food Name*</Label>
+                    <Label htmlFor="name" className="text-red-500 text-xs ml-1">{invalidItemError.name}</Label>
+                    <Input id="name" value={foodItem.name} className="col-span-3" type="text" onChange={handleFoodItem} minLength={3} maxLength={20} />
+                </div>
+            </div>
 
-                    <div className="grid grid-cols-2 gap-4 py-2">
-                        <div className="w-full">
-                            <Label htmlFor="calories" className="text-right">Calories (g)</Label>
-                            <Label htmlFor="calories" className="text-red-500 text-xs ml-1 block">{invalidItemError.calories}</Label>
-                            <Input id="calories" value={newItem.calories} className="col-span-3" type="number" min={0} max={500} onChange={handleNewItem} />
-                        </div>
-                        <div className="w-full">
-                            <Label htmlFor="protein" className="text-right">Protein (g)</Label>
-                            <Label htmlFor="protein" className="text-red-500 text-xs ml-1 block">{invalidItemError.protein}</Label>
-                            <Input id="protein" value={newItem.protein} className="col-span-3" type="number" min={0} max={500} onChange={handleNewItem} />
-                        </div>
-                        <div className="w-full">
-                            <Label htmlFor="carbs" className="text-right">Carbs (g)</Label>
-                            <Label htmlFor="carbs" className="text-red-500 text-xs ml-1 block">{invalidItemError.carbs}</Label>
-                            <Input id="carbs" value={newItem.carbs} className="col-span-3" type="number" min={0} max={500} onChange={handleNewItem} />
-                        </div>
-                        <div className="w-full">
-                            <Label htmlFor="fat" className="text-right">Fat (g)</Label>
-                            <Label htmlFor="fat" className="text-red-500 text-xs ml-1 block">{invalidItemError.fat}</Label>
-                            <Input id="fat" value={newItem.fat} className="col-span-3" type="number" min={0} max={500} onChange={handleNewItem} />
-                        </div>
-                        <div className="w-full">
-                            <Label htmlFor="sugar" className="text-right">Sugar (g)</Label>
-                            <Label htmlFor="sugar" className="text-red-500 text-xs ml-1 block">{invalidItemError.sugar}</Label>
-                            <Input id="sugar" value={newItem.sugar} className="col-span-3" type="number" min={0} max={500} onChange={handleNewItem} />
-                        </div>
-                        <div className="w-full">
-                            <Label htmlFor="amountPer" className="text-right">Amount Per* (g)</Label>
-                            <Label htmlFor="amountPer" className="text-red-500 text-xs ml-1 block">{invalidItemError.amountPer}</Label>
-                            <Input id="amountPer" value={newItem.amountPer} className="col-span-3" type="number" min={0} max={500} onChange={handleNewItem} />
-                        </div>
-                    </div>
+            <div className="grid grid-cols-2 gap-4 py-2">
+                <div className="w-full">
+                    <Label htmlFor="calories" className="text-right">Calories (per {foodItem.amountPer <= 2000 ? foodItem.amountPer : 2000} g)</Label>
+                    <Label htmlFor="calories" className="text-red-500 text-xs ml-1 block">{invalidItemError.calories}</Label>
+                    <Input id="calories" value={foodItem.calories} className="col-span-3" type="number" min={0} max={500} onChange={handleFoodItem} />
+                </div>
+                <div className="w-full">
+                    <Label htmlFor="protein" className="text-right">Protein (per {foodItem.amountPer <= 2000 ? foodItem.amountPer : 2000} g)</Label>
+                    <Label htmlFor="protein" className="text-red-500 text-xs ml-1 block">{invalidItemError.protein}</Label>
+                    <Input id="protein" value={foodItem.protein} className="col-span-3" type="number" min={0} max={500} onChange={handleFoodItem} />
+                </div>
+                <div className="w-full">
+                    <Label htmlFor="carbs" className="text-right">Carbs (per {foodItem.amountPer <= 2000 ? foodItem.amountPer : 2000} g)</Label>
+                    <Label htmlFor="carbs" className="text-red-500 text-xs ml-1 block">{invalidItemError.carbs}</Label>
+                    <Input id="carbs" value={foodItem.carbs} className="col-span-3" type="number" min={0} max={500} onChange={handleFoodItem} />
+                </div>
+                <div className="w-full">
+                    <Label htmlFor="fat" className="text-right">Fat (per {foodItem.amountPer <= 2000 ? foodItem.amountPer : 2000} g)</Label>
+                    <Label htmlFor="fat" className="text-red-500 text-xs ml-1 block">{invalidItemError.fat}</Label>
+                    <Input id="fat" value={foodItem.fat} className="col-span-3" type="number" min={0} max={500} onChange={handleFoodItem} />
+                </div>
+                <div className="w-full">
+                    <Label htmlFor="sugar" className="text-right">Sugar (per {foodItem.amountPer <= 2000 ? foodItem.amountPer : 2000} g)</Label>
+                    <Label htmlFor="sugar" className="text-red-500 text-xs ml-1 block">{invalidItemError.sugar}</Label>
+                    <Input id="sugar" value={foodItem.sugar} className="col-span-3" type="number" min={0} max={500} onChange={handleFoodItem} />
+                </div>
+                <div className="w-full">
+                    <Label htmlFor="amountPer" className="text-right">Amount Per* (g)</Label>
+                    <Label htmlFor="amountPer" className="text-red-500 text-xs ml-1 block">{invalidItemError.amountPer}</Label>
+                    <Input id="amountPer" value={foodItem.amountPer <= 2000 ? foodItem.amountPer : 2000} className="col-span-3" type="number" min={0} max={2000} onChange={handleFoodItem} />
+                </div>
+                {!isNewItem && <div className="w-full">
+                    <Label htmlFor="currentWeight" className="text-right">Add Weight (g)</Label>
+                    <Label htmlFor="currentWeight" className="text-red-500 text-xs ml-1 block">{invalidItemError.currentWeight}</Label>
+                    <Input id="currentWeight" value={foodItem.currentWeight} className="col-span-3" type="number" min={0} max={500} onChange={handleFoodItem} />
+                </div>}
+            </div>
 
-                    <div className="grid gap-4">
-                        <div className="w-full">
-                            <Label htmlFor="category" className="text-right">Category*</Label>
-                            <Label htmlFor="category" className="text-red-500 text-xs ml-1">{invalidItemError.category}</Label>
-                            <Select onValueChange={handleNewItemCategory} defaultValue={currentCategory}>
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select Category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectGroup>
-                                        <SelectItem value="breakfast">Breakfast</SelectItem>
-                                        <SelectItem value="lunch">Lunch</SelectItem>
-                                        <SelectItem value="dinner">Dinner</SelectItem>
-                                        <SelectItem value="snacks">Snacks</SelectItem>
-                                        <SelectItem value="other">Other</SelectItem>
-                                    </SelectGroup>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                </>
-                : itemFixedNutrientValue &&
-                <>
-                    <div className="grid gap-4">
-                        <div className="w-full">
-                            <Label htmlFor="name" className="text-right">Food Name</Label>
-                            <Label htmlFor="name" className="text-red-500 text-xs ml-1 block">{invalidItemError.name}</Label>
-                            <Input id="name" value={editItem.name} className="col-span-3" type="text" onChange={handleEditItem} minLength={3} maxLength={20} />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 py-2">
-                        <div className="w-full">
-                            <Label htmlFor="calories" className="text-right">Calories (g)</Label>
-                            <Label htmlFor="calories" className="text-red-500 text-xs ml-1 block">{invalidItemError.calories}</Label>
-                            <Input id="calories" value={editItem.calories} className="col-span-3" type="number" min={0} max={500} onChange={handleEditItem} />
-                        </div>
-                        <div className="w-full">
-                            <Label htmlFor="protein" className="text-right">Protein (g)</Label>
-                            <Label htmlFor="protein" className="text-red-500 text-xs ml-1 block">{invalidItemError.protein}</Label>
-                            <Input id="protein" value={editItem.protein} className="col-span-3" type="number" min={0} max={500} onChange={handleEditItem} />
-                        </div>
-                        <div className="w-full">
-                            <Label htmlFor="carbs" className="text-right">Carbs (g)</Label>
-                            <Label htmlFor="carbs" className="text-red-500 text-xs ml-1 block">{invalidItemError.carbs}</Label>
-                            <Input id="carbs" value={editItem.carbs} className="col-span-3" type="number" min={0} max={500} onChange={handleEditItem} />
-                        </div>
-                        <div className="w-full">
-                            <Label htmlFor="fat" className="text-right">Fat (g)</Label>
-                            <Label htmlFor="fat" className="text-red-500 text-xs ml-1 block">{invalidItemError.fat}</Label>
-                            <Input id="fat" value={editItem.fat} className="col-span-3" type="number" min={0} max={500} onChange={handleEditItem} />
-                        </div>
-                        <div className="w-full">
-                            <Label htmlFor="sugar" className="text-right">Sugar (g)</Label>
-                            <Label htmlFor="sugar" className="text-red-500 text-xs ml-1 block">{invalidItemError.sugar}</Label>
-                            <Input id="sugar" value={editItem.sugar} className="col-span-3" type="number" min={0} max={500} onChange={handleEditItem} />
-                        </div>
-                        <div className="w-full">
-                            <Label htmlFor="amountPer" className="text-right">Amount Per (g)</Label>
-                            <Label htmlFor="amountPer" className="text-red-500 text-xs ml-1 block">{invalidItemError.amountPer}</Label>
-                            <Input id="amountPer" value={editItem.amountPer} className="col-span-3" type="number" min={1} max={500} onChange={handleEditItem} />
-                        </div>
-                    </div>
-
-                    <div className="grid gap-4">
-                        <div className="w-full">
-                            <Label htmlFor="category" className="text-right">Category</Label>
-                            <Label htmlFor="category" className="text-red-500 text-xs ml-1 block">{invalidItemError.category}</Label>
-                            <Select onValueChange={handleEditItemCategory} defaultValue={editItem.category.name}>
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select Category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectGroup>
-                                        <SelectItem value="breakfast">Breakfast</SelectItem>
-                                        <SelectItem value="lunch">Lunch</SelectItem>
-                                        <SelectItem value="dinner">Dinner</SelectItem>
-                                        <SelectItem value="snacks">Snacks</SelectItem>
-                                        <SelectItem value="other">Other</SelectItem>
-                                    </SelectGroup>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                </>}
+            <div className="grid gap-4">
+                <div className="w-full">
+                    <Label htmlFor="category" className="text-right">Category*</Label>
+                    <Label htmlFor="category" className="text-red-500 text-xs ml-1">{invalidItemError.category}</Label>
+                    <Select onValueChange={handleFoodItemCategory} defaultValue={currentCategory}>
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                <SelectItem value="breakfast">Breakfast</SelectItem>
+                                <SelectItem value="lunch">Lunch</SelectItem>
+                                <SelectItem value="dinner">Dinner</SelectItem>
+                                <SelectItem value="snacks">Snacks</SelectItem>
+                                <SelectItem value="other">Other</SelectItem>
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
 
             <DialogFooter>
                 {isNewItem
-                    ? <Button type="submit" onClick={handleAddNewItem}>Add Item</Button>
+                    ? <Button type="submit" onClick={handleAddFoodItem}>Add Item</Button>
                     : <div className="flex justify-center items-center gap-2">
-                        <Button type="submit">Delete Item</Button>
-                        <Button type="submit">Update Item</Button>
+                        <Button type="submit" onClick={handleDeleteFoodItem}>Delete Item</Button>
+                        <Button type="submit" onClick={handleUpdateFoodItem}>Update Item</Button>
                     </div>
                 }
             </DialogFooter>
