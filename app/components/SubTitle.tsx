@@ -24,7 +24,7 @@ export default function SubTitle({ label }: { label: AllCategory }) {
     }
 
     return (
-        <h2 className="text-xl mr-5 flex items-center gap-3 mt-2 mb-2 ml-1 capitalize">
+        <h2 className="text-2xl mr-5 flex items-center gap-3 mt-2 mb-2 ml-1 capitalize">
             {label}
             <Dialog open={open} onOpenChange={setOpen}>
                 <TooltipProvider delayDuration={200}>
