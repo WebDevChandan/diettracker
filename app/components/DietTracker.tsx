@@ -1,15 +1,14 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AllCommunityModule, ColDef, GridApi, ModuleRegistry, RowSelectionOptions, themeQuartz, ValidationModule } from 'ag-grid-community';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DietType } from "@/types/Diet";
+import { AllCategory } from "@prisma/client";
+import { AllCommunityModule, ModuleRegistry, themeQuartz, ValidationModule } from 'ag-grid-community';
 import { AgGridReact } from "ag-grid-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+import ManageItemProvider from "../context/ManageItemProvider";
 import "../styles.css";
 import ManageItem from "./ManageItem";
-import { DietType } from "@/types/Diet";
-import useDialog from "@/hooks/useDialog";
-import ManageItemProvider from "../context/ManageItemProvider";
-import { FoodItemType } from "@/types/FoodItem";
 
 ModuleRegistry.registerModules([AllCommunityModule, ValidationModule]);
 
@@ -19,18 +18,25 @@ export default function DietTracker({ diet }: { diet: DietType }) {
 
     const defaultColDef = useMemo(() => {
         return {
-            filter: "agTextColumnFilter",
+            filter: null,
             flex: 1,
             minWidth: 100,
             enableCellChangeFlash: true,
         };
     }, []);
 
+    const calNutrientFormula = (nutrientValue: number, amountPer: number, currentWeight: number) => parseFloat(((nutrientValue / amountPer) * currentWeight).toFixed(3));
+
     const calcNutrientPerAmntOfWght = useCallback(
         (p: any, currValue: number) => {
-            if (p.data.name !== "Total") {
-                return parseFloat(((currValue / p.data.amountPer) * p.data.currentWeight).toFixed(3));
-            }
+            if (p.data.currentWeight > 2000)
+                return toast.info("Maximum 2kg limit exceeded");
+
+            if (p.data.name.trim().toLocaleLowerCase() !== "SubTotal".toLocaleLowerCase()) {
+                return calNutrientFormula(currValue, p.data.amountPer, p.data.currentWeight);
+
+            } else
+                return currValue;
         },
         []
     );
@@ -39,12 +45,12 @@ export default function DietTracker({ diet }: { diet: DietType }) {
         (p: any) => {
             const itemFixedNutrientValue = diet.find((item) => item.name === p.data.name);
             if (!itemFixedNutrientValue)
-                return;
+                return <div style={{ fontWeight: "500" }}>{p.value}</div>
 
             return (
                 <Dialog>
                     <DialogTrigger asChild>
-                        <div style={{ cursor: "pointer" }}>{p.value}</div>
+                        <div style={{ cursor: "pointer", fontWeight: "500", color: "#181D1F" }}>{p.value}</div>
                     </DialogTrigger>
 
                     <DialogContent className="sm:max-w-[425px]">
@@ -62,6 +68,10 @@ export default function DietTracker({ diet }: { diet: DietType }) {
         [diet]
     );
 
+    const rowClassRules = useMemo(() => ({
+        'bg-gray-800 text-white': (p: any) => p.data.name.trim().toLocaleLowerCase() === "SubTotal".toLocaleLowerCase()
+    }), []);
+
     const TotalComponent = useCallback(
         (p: any) => {
             return (
@@ -76,7 +86,22 @@ export default function DietTracker({ diet }: { diet: DietType }) {
     const [rowData, setRowData] = useState<DietType>([]);
 
     useEffect(() => {
-        setRowData([...diet]);
+        if (diet.length === 0) return;
+
+        const total = {
+            name: "SubTotal",
+            currentWeight: diet.reduce((acc, curr) => acc + curr.currentWeight, 0),
+            calories: diet.reduce((acc, curr) => acc + calNutrientFormula(curr.calories, curr.amountPer, curr.currentWeight), 0),
+            protein: diet.reduce((acc, curr) => acc + calNutrientFormula(curr.protein, curr.amountPer, curr.currentWeight), 0),
+            carbs: diet.reduce((acc, curr) => acc + calNutrientFormula(curr.carbs, curr.amountPer, curr.currentWeight), 0),
+            fat: diet.reduce((acc, curr) => acc + calNutrientFormula(curr.fat, curr.amountPer, curr.currentWeight), 0),
+            sugar: diet.reduce((acc, curr) => acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight), 0),
+            amountPer: 0,
+            category: {
+                name: `${diet[0].category.name}` as AllCategory,
+            }
+        };
+        setRowData([...diet, total]);
     }, [diet]);
 
     const colDefs = useMemo(
@@ -85,72 +110,69 @@ export default function DietTracker({ diet }: { diet: DietType }) {
                 field: "name",
                 headerName: "Food Items",
                 cellRenderer: FoodItemComponent,
-                filter: true,
                 cellDataType: "text",
                 sortable: false,
                 minWidth: 150,
+                filter: "agTextColumnFilter",
             },
             {
                 field: "currentWeight",
                 headerName: "Add Weight (g)",
                 // cellRenderer: TotalComponent,
-                editable: (p: any) => p.data.name !== "Total",
-                valueFormatter: (p: any) => p.value?.toLocaleString() + " g",
-                filter: null,
+                // editable: (p: any) => p.data.name !== "Total",
+                valueFormatter: (p: any) => p.value <= 2000 ? `${p.value?.toLocaleString()} g` : `${2000} g`,
             },
             {
                 field: "calories",
-                headerName: "Calories",
-                valueGetter: (p: any) => calcNutrientPerAmntOfWght(p, p.data.calories),
+                headerName: "Calories (g)",
+                valueFormatter: (p: any) => `${calcNutrientPerAmntOfWght(p, p.data.calories)} g`,
             },
             {
                 field: "protein",
-                headerName: "Protein",
-                valueGetter: (p: any) => calcNutrientPerAmntOfWght(p, p.data.protein),
+                headerName: "Protein (g)",
+                valueFormatter: (p: any) => `${calcNutrientPerAmntOfWght(p, p.data.calories)} g`,
             },
             {
                 field: "carbs",
-                headerName: "Carbs",
-                valueGetter: (p: any) => calcNutrientPerAmntOfWght(p, p.data.carbs),
+                headerName: "Carbs (g)",
+                valueFormatter: (p: any) => `${calcNutrientPerAmntOfWght(p, p.data.calories)} g`,
             },
             {
                 field: "fat",
-                headerName: "Fat",
-                valueGetter: (p: any) => calcNutrientPerAmntOfWght(p, p.data.fat),
+                headerName: "Fat (g)",
+                valueFormatter: (p: any) => `${calcNutrientPerAmntOfWght(p, p.data.calories)} g`,
             },
             {
                 field: "sugar",
-                headerName: "Sugar",
-                valueGetter: (p: any) => calcNutrientPerAmntOfWght(p, p.data.sugar),
+                headerName: "Sugar (g)",
+                valueFormatter: (p: any) => `${calcNutrientPerAmntOfWght(p, p.data.calories)} g`,
             },
             {
                 field: "amountPer",
-                headerName: "Amount Per",
-                cellRenderer: TotalComponent,
-                valueFormatter: (p: any) => p.value?.toLocaleString() + " g",
-                filter: null,
+                headerName: "Amount Per (g)",
+                valueFormatter: (p: any) => p.data.name.trim().toLocaleLowerCase() !== "SubTotal".toLocaleLowerCase() ? p.value?.toLocaleString() + " g" : "-",
             },
         ],
-        [calcNutrientPerAmntOfWght, FoodItemComponent, TotalComponent]
+        [calcNutrientPerAmntOfWght, FoodItemComponent]
     );
 
 
-    const getTotal = () => {
-        setRowData([...rowData, {
-            name: "sdf",
-            currentWeight: rowData.reduce((acc, curr) => acc + curr.currentWeight, 0),
-            calories: rowData.reduce((acc, curr) => acc + curr.calories, 0),
-            protein: rowData.reduce((acc, curr) => acc + curr.protein, 0),
-            carbs: rowData.reduce((acc, curr) => acc + curr.carbs, 0),
-            fat: rowData.reduce((acc, curr) => acc + curr.fat, 0),
-            sugar: rowData.reduce((acc, curr) => acc + curr.sugar, 0),
-            amountPer: 0,
-            category: {
-                name: `${diet[0].category.name}`,
-            }
-        }]);
-        console.log(rowData);
-    }
+    // const getTotal = () => {
+    //     setRowData([...rowData, {
+    //         name: "sdf",
+    //         currentWeight: rowData.reduce((acc, curr) => acc + curr.currentWeight, 0),
+    //         calories: rowData.reduce((acc, curr) => acc + ((curr.calories / curr.amountPer) * curr.currentWeight), 0),
+    //         protein: rowData.reduce((acc, curr) => acc + curr.protein, 0),
+    //         carbs: rowData.reduce((acc, curr) => acc + curr.carbs, 0),
+    //         fat: rowData.reduce((acc, curr) => acc + curr.fat, 0),
+    //         sugar: rowData.reduce((acc, curr) => acc + curr.sugar, 0),
+    //         amountPer: 0,
+    //         category: {
+    //             name: `${diet[0].category.name}`,
+    //         }
+    //     }]);
+    //     console.log(rowData);
+    // }
 
 
     return (
@@ -164,23 +186,10 @@ export default function DietTracker({ diet }: { diet: DietType }) {
                 defaultColDef={defaultColDef}
                 theme={themeQuartz}
                 ref={gridRef}
-                rowData={[...rowData,
-                    // {
-                    //     name: "Total",
-                    //     currentWeight: 0,
-                    //     calories: 0,
-                    //     protein: 0,
-                    //     carbs: 0,
-                    //     fat: 0,
-                    //     sugar: 0,
-                    //     amountPer: 0,
-                    //     category: {
-                    //         name: `${diet[0].category.name}`,
-                    //     }
-                    // }
-                ]}
+                rowData={rowData}
                 columnDefs={colDefs}
                 groupDefaultExpanded={1}
+                rowClassRules={rowClassRules}
             />
         </div>
     )

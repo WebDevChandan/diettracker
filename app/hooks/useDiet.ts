@@ -1,10 +1,10 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { DietContext } from "../context/DietProvider";
 import { AllCategory } from "@prisma/client";
 
 export function useDiet() {
-    const { diet, setDiet } = useContext(DietContext);
-    
+    const { diet, setDiet, initialDietState, setInitialDietState } = useContext(DietContext);
+
     if (!diet) {
         throw new Error("useDiet must be used within a DietProvider");
     }
@@ -17,7 +17,9 @@ export function useDiet() {
 
     return {
         breakfast,
-        diet, 
-        setDiet
+        diet,
+        setDiet,
+        initialDietState,
+        setInitialDietState
     };
 }

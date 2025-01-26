@@ -4,9 +4,11 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import useDialog from "@/hooks/useDialog";
 import { AllCategory } from "@prisma/client";
 import { ChangeEvent, useState } from "react";
+import { MdInfoOutline } from "react-icons/md";
 import { toast } from "sonner";
 import { z } from 'zod';
 import { useDiet } from "../hooks/useDiet";
@@ -21,7 +23,7 @@ const itemSchema = z.object({
     carbs: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(500, { message: "Min: 0g Max: 500g" }),
     fat: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(500, { message: "Min: 0g Max: 500g" }),
     sugar: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(500, { message: "Min: 0g Max: 500g" }),
-    amountPer: z.number().min(1, { message: "Min: 1 Max:1kg" }).max(500, { message: "Min: 1g Max: 1kg" }),
+    amountPer: z.number().min(1, { message: "Min: 1g Max: 2kg" }).max(2000, { message: "Min: 1g Max: 2kg" }),
     category: z.string().min(1, { message: "Select at least one category" }),
 })
 
@@ -190,30 +192,31 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
     }
 
     const handleDeleteFoodItem = async () => {
-        toast.promise(
-            deleteFoodItem(foodItem),
-            {
-                loading: 'Item Deleting...',
-                success: (data) => {
-                    if (data.message) {
-                        setDiet((prevDiet) => {
-                            return prevDiet.filter(item => {
-                                return item.id !== initialFoodItemstate.id;
+        if (confirm(`Are you sure you want to delete "${foodItem.name}"?`))
+            toast.promise(
+                deleteFoodItem(foodItem),
+                {
+                    loading: 'Item Deleting...',
+                    success: (data) => {
+                        if (data.message) {
+                            setDiet((prevDiet) => {
+                                return prevDiet.filter(item => {
+                                    return item.id !== initialFoodItemstate.id;
+                                });
                             });
-                        });
 
-                        setOpen(false);
+                            setOpen(false);
 
-                        return `${data.message}`;
-                    }
+                            return `${data.message}`;
+                        }
 
-                    return "Unexpected response";
-                },
-                error: (error) => {
-                    return error.message || "Something went wrong";
-                },
-            }
-        );
+                        return "Unexpected response";
+                    },
+                    error: (error) => {
+                        return error.message || "Something went wrong";
+                    },
+                }
+            );
     }
 
     return (
@@ -257,8 +260,22 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                     <Label htmlFor="amountPer" className="text-red-500 text-xs ml-1 block">{invalidItemError.amountPer}</Label>
                     <Input id="amountPer" value={foodItem.amountPer <= 2000 ? foodItem.amountPer : 2000} className="col-span-3" type="number" min={0} max={2000} onChange={handleFoodItem} />
                 </div>
-                {!isNewItem && <div className="w-full">
-                    <Label htmlFor="currentWeight" className="text-right">Add Weight (g)</Label>
+                {<div className="w-full">
+                    <Label htmlFor="currentWeight" className="text-right inline-flex gap-2 items-center">
+                        Add Weight (g)
+                        <TooltipProvider delayDuration={200}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <MdInfoOutline cursor="pointer" size={16} />
+
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Add Food Intake Weight</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+
+                    </Label>
                     <Label htmlFor="currentWeight" className="text-red-500 text-xs ml-1 block">{invalidItemError.currentWeight}</Label>
                     <Input id="currentWeight" value={foodItem.currentWeight} className="col-span-3" type="number" min={0} max={500} onChange={handleFoodItem} />
                 </div>}
