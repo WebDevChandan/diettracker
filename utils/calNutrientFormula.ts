@@ -1,0 +1,1 @@
+export const calNutrientFormula = (nutrientValue: number, amountPer: number, currentWeight: number) => parseFloat(((nutrientValue / amountPer) * currentWeight).toFixed(2));

@@ -4,15 +4,19 @@ import { DietType } from "@/types/Diet";
 import { AllCategory } from "@prisma/client";
 import { AllCommunityModule, ModuleRegistry, themeQuartz, ValidationModule } from 'ag-grid-community';
 import { AgGridReact } from "ag-grid-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import ManageItemProvider from "../context/ManageItemProvider";
 import "../styles.css";
 import ManageItem from "./ManageItem";
+import { useDiet } from "../hooks/useDiet";
+import { calNutrientFormula } from "@/utils/calNutrientFormula";
 
 ModuleRegistry.registerModules([AllCommunityModule, ValidationModule]);
 
-export default function DietTracker({ diet }: { diet: DietType }) {
+export default function DietTracker({ diet, category }: { diet: DietType, category: string }) {
+    const { total, setTotal } = useDiet();
+
     const gridRef = useRef<AgGridReact>(null);
     const gridStyle = useMemo(() => ({ height: "300px", width: "100%", outline: "none", border: "none" }), []);
 
@@ -24,9 +28,6 @@ export default function DietTracker({ diet }: { diet: DietType }) {
             enableCellChangeFlash: true,
         };
     }, []);
-
-    const calNutrientFormula = (nutrientValue: number, amountPer: number, currentWeight: number) => parseFloat(((nutrientValue / amountPer) * currentWeight).toFixed(3));
-
     const calcNutrientPerAmntOfWght = useCallback(
         (p: any, currValue: number) => {
             if (p.data.currentWeight > 2000)
@@ -85,24 +86,40 @@ export default function DietTracker({ diet }: { diet: DietType }) {
 
     const [rowData, setRowData] = useState<DietType>([]);
 
-    useEffect(() => {
-        if (diet.length === 0) return;
-
-        const total = {
+    const newSubTotal = useMemo(() => {
+        return {
             name: "SubTotal",
             currentWeight: diet.reduce((acc, curr) => acc + curr.currentWeight, 0),
-            calories: diet.reduce((acc, curr) => acc + calNutrientFormula(curr.calories, curr.amountPer, curr.currentWeight), 0),
-            protein: diet.reduce((acc, curr) => acc + calNutrientFormula(curr.protein, curr.amountPer, curr.currentWeight), 0),
-            carbs: diet.reduce((acc, curr) => acc + calNutrientFormula(curr.carbs, curr.amountPer, curr.currentWeight), 0),
-            fat: diet.reduce((acc, curr) => acc + calNutrientFormula(curr.fat, curr.amountPer, curr.currentWeight), 0),
-            sugar: diet.reduce((acc, curr) => acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight), 0),
+            calories: diet.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.calories, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+            protein: diet.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.protein, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+            carbs: diet.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.carbs, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+            fat: diet.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.fat, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+            sugar: diet.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
             amountPer: 0,
             category: {
                 name: `${diet[0].category.name}` as AllCategory,
             }
-        };
-        setRowData([...diet, total]);
+        }
+
     }, [diet]);
+
+    useEffect(() => {
+        if (diet.length === 0) return;
+
+        setRowData((prev) => [...diet, newSubTotal]);
+
+        // setTotal((prev: any) => {
+        //     if (JSON.stringify(prev.breakfast) === JSON.stringify(newSubTotal)) {
+        //         return prev; // Prevent redundant updates
+        //     }
+        //     return [
+        //         { "breakfast": newSubTotal }
+        //     ];
+        // });
+
+    }, [diet, newSubTotal]);
+
+    console.log(total);
 
     const colDefs = useMemo(
         () => [
@@ -130,22 +147,22 @@ export default function DietTracker({ diet }: { diet: DietType }) {
             {
                 field: "protein",
                 headerName: "Protein (g)",
-                valueFormatter: (p: any) => `${calcNutrientPerAmntOfWght(p, p.data.calories)} g`,
+                valueFormatter: (p: any) => `${calcNutrientPerAmntOfWght(p, p.data.protein)} g`,
             },
             {
                 field: "carbs",
                 headerName: "Carbs (g)",
-                valueFormatter: (p: any) => `${calcNutrientPerAmntOfWght(p, p.data.calories)} g`,
+                valueFormatter: (p: any) => `${calcNutrientPerAmntOfWght(p, p.data.carbs)} g`,
             },
             {
                 field: "fat",
                 headerName: "Fat (g)",
-                valueFormatter: (p: any) => `${calcNutrientPerAmntOfWght(p, p.data.calories)} g`,
+                valueFormatter: (p: any) => `${calcNutrientPerAmntOfWght(p, p.data.fat)} g`,
             },
             {
                 field: "sugar",
                 headerName: "Sugar (g)",
-                valueFormatter: (p: any) => `${calcNutrientPerAmntOfWght(p, p.data.calories)} g`,
+                valueFormatter: (p: any) => `${calcNutrientPerAmntOfWght(p, p.data.sugar)} g`,
             },
             {
                 field: "amountPer",

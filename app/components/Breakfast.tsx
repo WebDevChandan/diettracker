@@ -7,7 +7,7 @@ import DietTracker from "./DietTracker";
 import SubTitle from "./SubTitle";
 
 export default function Breakfast() {
-  const { breakfast, diet } = useDiet();
+  const { breakfast } = useDiet();
 
   return (
     <DialogProvider>
@@ -15,7 +15,7 @@ export default function Breakfast() {
         <SubTitle label={AllCategory.breakfast} />
         <Button type="submit" size={"sm"}>Total Nutrients</Button>
       </div>
-      <DietTracker diet={breakfast} />
+      <DietTracker diet={breakfast} category="breakfast"/>
     </DialogProvider>
   )
 }
