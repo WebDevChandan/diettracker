@@ -6,16 +6,16 @@ import { useDiet } from "../hooks/useDiet";
 import DietTracker from "./DietTracker";
 import SubTitle from "./SubTitle";
 
-export default function Breakfast() {
-  const { breakfast } = useDiet();
+export default function Lunch() {
+  const { lunch } = useDiet();
 
   return (
     <DialogProvider>
-      <div className="width-full flex justify-between items-center mt-2 mb-1">
-        <SubTitle label={AllCategory.breakfast} />
-        <Button type="submit" size={"sm"}>Total Nutrients</Button>
+      <div className="width-full flex justify-between items-center mt-5 mb-1">
+        <SubTitle label={AllCategory.lunch} />
+        {/* <Button type="submit" size={"sm"}>Total Nutrients</Button> */}
       </div>
-      <DietTracker diet={breakfast} category={AllCategory.breakfast}/>
+      <DietTracker diet={lunch} category={AllCategory.lunch}/>
     </DialogProvider>
   )
 }

@@ -6,6 +6,7 @@ import { AllCategory } from "@prisma/client";
 import { LuCirclePlus } from "react-icons/lu";
 import ManageItemProvider from "../context/ManageItemProvider";
 import ManageItem from "./ManageItem";
+import { MdDelete, MdOutlineDeleteOutline } from "react-icons/md";
 
 export default function SubTitle({ label }: { label: AllCategory }) {
     const { open, setOpen } = useDialog();
@@ -44,7 +45,7 @@ export default function SubTitle({ label }: { label: AllCategory }) {
                     <DialogHeader>
                         <DialogTitle>Add Item for {label} </DialogTitle>
                         <DialogDescription>
-                            Add nutrients as <b>Amount Per (g)</b> from verified source 
+                            Add nutrients as <b>Amount Per (g)</b> from verified source
                         </DialogDescription>
                     </DialogHeader>
                     <ManageItemProvider itemToManage={newItem} >
@@ -52,6 +53,17 @@ export default function SubTitle({ label }: { label: AllCategory }) {
                     </ManageItemProvider>
                 </DialogContent>
             </Dialog>
+
+            {/* <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <MdDelete size="20px" cursor="pointer" color="#b60a0a" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Remove Selected Item</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider> */}
         </h2>
     )
 }

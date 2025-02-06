@@ -18,6 +18,7 @@ export function useDiet() {
     
     return {
         breakfast,
+        lunch,
         diet,
         setDiet,
         total,
