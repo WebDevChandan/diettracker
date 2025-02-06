@@ -2,7 +2,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DietType } from "@/types/Diet";
 import { AllCategory } from "@prisma/client";
-import { AllCommunityModule, ModuleRegistry, themeQuartz, ValidationModule } from 'ag-grid-community';
+import { AllCommunityModule, ModuleRegistry, RowNodeTransaction, RowSelectionOptions, themeQuartz, ValidationModule } from 'ag-grid-community';
 import { AgGridReact } from "ag-grid-react";
 import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -11,10 +11,11 @@ import "../styles.css";
 import ManageItem from "./ManageItem";
 import { useDiet } from "../hooks/useDiet";
 import { calNutrientFormula } from "@/utils/calNutrientFormula";
+import { Button } from "@/components/ui/button";
 
 ModuleRegistry.registerModules([AllCommunityModule, ValidationModule]);
 
-export default function DietTracker({ diet, category }: { diet: DietType, category: string }) {
+export default function DietTracker({ diet, category }: { diet: DietType, category: AllCategory }) {
     const { total, setTotal } = useDiet();
 
     const gridRef = useRef<AgGridReact>(null);
@@ -73,16 +74,57 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
         'bg-gray-800 text-white': (p: any) => p.data.name.trim().toLocaleLowerCase() === "SubTotal".toLocaleLowerCase()
     }), []);
 
-    const TotalComponent = useCallback(
-        (p: any) => {
-            return (
-                p.data.name !== "Total"
-                    ? <div style={{ cursor: "pointer" }}>{p.value}</div>
-                    : <div style={{ cursor: "pointer" }}>totalSum</div>
-            );
-        },
-        [diet]
-    );
+    const rowSelection = useMemo<RowSelectionOptions | "single" | "multiple">(() => {
+        return { mode: "multiRow" };
+    }, []);
+
+    const getRowData = useCallback(() => {
+        const rowData: any[] = [];
+        gridRef.current!.api.forEachNode(function (node) {
+            rowData.push(node.data);
+        });
+        console.log("Row Data:");
+        console.table(rowData);
+    }, []);
+
+
+    function printResult(res: RowNodeTransaction) {
+        console.log("---------------------------------------");
+        if (res.add) {
+            res.add.forEach((rowNode) => {
+                console.log("Added Row Node", rowNode);
+            });
+        }
+        if (res.remove) {
+            res.remove.forEach((rowNode) => {
+                console.log("Removed Row Node", rowNode);
+            });
+        }
+        if (res.update) {
+            res.update.forEach((rowNode) => {
+                console.log("Updated Row Node", rowNode);
+            });
+        }
+    }
+
+    const onRemoveSelected = useCallback(() => {
+        const selectedData = gridRef.current!.api.getSelectedRows();
+        const res = gridRef.current!.api.applyTransaction({
+            remove: selectedData,
+        })!;
+        printResult(res);
+    }, []);
+
+    // const TotalComponent = useCallback(
+    //     (p: any) => {
+    //         return (
+    //             p.data.name !== "Total"
+    //                 ? <div style={{ cursor: "pointer" }}>{p.value}</div>
+    //                 : <div style={{ cursor: "pointer" }}>totalSum</div>
+    //         );
+    //     },
+    //     [diet]
+    // );
 
     const [rowData, setRowData] = useState<DietType>([]);
 
@@ -97,16 +139,19 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
             sugar: diet.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
             amountPer: 0,
             category: {
-                name: `${diet[0].category.name}` as AllCategory,
+                name: `${category}` as AllCategory,
             }
         }
 
     }, [diet]);
 
-    useEffect(() => {
-        if (diet.length === 0) return;
+    const [subTotal, setSubTotal] = useState(newSubTotal);
 
-        setRowData((prev) => [...diet, newSubTotal]);
+    useEffect(() => {
+        if (diet.length === 0 && diet[0]?.category.name === category) return;
+
+        setRowData((prev) => [...diet]);
+        setSubTotal(newSubTotal);
 
         // setTotal((prev: any) => {
         //     if (JSON.stringify(prev.breakfast) === JSON.stringify(newSubTotal)) {
@@ -119,7 +164,6 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
 
     }, [diet, newSubTotal]);
 
-    console.log(total);
 
     const colDefs = useMemo(
         () => [
@@ -141,8 +185,8 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
             },
             {
                 field: "calories",
-                headerName: "Calories (g)",
-                valueFormatter: (p: any) => `${calcNutrientPerAmntOfWght(p, p.data.calories)} g`,
+                headerName: "Calories (Cal)",
+                valueFormatter: (p: any) => `${calcNutrientPerAmntOfWght(p, p.data.calories)} Cal`,
             },
             {
                 field: "protein",
@@ -174,31 +218,14 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
     );
 
 
-    // const getTotal = () => {
-    //     setRowData([...rowData, {
-    //         name: "sdf",
-    //         currentWeight: rowData.reduce((acc, curr) => acc + curr.currentWeight, 0),
-    //         calories: rowData.reduce((acc, curr) => acc + ((curr.calories / curr.amountPer) * curr.currentWeight), 0),
-    //         protein: rowData.reduce((acc, curr) => acc + curr.protein, 0),
-    //         carbs: rowData.reduce((acc, curr) => acc + curr.carbs, 0),
-    //         fat: rowData.reduce((acc, curr) => acc + curr.fat, 0),
-    //         sugar: rowData.reduce((acc, curr) => acc + curr.sugar, 0),
-    //         amountPer: 0,
-    //         category: {
-    //             name: `${diet[0].category.name}`,
-    //         }
-    //     }]);
-    //     console.log(rowData);
-    // }
-
-
     return (
         <div
             id="myGrid"
             className="ag-theme-quartz"
             style={gridStyle}
         >
-            {/* <Button className="mr-2" onClick={getTotal}>Get Total</Button> */}
+            {/* <Button className="mr-2" onClick={getRowData}>Get Row</Button>
+            <Button className="mr-2" onClick={onRemoveSelected}>Remove Selected</Button> */}
             <AgGridReact
                 defaultColDef={defaultColDef}
                 theme={themeQuartz}
@@ -207,6 +234,8 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
                 columnDefs={colDefs}
                 groupDefaultExpanded={1}
                 rowClassRules={rowClassRules}
+                // rowSelection={rowSelection}
+                pinnedBottomRowData={[subTotal]}
             />
         </div>
     )

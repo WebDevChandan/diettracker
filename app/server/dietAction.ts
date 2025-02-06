@@ -1,26 +1,34 @@
 "use server";
 import { FoodItemType } from "@/types/FoodItem";
 import prisma from "@/utils/prisma";
+import { AllCategory } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+
+const _getCategoryID = async (categoryName: AllCategory) => {
+    const isCategoryID = await prisma.category.findFirst({
+        where: {
+            name: categoryName
+        },
+    });
+
+    if (!isCategoryID)
+        throw new Error(`Invalid item category`);
+
+    return isCategoryID.id;
+
+}
 
 export const addFoodItem = async (newItem: FoodItemType) => {
     try {
         if (!newItem.category.name)
             throw new Error(`Invalid item category`);
 
-        const categoryID = await prisma.category.findFirst({
-            where: {
-                name: newItem.category.name
-            },
-        });
-
-        if (!categoryID)
-            throw new Error(`Invalid item category`);
+        const categoryID = await _getCategoryID(newItem.category.name);
 
         const isDuplicateItem = await prisma.foodItem.findFirst({
             where: {
                 name: newItem.name,
-                categoryId: categoryID.id,
+                categoryId: categoryID,
             },
             select: {
                 name: true,
@@ -39,7 +47,7 @@ export const addFoodItem = async (newItem: FoodItemType) => {
                 carbs: newItem.carbs,
                 sugar: newItem.sugar,
                 amountPer: newItem.amountPer,
-                categoryId: categoryID.id,
+                categoryId: categoryID,
             }
         })
 
@@ -47,7 +55,7 @@ export const addFoodItem = async (newItem: FoodItemType) => {
 
         return {
             message: "Item added successfully",
-            newItemId: createdItem.id, 
+            newItemId: createdItem.id,
         }
 
     } catch (error: any) {
@@ -59,6 +67,8 @@ export const updateFoodItem = async (editItem: FoodItemType) => {
     try {
         if (!editItem.id)
             throw new Error(`Item ID not Found`);
+
+        const categoryID = await _getCategoryID(editItem.category.name);
 
         await prisma.foodItem.update({
             where: {
@@ -73,6 +83,7 @@ export const updateFoodItem = async (editItem: FoodItemType) => {
                 carbs: editItem.carbs,
                 sugar: editItem.sugar,
                 amountPer: editItem.amountPer,
+                categoryId: categoryID,
             }
         })
 
