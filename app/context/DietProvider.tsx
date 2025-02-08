@@ -1,12 +1,11 @@
 "use client";
 import { DietType } from "@/types/Diet";
-import { AllCategory } from "@prisma/client";
-import { createContext, Dispatch, ReactNode, SetStateAction, useState } from "react"
+import { createContext, Dispatch, ReactNode, SetStateAction, useState } from "react";
 
 type DietContextType = {
     diet: DietType
     setDiet: Dispatch<SetStateAction<DietType>>;
-    total: Object,
+    total: object,
     setTotal: Dispatch<SetStateAction<never[]>>;
 };
 

@@ -142,7 +142,7 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
             }
         }
 
-    }, [diet]);
+    }, [diet, category]);
 
     const [subTotal, setSubTotal] = useState(newSubTotal);
 
@@ -161,7 +161,7 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
         //     ];
         // });
 
-    }, [diet, newSubTotal]);
+    }, [diet, newSubTotal, category]);
 
 
     const colDefs = useMemo(
