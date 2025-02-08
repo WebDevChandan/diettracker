@@ -1,7 +1,6 @@
-import { DietType } from "@/types/Diet";
 import { FoodItemType } from "@/types/FoodItem";
 import { AllCategory } from "@prisma/client";
-import { createContext, Dispatch, SetStateAction, useState } from "react"
+import { createContext, Dispatch, SetStateAction, useState } from "react";
 
 type ManageItemType = {
     foodItem: FoodItemType;

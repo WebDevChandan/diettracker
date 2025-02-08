@@ -1,5 +1,5 @@
 import prisma from "@/utils/prisma";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { Toaster } from "sonner";
 import Breakfast from "./components/Breakfast";
 import Lunch from "./components/Lunch";

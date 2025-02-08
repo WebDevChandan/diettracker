@@ -6,7 +6,6 @@ import { AllCategory } from "@prisma/client";
 import { LuCirclePlus } from "react-icons/lu";
 import ManageItemProvider from "../context/ManageItemProvider";
 import ManageItem from "./ManageItem";
-import { MdDelete, MdOutlineDeleteOutline } from "react-icons/md";
 
 export default function SubTitle({ label }: { label: AllCategory }) {
     const { open, setOpen } = useDialog();
