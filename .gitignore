@@ -43,3 +43,6 @@ next-env.d.ts
 # Development Purpose
 /app/components/DietTracker_copy.tsx
 prisma/dev.db
+
+# clerk configuration (can include secrets)
+/.clerk/
