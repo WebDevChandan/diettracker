@@ -11,7 +11,7 @@ export async function GET(request: Request) {
         }
 
         await prisma.foodItem.deleteMany();
-        await prisma.category.deleteMany();
+        // await prisma.category.deleteMany();
 
 
         await prisma.category.createMany({
@@ -24,34 +24,34 @@ export async function GET(request: Request) {
             ],
         })
 
-        const breakfastId = await prisma.category.findFirst({
-            where: { name: "breakfast" },
-        });
-        const lunchId = await prisma.category.findFirst({
-            where: { name: "lunch" },
-        });
+        // const breakfastId = await prisma.category.findFirst({
+        //     where: { name: "breakfast" },
+        // });
+        // const lunchId = await prisma.category.findFirst({
+        //     where: { name: "lunch" },
+        // });
 
-        await prisma.foodItem.createMany({
-            data: [{
-                name: "Apple",
-                calories: 50,
-                protein: 2,
-                carbs: 2,
-                fat: 0.1,
-                sugar: 0,
-                amountPer: 100,
-                categoryId: breakfastId!.id,
-            }, {
-                name: 'Baked Salmon',
-                calories: 378,
-                protein: 21,
-                fat: 22.4,
-                carbs: 12,
-                sugar: 0,
-                amountPer: 100,
-                categoryId: lunchId!.id,
-            }]
-        });
+        // await prisma.foodItem.createMany({
+        //     data: [{
+        //         name: "Apple",
+        //         calories: 50,
+        //         protein: 2,
+        //         carbs: 2,
+        //         fat: 0.1,
+        //         sugar: 0,
+        //         amountPer: 100,
+        //         categoryId: breakfastId!.id,
+        //     }, {
+        //         name: 'Baked Salmon',
+        //         calories: 378,
+        //         protein: 21,
+        //         fat: 22.4,
+        //         carbs: 12,
+        //         sugar: 0,
+        //         amountPer: 100,
+        //         categoryId: lunchId!.id,
+        //     }]
+        // });
 
         return NextResponse.json(
             { message: "Database Seeded Successfully" },

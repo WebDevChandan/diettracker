@@ -1,8 +1,9 @@
 import prisma from "@/utils/prisma";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { Toaster } from "sonner";
 import Breakfast from "./components/Breakfast";
-import DietProvider from "./context/DietProvider";
 import Lunch from "./components/Lunch";
+import DietProvider from "./context/DietProvider";
 
 const fetchDiet = async () => {
   const DietData = await prisma.foodItem.findMany({
@@ -27,7 +28,11 @@ const fetchDiet = async () => {
   return DietData;
 }
 export default async function Home() {
+  const user  = await currentUser();
+  // const { session } = useSession();
   const DietData = await fetchDiet();
+
+  // console.log(user);
 
   return (
     <DietProvider dietData={DietData} >
