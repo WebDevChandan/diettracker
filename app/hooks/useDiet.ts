@@ -1,6 +1,6 @@
-import { useContext, useEffect } from "react";
-import { DietContext } from "../context/DietProvider";
 import { AllCategory } from "@prisma/client";
+import { useContext } from "react";
+import { DietContext } from "../context/DietProvider";
 
 export function useDiet() {
     const { diet, setDiet, total, setTotal } = useContext(DietContext);

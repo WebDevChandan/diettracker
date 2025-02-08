@@ -5,7 +5,6 @@ import { AllCategory } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 const _getCategoryID = async (categoryName: AllCategory) => {
-    console.log("getCategoryID", categoryName);
     const isCategoryID = await prisma.category.findFirst({
         where: {
             name: categoryName
