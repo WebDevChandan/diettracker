@@ -1,7 +1,7 @@
 import { AllCategory } from "@prisma/client";
 
 export type FoodItemType = {
-    id?: number;
+    id?: string;
     name: string;
     currentWeight: number;
     calories: number;

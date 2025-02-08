@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
@@ -19,13 +19,15 @@ enum AllCategory {
 }
 
 model Category {
-  id       String      @id @default(cuid())
-  name     AllCategory
-  foodItem FoodItem[]
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  name       AllCategory
+  foodItem   FoodItem[]
+  created_at DateTime    @default(now())
+  update_at  DateTime    @updatedAt
 }
 
 model FoodItem {
-  id            Int      @id @default(autoincrement())
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
   name          String
   currentWeight Int      @default(0)
   calories      Int
@@ -35,5 +37,17 @@ model FoodItem {
   sugar         Int
   amountPer     Int
   category      Category @relation(fields: [categoryId], references: [id])
-  categoryId    String
+  categoryId    String   @db.ObjectId
+  created_at    DateTime @default(now())
+  update_at     DateTime @updatedAt
+}
+
+model User {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  lastName    String
+  email       String   @unique
+  clerkUserID String
+  created_at  DateTime @default(now())
+  update_at   DateTime @updatedAt
 }
