@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { z } from 'zod';
 import { useDiet } from "../hooks/useDiet";
 import { useManageItemAction } from "../hooks/useManageItemAction";
-import { addFoodItem, deleteFoodItem, updateFoodItem } from "../server/dietAction";
+import { addFoodItem, deleteFoodItem, updateFoodItem } from "../server/diet.action";
 
 const itemSchema = z.object({
     name: z.string().min(3, { message: 'Invalid Food Name' }).max(20, { message: 'Name length exceeded' }),
