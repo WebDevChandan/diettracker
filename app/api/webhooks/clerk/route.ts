@@ -59,16 +59,7 @@ export async function POST(req: Request) {
             clerkUserID: id,
         }
 
-        const createdUser = await createUser(newUser);
-
-        const client = await clerkClient();
-
-        await client.users.createUser({
-            emailAddress: [email_addresses[0].email_address],
-            privateMetadata: {
-                mongoDBID: createdUser?.id,
-            }
-        })
+        await createUser(newUser);
     }
 
     if (evt.type === 'user.deleted') {
@@ -80,8 +71,4 @@ export async function POST(req: Request) {
 
         await deleteUser(clerkUserID);
     }
-
-
-
-    return new Response('Webhook received', { status: 200 })
 }

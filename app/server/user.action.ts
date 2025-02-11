@@ -3,7 +3,7 @@ import prisma from "@/utils/prisma";
 
 export const createUser = async (user: UserType) => {
     try {
-        return await prisma.user.create({
+        await prisma.user.create({
             data: {
                 ...user,
             }
