@@ -3,9 +3,22 @@ import prisma from "@/utils/prisma";
 
 export const createUser = async (user: UserType) => {
     try {
-        await prisma.user.create({
+        return await prisma.user.create({
             data: {
                 ...user,
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export const deleteUser = async (clerkUserID: string) => {
+    try {
+        await prisma.user.delete({
+            where: {
+                clerkUserID: clerkUserID,
             }
         });
 

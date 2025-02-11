@@ -47,7 +47,7 @@ model User {
   name        String
   lastName    String
   email       String   @unique
-  clerkUserID String
+  clerkUserID String   @unique
   created_at  DateTime @default(now())
   update_at   DateTime @updatedAt
 }
