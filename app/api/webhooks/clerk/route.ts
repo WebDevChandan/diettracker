@@ -3,7 +3,7 @@ import { headers } from 'next/headers'
 import { clerkClient, WebhookEvent } from '@clerk/nextjs/server'
 import prisma from '@/utils/prisma'
 import { UserType } from '@/types/User'
-import { createUser } from '@/app/server/user.action'
+import { createUser, deleteUser } from '@/app/server/user.action'
 
 export async function POST(req: Request) {
     const SIGNING_SECRET = process.env.SIGNING_SECRET
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     const payload = await req.json()
     const body = JSON.stringify(payload)
 
-    let evt: WebhookEvent
+    let evt: WebhookEvent;
 
     // Verify payload with headers
     try {
@@ -41,6 +41,7 @@ export async function POST(req: Request) {
             'svix-timestamp': svix_timestamp,
             'svix-signature': svix_signature,
         }) as WebhookEvent
+
     } catch (err) {
         console.error('Error: Could not verify webhook:', err)
         return new Response('Error: Verification error', {
@@ -48,26 +49,39 @@ export async function POST(req: Request) {
         })
     }
 
-    // Do something with payload
-    // For this guide, log payload to console
-    const { id } = evt.data
-    const eventType = evt.type
-    console.log(`Received webhook with ID ${id} and event type of ${eventType}`)
-    console.log('Webhook payload:', body)
-
     if (evt.type === 'user.created') {
         const { id, email_addresses, first_name, last_name } = evt.data;
 
         const newUser: UserType = {
-            name: first_name ?? '',
-            lastName: last_name ?? '',
+            name: first_name!,
+            lastName: last_name!,
             email: email_addresses[0].email_address,
             clerkUserID: id,
         }
 
-        await createUser(newUser);
+        const createdUser = await createUser(newUser);
 
+        const client = await clerkClient();
+
+        await client.users.createUser({
+            emailAddress: [email_addresses[0].email_address],
+            privateMetadata: {
+                mongoDBID: createdUser?.id,
+            }
+        })
     }
+
+    if (evt.type === 'user.deleted') {
+        const clerkUserID = evt.data.id;
+        if (!clerkUserID)
+            return new Response('Error: User not Found', {
+                status: 400,
+            })
+
+        await deleteUser(clerkUserID);
+    }
+
+
 
     return new Response('Webhook received', { status: 200 })
 }
