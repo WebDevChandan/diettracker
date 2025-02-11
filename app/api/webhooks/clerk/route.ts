@@ -51,8 +51,6 @@ export async function POST(req: Request) {
 
     if (evt.type === 'user.created') {
         const { id, email_addresses, first_name, last_name } = evt.data;
-        console.log("Reached");
-        debugger;
 
         const newUser: UserType = {
             name: first_name ?? "",
@@ -64,13 +62,13 @@ export async function POST(req: Request) {
         await createUser(newUser);
     }
 
-    // if (evt.type === 'user.deleted') {
-    //     const clerkUserID = evt.data.id;
-    //     if (!clerkUserID)
-    //         return new Response('Error: User not Found', {
-    //             status: 400,
-    //         })
+    if (evt.type === 'user.deleted') {
+        const clerkUserID = evt.data.id;
+        if (!clerkUserID)
+            return new Response('Error: User not Found', {
+                status: 400,
+            })
 
-    //     await deleteUser(clerkUserID);
-    // }
+        await deleteUser(clerkUserID);
+    }
 }
