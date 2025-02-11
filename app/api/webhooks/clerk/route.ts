@@ -51,6 +51,8 @@ export async function POST(req: Request) {
 
     if (evt.type === 'user.created') {
         const { id, email_addresses, first_name, last_name } = evt.data;
+        console.log("Reached");
+        debugger;
 
         const newUser: UserType = {
             name: first_name!,
