@@ -45,6 +45,7 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
     const FoodItemComponent = useCallback(
         (p: any) => {
             const itemFixedNutrientValue = diet.find((item) => item.name === p.data.name);
+            
             if (!itemFixedNutrientValue)
                 return <div style={{ fontWeight: "500" }}>{p.value}</div>
 
@@ -56,11 +57,11 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
 
                     <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
-                            <DialogTitle>Edit Item for {itemFixedNutrientValue?.category.name}</DialogTitle>
-                            <DialogDescription>Delete or Update Item as <b>Amount Per (g)</b> </DialogDescription>
+                            <DialogTitle>Edit Item for {itemFixedNutrientValue?.category}</DialogTitle>
+                            <DialogDescription>Update Item as <b>Amount Per (g)</b> </DialogDescription>
                         </DialogHeader>
                         <ManageItemProvider itemToManage={itemFixedNutrientValue} >
-                            <ManageItem isNewItem={false} currentCategory={itemFixedNutrientValue.category.name} />
+                            <ManageItem isNewItem={false} currentCategory={itemFixedNutrientValue.category} />
                         </ManageItemProvider>
                     </DialogContent>
                 </Dialog>
@@ -147,7 +148,7 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
     const [subTotal, setSubTotal] = useState(newSubTotal);
 
     useEffect(() => {
-        if (diet.length === 0 && diet[0]?.category.name === category) return;
+        if (diet.length === 0 && diet[0]?.category === category) return;
 
         setRowData((prev) => [...diet]);
         setSubTotal(newSubTotal);
@@ -177,7 +178,7 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
             },
             {
                 field: "currentWeight",
-                headerName: "Add Weight (g)",
+                headerName: "Food Intake Weight (g)",
                 // cellRenderer: TotalComponent,
                 // editable: (p: any) => p.data.name !== "Total",
                 valueFormatter: (p: any) => p.value <= 2000 ? `${p.value?.toLocaleString()} g` : `${2000} g`,

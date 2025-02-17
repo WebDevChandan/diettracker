@@ -18,9 +18,7 @@ export default function SubTitle({ label }: { label: AllCategory }) {
         fat: 0,
         sugar: 0,
         amountPer: 100,
-        category: {
-            name: label || "" as AllCategory,
-        }
+        category: label || "" as AllCategory,
     }
 
     return (

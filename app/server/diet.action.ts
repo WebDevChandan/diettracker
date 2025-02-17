@@ -1,53 +1,66 @@
 "use server";
 import { FoodItemType } from "@/types/FoodItem";
+import { fetchUserEmail } from "@/utils/fetchUserEmail";
 import prisma from "@/utils/prisma";
 import { AllCategory } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
-const _getCategoryID = async (categoryName: AllCategory) => {
-    const isCategoryID = await prisma.category.findFirst({
-        where: {
-            name: categoryName
-        },
-    });
-
-    if (!isCategoryID)
-        throw new Error(`Invalid item category`);
-
-    return isCategoryID.id;
-
-}
-
 export const addFoodItem = async (newItem: FoodItemType) => {
     try {
-        if (!newItem.category.name)
+        if (!newItem.category)
             throw new Error(`Invalid item category`);
 
-        const categoryID = await _getCategoryID(newItem.category.name);
+        const userEmail = await fetchUserEmail();
 
-        const isDuplicateItem = await prisma.foodItem.findFirst({
+        if (!userEmail)
+            throw new Error(`User not found`);
+
+        const duplicateItemCount = await prisma.user.count({
             where: {
-                name: newItem.name,
-                categoryId: categoryID,
-            },
-            select: {
-                name: true,
+                email: userEmail,
+                diet: {
+                    some: {
+                        name: newItem.name,
+                        category: newItem.category,
+                    }
+                }
             }
-        })
+        });
 
-        if (isDuplicateItem)
+        if (duplicateItemCount)
             throw new Error(`Duplicate item found`);
 
-        const createdItem = await prisma.foodItem.create({
+        const createdItemId =
+            await prisma.user.update({
+                where: {
+                    email: userEmail,
+                },
+                data: {
+                    diet: {
+                        push: newItem
+                    }
+                }
+            }).then((user) => user.diet[user.diet.length - 1].id);
+
+
+        //List Food Items of User
+        const userId = await prisma.user.findFirst({ where: { email: userEmail } }).then(user => user?.id);
+
+        if (!userId) {
+            throw new Error("User ID not found");
+        }
+
+        await prisma.foodItemList.create({
             data: {
-                name: newItem.name,
-                calories: newItem.calories,
-                protein: newItem.protein,
-                fat: newItem.fat,
-                carbs: newItem.carbs,
-                sugar: newItem.sugar,
-                amountPer: newItem.amountPer,
-                categoryId: categoryID,
+                name: "Test Food Item",
+                calories: 100,
+                protein: 5,
+                fat: 2,
+                carbs: 7,
+                sugar: 0,
+                amountPer: 100,
+                category: AllCategory.breakfast,
+                user_id: userId,
             }
         })
 
@@ -55,7 +68,7 @@ export const addFoodItem = async (newItem: FoodItemType) => {
 
         return {
             message: "Item added successfully",
-            newItemId: createdItem.id,
+            newItemId: createdItemId,
         }
 
     } catch (error: any) {
@@ -65,25 +78,29 @@ export const addFoodItem = async (newItem: FoodItemType) => {
 
 export const updateFoodItem = async (editItem: FoodItemType) => {
     try {
+        const userEmail = await fetchUserEmail();
+
+        if (!userEmail)
+            throw new Error(`User not found`);
+
         if (!editItem.id)
             throw new Error(`Item ID not Found`);
 
-        const categoryID = await _getCategoryID(editItem.category.name);
-
-        await prisma.foodItem.update({
+        await prisma.user.update({
             where: {
-                id: editItem.id,
+                email: userEmail,
             },
             data: {
-                name: editItem.name,
-                currentWeight: editItem.currentWeight,
-                calories: editItem.calories,
-                protein: editItem.protein,
-                fat: editItem.fat,
-                carbs: editItem.carbs,
-                sugar: editItem.sugar,
-                amountPer: editItem.amountPer,
-                categoryId: categoryID,
+                diet: {
+                    updateMany: {
+                        where: {
+                            id: editItem.id,
+                        },
+                        data: {
+                            ...editItem
+                        }
+                    }
+                }
             }
         })
 
@@ -100,13 +117,28 @@ export const updateFoodItem = async (editItem: FoodItemType) => {
 
 export const deleteFoodItem = async (deleteItem: FoodItemType) => {
     try {
+        const userEmail = await fetchUserEmail();
+
+        if (!userEmail)
+            throw new Error(`User not found`);
+
         if (!deleteItem.id)
             throw new Error(`Item ID not Found`);
 
-        await prisma.foodItem.delete({
+
+        await prisma.user.update({
             where: {
-                id: deleteItem.id,
+                email: userEmail,
             },
+            data: {
+                diet: {
+                    deleteMany: {
+                        where: {
+                            id: deleteItem.id,
+                        },
+                    }
+                }
+            }
         })
 
         revalidatePath("/");

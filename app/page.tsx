@@ -4,46 +4,30 @@ import { Toaster } from "sonner";
 import Breakfast from "./components/Breakfast";
 import Lunch from "./components/Lunch";
 import DietProvider from "./context/DietProvider";
+import { fetchUserEmail } from "@/utils/fetchUserEmail";
 
 const fetchUserDiet = async (userEmail: string) => {
   try {
-    const [data] = await prisma.user.findMany({
+    const data = await prisma.user.findFirst({
       where: {
         email: userEmail
       },
       select: {
-        diet: {
-          select: {
-            id: true,
-            name: true,
-            currentWeight: true,
-            calories: true,
-            protein: true,
-            carbs: true,
-            fat: true,
-            sugar: true,
-            amountPer: true,
-            category: {
-              select: {
-                name: true,
-              }
-            }
-          }
-        }
+        diet: true
       }
-    })
+    }).then(user => user?.diet);
 
-    return data.diet ?? [];
+    return data;
 
   } catch (error) {
     console.log("Error Fetching skill Data: ", error);
   }
 }
-export default async function Home() {
-  const user = await currentUser();
-  const userEmail = user?.primaryEmailAddress?.emailAddress;
 
-  if (!user || !userEmail) return <div>Not signed in</div>
+export default async function Home() {
+  const userEmail = await fetchUserEmail();
+
+  if (!userEmail) return <div>Not signed in</div>
 
   const DietData = await fetchUserDiet(userEmail);
 

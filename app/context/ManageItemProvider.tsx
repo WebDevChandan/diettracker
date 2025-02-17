@@ -16,9 +16,7 @@ export const ManageItemContext = createContext<ManageItemType>({
         fat: 0,
         sugar: 0,
         amountPer: 0,
-        category: {
-            name: AllCategory.breakfast
-        }
+        category: AllCategory.breakfast
     },
     setFoodItem: () => { },
 });

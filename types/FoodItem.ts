@@ -10,7 +10,5 @@ export type FoodItemType = {
     fat: number;
     sugar: number;
     amountPer: number;
-    category: {
-        name: AllCategory,
-    }
+    category: AllCategory,
 }
