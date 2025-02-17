@@ -8,9 +8,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import useDialog from "@/hooks/useDialog";
 import { AllCategory } from "@prisma/client";
 import { ChangeEvent, useState } from "react";
-import { MdInfoOutline } from "react-icons/md";
+import { MdInfoOutline, MdOutlinePlaylistAdd, MdOutlinePlaylistAddCheck } from "react-icons/md";
 import { toast } from "sonner";
-import { z } from 'zod';
+import { boolean, z } from 'zod';
 import { useDiet } from "../hooks/useDiet";
 import { useManageItemAction } from "../hooks/useManageItemAction";
 import { addFoodItem, deleteFoodItem, updateFoodItem } from "../server/diet.action";
@@ -33,6 +33,8 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
     const { foodItem, setFoodItem } = useManageItemAction();
 
     const [initialFoodItemstate, setInitialFoodItemstate] = useState(foodItem);
+    const [itemAddedToList, setItemAddedToList] = useState(false);
+
 
     const [invalidItemError, setInvalidItemError] = useState({
         name: '',
@@ -55,7 +57,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
     const handleFoodItemCategory = (value: string) => {
         if (!value) return
 
-        setFoodItem({ ...foodItem, category: { name: value as AllCategory } });
+        setFoodItem({ ...foodItem, category: value as AllCategory });
     }
 
     const handleItemValidation = () => {
@@ -80,7 +82,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
             fat: foodItem.fat,
             sugar: foodItem.sugar,
             amountPer: foodItem.amountPer,
-            category: foodItem.category.name,
+            category: foodItem.category,
         })
 
         if (!validation.success) {
@@ -93,7 +95,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
 
         const isDuplicateItem = diet.some(item => {
             if (isNewItem)
-                return item.name.toLocaleLowerCase() === foodItem.name.toLocaleLowerCase() && item.category.name === foodItem.category.name;
+                return item.name.toLocaleLowerCase() === foodItem.name.toLocaleLowerCase() && item.category === foodItem.category;
             else
                 return foodItem.name.toLocaleLowerCase() !== initialFoodItemstate.name.toLocaleLowerCase() && item.name.toLocaleLowerCase() === foodItem.name.toLocaleLowerCase();
         });
@@ -108,7 +110,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
         const { isValidItem, isDuplicateItem } = handleItemValidation() as { isValidItem: boolean, isDuplicateItem: boolean };
 
         if (isValidItem && isDuplicateItem)
-            return toast.info(`Duplicate item found in ${foodItem.category.name}`);
+            return toast.info(`Duplicate item found in ${foodItem.category}`);
 
         if (isValidItem && !isDuplicateItem) {
 
@@ -134,9 +136,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                 fat: 0,
                                 sugar: 0,
                                 amountPer: 100,
-                                category: {
-                                    name: "" as AllCategory,
-                                },
+                                category: "" as AllCategory,
                             });
 
                             setOpen(false);
@@ -158,7 +158,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
         const { isValidItem, isDuplicateItem } = handleItemValidation() as { isValidItem: boolean, isDuplicateItem: boolean };
 
         if (isValidItem && isDuplicateItem)
-            return toast.info(`Duplicate item found in ${foodItem.category.name}`);
+            return toast.info(`Duplicate item found in ${foodItem.category}`);
 
         if (isValidItem && !isDuplicateItem) {
             toast.promise(
@@ -219,6 +219,10 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
             );
     }
 
+    const handleSaveForLater = () => {
+        setItemAddedToList(!itemAddedToList);
+    }
+
     return (
         <>
             <div className="grid gap-4">
@@ -260,7 +264,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                     <Label htmlFor="amountPer" className="text-red-500 text-xs ml-1 block">{invalidItemError.amountPer}</Label>
                     <Input id="amountPer" value={foodItem.amountPer <= 2000 ? foodItem.amountPer : 2000} className="col-span-3" type="number" min={0} max={2000} onChange={handleFoodItem} />
                 </div>
-                {<div className="w-full">
+                <div className="w-full">
                     <Label htmlFor="currentWeight" className="text-right inline-flex gap-2 items-center">
                         Add Weight (g)
                         <TooltipProvider delayDuration={200}>
@@ -270,7 +274,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
 
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>Add Food Intake Weight</p>
+                                    <p>Food Intake Weight</p>
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
@@ -278,8 +282,20 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                     </Label>
                     <Label htmlFor="currentWeight" className="text-red-500 text-xs ml-1 block">{invalidItemError.currentWeight}</Label>
                     <Input id="currentWeight" value={foodItem.currentWeight} className="col-span-3" type="number" min={0} max={500} onChange={handleFoodItem} />
-                </div>}
+                </div>
+                <div className="w-full">
+                    <Label htmlFor="currentWeight" className="text-right inline-flex gap-2 items-center">
+                        Save for Later
+                    </Label>
+                    <Button type="button" size={"sm"}
+                        className={`${itemAddedToList ? 'bg-slate-900' : 'bg-slate-700 outline-none hover:bg-slate-600'}`}
+                    onClick={handleSaveForLater}
+                    >
+                    {itemAddedToList ? <MdOutlinePlaylistAddCheck /> : <MdOutlinePlaylistAdd />}
+                    {itemAddedToList ? "Item Added to List" : "Add Item To List"}
+                </Button>
             </div>
+        </div >
 
             <div className="grid gap-4">
                 <div className="w-full">

@@ -9,13 +9,13 @@ export function useDiet() {
         throw new Error("useDiet must be used within a DietProvider");
     }
 
-    const breakfast = diet.filter(item => item.category.name === AllCategory.breakfast);
-    const lunch = diet.filter(item => item.category.name === AllCategory.lunch);
-    const dinner = diet.filter(item => item.category.name === AllCategory.dinner);
-    const snacks = diet.filter(item => item.category.name === AllCategory.snacks);
-    const other = diet.filter(item => item.category.name === AllCategory.other);
+    const breakfast = diet.filter(item => item.category === AllCategory.breakfast);
+    const lunch = diet.filter(item => item.category === AllCategory.lunch);
+    const dinner = diet.filter(item => item.category === AllCategory.dinner);
+    const snacks = diet.filter(item => item.category === AllCategory.snacks);
+    const other = diet.filter(item => item.category === AllCategory.other);
 
-    
+
     return {
         breakfast,
         lunch,

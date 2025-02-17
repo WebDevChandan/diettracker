@@ -10,7 +10,5 @@ export type DietType = {
     fat: number;
     sugar: number;
     amountPer: number;
-    category: {
-        name: AllCategory,
-    }
+    category: AllCategory,
 }[]

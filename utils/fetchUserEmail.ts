@@ -1,6 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server"
 
-export const currentUserEmail = async () => {
+export const fetchUserEmail = async () => {
     const user = await currentUser();
     const userEmail = user?.primaryEmailAddress?.emailAddress;
 
