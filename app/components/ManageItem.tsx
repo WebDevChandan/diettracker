@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import useDialog from "@/hooks/useDialog";
 import { AllCategory } from "@prisma/client";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { MdInfoOutline, MdOutlinePlaylistAdd, MdOutlinePlaylistAddCheck } from "react-icons/md";
 import { toast } from "sonner";
 import { boolean, z } from 'zod';
@@ -27,14 +27,13 @@ const itemSchema = z.object({
     category: z.string().min(1, { message: "Select at least one category" }),
 })
 
-export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: boolean, currentCategory: AllCategory }) {
+export default function ManageItem({ isNewItem, currentCategory, isListedItem = false }: { isNewItem: boolean, currentCategory: AllCategory, isListedItem?: boolean }) {
     const { diet, setDiet } = useDiet();
     const { open, setOpen } = useDialog();
     const { foodItem, setFoodItem } = useManageItemAction();
 
     const [initialFoodItemstate, setInitialFoodItemstate] = useState(foodItem);
-    const [itemAddedToList, setItemAddedToList] = useState(false);
-
+    const [hasItemChanged, setHasItemChanged] = useState(false);
 
     const [invalidItemError, setInvalidItemError] = useState({
         name: '',
@@ -48,8 +47,28 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
         currentWeight: '',
     });
 
+    useEffect(() => {
+        if (
+            initialFoodItemstate.name !== foodItem.name ||
+            initialFoodItemstate.calories !== foodItem.calories ||
+            initialFoodItemstate.currentWeight !== foodItem.currentWeight ||
+            initialFoodItemstate.protein !== foodItem.protein ||
+            initialFoodItemstate.carbs !== foodItem.carbs ||
+            initialFoodItemstate.fat !== foodItem.fat ||
+            initialFoodItemstate.sugar !== foodItem.sugar ||
+            initialFoodItemstate.amountPer !== foodItem.amountPer ||
+            initialFoodItemstate.category !== foodItem.category ||
+            initialFoodItemstate.listed !== foodItem.listed
+        )
+            setHasItemChanged(true);
+        else
+            setHasItemChanged(false);
+
+    }, [foodItem])
+
     const handleFoodItem = (event: ChangeEvent<HTMLInputElement>) => {
         event.preventDefault();
+
         const value = event.target.value === '' ? 0 : parseFloat(event.target.value);
         setFoodItem({ ...foodItem, [event.target.id]: event.target.id !== 'name' ? value : event.target.value });
     };
@@ -93,12 +112,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
             })
         }
 
-        const isDuplicateItem = diet.some(item => {
-            if (isNewItem)
-                return item.name.toLocaleLowerCase() === foodItem.name.toLocaleLowerCase() && item.category === foodItem.category;
-            else
-                return foodItem.name.toLocaleLowerCase() !== initialFoodItemstate.name.toLocaleLowerCase() && item.name.toLocaleLowerCase() === foodItem.name.toLocaleLowerCase();
-        });
+        const isDuplicateItem = diet.some(item => item.name.toLocaleLowerCase() === foodItem.name.toLocaleLowerCase() && item.category === foodItem.category && !hasItemChanged);
 
         return {
             isValidItem: validation.success,
@@ -137,6 +151,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                 sugar: 0,
                                 amountPer: 100,
                                 category: "" as AllCategory,
+                                listed: foodItem.listed,
                             });
 
                             setOpen(false);
@@ -155,6 +170,10 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
     }
 
     const handleUpdateFoodItem = async () => {
+        if (!hasItemChanged) {
+            return toast.info(`No Changes Found!`);
+        }
+
         const { isValidItem, isDuplicateItem } = handleItemValidation() as { isValidItem: boolean, isDuplicateItem: boolean };
 
         if (isValidItem && isDuplicateItem)
@@ -219,8 +238,11 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
             );
     }
 
-    const handleSaveForLater = () => {
-        setItemAddedToList(!itemAddedToList);
+    const handleAddItemToList = () => {
+        setFoodItem({
+            ...foodItem,
+            listed: !foodItem.listed,
+        });
     }
 
     return (
@@ -265,37 +287,45 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                     <Input id="amountPer" value={foodItem.amountPer <= 2000 ? foodItem.amountPer : 2000} className="col-span-3" type="number" min={0} max={2000} onChange={handleFoodItem} />
                 </div>
                 <div className="w-full">
-                    <Label htmlFor="currentWeight" className="text-right inline-flex gap-2 items-center">
+                    <Label htmlFor="currentWeight" className="text-right inline-flex gap-2 items-center mr-2">
                         Add Weight (g)
-                        <TooltipProvider delayDuration={200}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <MdInfoOutline cursor="pointer" size={16} />
-
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Food Intake Weight</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-
                     </Label>
-                    <Label htmlFor="currentWeight" className="text-red-500 text-xs ml-1 block">{invalidItemError.currentWeight}</Label>
+                    <TooltipProvider delayDuration={200}>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <MdInfoOutline cursor="pointer" size={16} className="inline" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <span>Food Intake Weight</span>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    {invalidItemError.currentWeight && <Label htmlFor="currentWeight" className="text-red-500 text-xs ml-1 block">{invalidItemError.currentWeight}</Label>}
                     <Input id="currentWeight" value={foodItem.currentWeight} className="col-span-3" type="number" min={0} max={500} onChange={handleFoodItem} />
                 </div>
                 <div className="w-full">
-                    <Label htmlFor="currentWeight" className="text-right inline-flex gap-2 items-center">
-                        Save for Later
+                    <Label htmlFor="currentWeight" className="text-right inline-flex gap-2 items-center mr-2">
+                        Add Item to List
                     </Label>
+                    <TooltipProvider delayDuration={200}>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <MdInfoOutline cursor="pointer" size={16} className="inline" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <span>Save For Later Use</span>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                     <Button type="button" size={"sm"}
-                        className={`${itemAddedToList ? 'bg-slate-900' : 'bg-slate-700 outline-none hover:bg-slate-600'}`}
-                    onClick={handleSaveForLater}
+                        className={`${foodItem.listed ? 'bg-slate-900 hover:bg-red-800' : 'bg-slate-700 hover:bg-slate-800'} outline-none flex`}
+                        onClick={handleAddItemToList}
                     >
-                    {itemAddedToList ? <MdOutlinePlaylistAddCheck /> : <MdOutlinePlaylistAdd />}
-                    {itemAddedToList ? "Item Added to List" : "Add Item To List"}
-                </Button>
-            </div>
-        </div >
+                        {foodItem.listed ? <MdOutlinePlaylistAddCheck /> : <MdOutlinePlaylistAdd />}
+                        {foodItem.listed ? "Remove Item" : "Add Item"}
+                    </Button>
+                </div>
+            </div >
 
             <div className="grid gap-4">
                 <div className="w-full">
@@ -322,7 +352,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                 {isNewItem
                     ? <Button type="submit" onClick={handleAddFoodItem}>Add Item</Button>
                     : <div className="flex justify-center items-center gap-2">
-                        <Button type="submit" onClick={handleDeleteFoodItem}>Delete Item</Button>
+                        <Button type="submit" onClick={handleDeleteFoodItem} className="hover:bg-red-800">Delete Item</Button>
                         <Button type="submit" onClick={handleUpdateFoodItem}>Update Item</Button>
                     </div>
                 }

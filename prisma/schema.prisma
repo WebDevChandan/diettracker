@@ -29,6 +29,7 @@ type FoodItem {
   sugar         Int
   amountPer     Int
   category      AllCategory
+  listed        Boolean     @default(false)
 }
 
 model FoodItemList {
@@ -44,6 +45,7 @@ model FoodItemList {
   category      AllCategory
   user          User        @relation(fields: [user_id], references: [id])
   user_id       String      @db.ObjectId
+  listed        Boolean     @default(false)
   created_at    DateTime    @default(now())
   update_at     DateTime    @updatedAt
 }
