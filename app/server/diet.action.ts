@@ -2,8 +2,31 @@
 import { FoodItemType } from "@/types/FoodItem";
 import { fetchUserEmail } from "@/utils/fetchUserEmail";
 import prisma from "@/utils/prisma";
-import { AllCategory } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { addItemToList } from "./listItem.action";
+
+const isDuplicateItem = async (userEmail: string, foodItem: FoodItemType) => {
+    const duplicateItemCount = await prisma.user.count({
+        where: {
+            email: userEmail,
+            diet: {
+                some: {
+                    name: foodItem.name,
+                    calories: foodItem.calories,
+                    protein: foodItem.protein,
+                    carbs: foodItem.carbs,
+                    fat: foodItem.fat,
+                    sugar: foodItem.sugar,
+                    category: foodItem.category,
+                    listed: foodItem.listed,
+                }
+            }
+        }
+    });
+
+    if (duplicateItemCount)
+        throw new Error(`Duplicate item found in ${foodItem.category}`);
+}
 
 export const addFoodItem = async (newItem: FoodItemType) => {
     try {
@@ -15,20 +38,7 @@ export const addFoodItem = async (newItem: FoodItemType) => {
         if (!userEmail)
             throw new Error(`User not found`);
 
-        const duplicateItemCount = await prisma.user.count({
-            where: {
-                email: userEmail,
-                diet: {
-                    some: {
-                        name: newItem.name,
-                        category: newItem.category,
-                    }
-                }
-            }
-        });
-
-        if (duplicateItemCount)
-            throw new Error(`Duplicate item found`);
+        await isDuplicateItem(userEmail, newItem);
 
         const createdItemId =
             await prisma.user.update({
@@ -44,25 +54,8 @@ export const addFoodItem = async (newItem: FoodItemType) => {
 
 
         //List Food Items of User
-        const userId = await prisma.user.findFirst({ where: { email: userEmail } }).then(user => user?.id);
-
-        if (!userId) {
-            throw new Error("User ID not found");
-        }
-
-        await prisma.foodItemList.create({
-            data: {
-                name: "Test Food Item",
-                calories: 100,
-                protein: 5,
-                fat: 2,
-                carbs: 7,
-                sugar: 0,
-                amountPer: 100,
-                category: AllCategory.breakfast,
-                user_id: userId,
-            }
-        })
+        if (newItem.listed)
+            addItemToList(userEmail, newItem);
 
         revalidatePath("/");
 
@@ -85,6 +78,8 @@ export const updateFoodItem = async (editItem: FoodItemType) => {
 
         if (!editItem.id)
             throw new Error(`Item ID not Found`);
+
+        await isDuplicateItem(userEmail, editItem);
 
         await prisma.user.update({
             where: {
@@ -124,7 +119,6 @@ export const deleteFoodItem = async (deleteItem: FoodItemType) => {
 
         if (!deleteItem.id)
             throw new Error(`Item ID not Found`);
-
 
         await prisma.user.update({
             where: {

@@ -11,4 +11,5 @@ export type FoodItemType = {
     sugar: number;
     amountPer: number;
     category: AllCategory,
+    listed: boolean;
 }

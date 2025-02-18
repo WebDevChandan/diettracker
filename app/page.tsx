@@ -1,10 +1,9 @@
+import { fetchUserEmail } from "@/utils/fetchUserEmail";
 import prisma from "@/utils/prisma";
-import { currentUser } from "@clerk/nextjs/server";
 import { Toaster } from "sonner";
 import Breakfast from "./components/Breakfast";
 import Lunch from "./components/Lunch";
 import DietProvider from "./context/DietProvider";
-import { fetchUserEmail } from "@/utils/fetchUserEmail";
 
 const fetchUserDiet = async (userEmail: string) => {
   try {

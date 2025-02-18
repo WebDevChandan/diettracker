@@ -45,7 +45,7 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
     const FoodItemComponent = useCallback(
         (p: any) => {
             const itemFixedNutrientValue = diet.find((item) => item.name === p.data.name);
-            
+
             if (!itemFixedNutrientValue)
                 return <div style={{ fontWeight: "500" }}>{p.value}</div>
 
@@ -61,7 +61,7 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
                             <DialogDescription>Update Item as <b>Amount Per (g)</b> </DialogDescription>
                         </DialogHeader>
                         <ManageItemProvider itemToManage={itemFixedNutrientValue} >
-                            <ManageItem isNewItem={false} currentCategory={itemFixedNutrientValue.category} />
+                            <ManageItem isNewItem={false} currentCategory={itemFixedNutrientValue.category} isListedItem={itemFixedNutrientValue.listed}/>
                         </ManageItemProvider>
                     </DialogContent>
                 </Dialog>

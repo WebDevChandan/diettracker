@@ -11,4 +11,5 @@ export type DietType = {
     sugar: number;
     amountPer: number;
     category: AllCategory,
+    listed: boolean;
 }[]
