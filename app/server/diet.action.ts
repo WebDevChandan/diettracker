@@ -3,7 +3,7 @@ import { FoodItemType } from "@/types/FoodItem";
 import { fetchUserEmail } from "@/utils/fetchUserEmail";
 import prisma from "@/utils/prisma";
 import { revalidatePath } from "next/cache";
-import { addItemToList } from "./listItem.action";
+import { addItemToList, deleteItemFromList, updateItemFromList } from "./listItem.action";
 
 const isDuplicateItem = async (userEmail: string, foodItem: FoodItemType) => {
     const duplicateItemCount = await prisma.user.count({
@@ -52,10 +52,20 @@ export const addFoodItem = async (newItem: FoodItemType) => {
                 }
             }).then((user) => user.diet[user.diet.length - 1].id);
 
+        console.log("createdItemId");
+        console.log(createdItemId);
 
         //List Food Items of User
-        if (newItem.listed)
-            addItemToList(userEmail, newItem);
+        if (newItem.listed) {
+            await addItemToList(newItem, createdItemId);
+
+            revalidatePath("/");
+
+            return {
+                message: "Item added & listed successfully",
+                newItemId: createdItemId,
+            }
+        }
 
         revalidatePath("/");
 
@@ -69,7 +79,7 @@ export const addFoodItem = async (newItem: FoodItemType) => {
     }
 }
 
-export const updateFoodItem = async (editItem: FoodItemType) => {
+export const updateFoodItem = async (editItem: FoodItemType, isListToggeled: boolean) => {
     try {
         const userEmail = await fetchUserEmail();
 
@@ -99,6 +109,29 @@ export const updateFoodItem = async (editItem: FoodItemType) => {
             }
         })
 
+        if (isListToggeled && !editItem.listed) {
+            await deleteItemFromList(editItem.id);
+
+            revalidatePath("/");
+
+            return {
+                message: "Item updated & removed from list",
+            }
+        }
+
+        else if (isListToggeled && editItem.listed) {
+            console.log("editItem.id");
+            console.log(editItem.id)
+            await addItemToList(editItem, editItem.id);
+            revalidatePath("/");
+
+            return {
+                message: "Item updated & added to list",
+            }
+        }
+
+        await updateItemFromList(editItem);
+
         revalidatePath("/");
 
         return {
@@ -110,7 +143,7 @@ export const updateFoodItem = async (editItem: FoodItemType) => {
     }
 }
 
-export const deleteFoodItem = async (deleteItem: FoodItemType) => {
+export const deleteFoodItem = async (deleteItem: FoodItemType, isListToggeled: boolean) => {
     try {
         const userEmail = await fetchUserEmail();
 
@@ -134,6 +167,24 @@ export const deleteFoodItem = async (deleteItem: FoodItemType) => {
                 }
             }
         })
+
+        if (isListToggeled && !deleteItem.listed) {
+            await deleteItemFromList(deleteItem.id);
+            revalidatePath("/");
+
+            return {
+                message: "Item deleted & removed from list",
+            }
+        }
+
+        else if (isListToggeled && deleteItem.listed) {
+            await addItemToList(deleteItem, deleteItem.id);
+            revalidatePath("/");
+
+            return {
+                message: "Item deleted & added in list",
+            }
+        }
 
         revalidatePath("/");
 

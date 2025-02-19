@@ -12,7 +12,7 @@ const fetchUserDiet = async (userEmail: string) => {
         email: userEmail
       },
       select: {
-        diet: true
+        diet: true,
       }
     }).then(user => user?.diet);
 

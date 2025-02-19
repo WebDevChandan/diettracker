@@ -180,8 +180,10 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
             return toast.info(`Duplicate item found in ${foodItem.category}`);
 
         if (isValidItem && !isDuplicateItem) {
+            const isListToggeled = initialFoodItemstate.listed !== foodItem.listed;
+            
             toast.promise(
-                updateFoodItem(foodItem),
+                updateFoodItem(foodItem, isListToggeled),
                 {
                     loading: 'Item Updating...',
                     success: (data) => {
@@ -211,9 +213,11 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
     }
 
     const handleDeleteFoodItem = async () => {
-        if (confirm(`Are you sure you want to delete "${foodItem.name}"?`))
+        if (confirm(`Are you sure you want to delete "${foodItem.name}"?`)){
+            const isListToggeled = initialFoodItemstate.listed !== foodItem.listed;
+
             toast.promise(
-                deleteFoodItem(foodItem),
+                deleteFoodItem(foodItem, isListToggeled),
                 {
                     loading: 'Item Deleting...',
                     success: (data) => {
@@ -236,6 +240,7 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
                     },
                 }
             );
+        }
     }
 
     const handleAddItemToList = () => {
