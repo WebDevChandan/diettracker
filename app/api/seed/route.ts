@@ -11,7 +11,7 @@ export async function GET(request: Request) {
             )
         }
 
-        // await prisma.foodItem.deleteMany();
+        // await prisma.foodItemList.deleteMany();
         // await prisma.category.deleteMany();
 
 
@@ -159,10 +159,10 @@ export async function GET(request: Request) {
         //     }
         //   });
 
-        // return NextResponse.json(
-        //     { message: "Database Seeded Successfully" },
-        //     { status: 200 }
-        // );
+        return NextResponse.json(
+            { message: "Database Seeded Successfully" },
+            { status: 200 }
+        );
 
     } catch (error) {
         return NextResponse.json(
