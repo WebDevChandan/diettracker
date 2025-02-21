@@ -17,8 +17,6 @@ const fetchUserId = async () => {
 }
 
 export const addItemToList = async (foodItem: FoodItemType, createdItemId: string) => {
-    console.log("foodItem");
-    console.log(foodItem);
     try {
         const userId = await fetchUserId();
 
@@ -27,7 +25,16 @@ export const addItemToList = async (foodItem: FoodItemType, createdItemId: strin
 
         await prisma.foodItemList.create({
             data: {
-                ...foodItem,
+                name: foodItem.name,
+                currentWeight: foodItem.currentWeight,
+                calories: foodItem.calories,
+                protein: foodItem.protein,
+                carbs: foodItem.carbs,
+                fat: foodItem.fat,
+                sugar: foodItem.sugar,
+                amountPer: foodItem.amountPer,
+                category: foodItem.category,
+                listed: foodItem.listed,
                 user_id: userId!,
                 user_item_id: createdItemId,
             }
