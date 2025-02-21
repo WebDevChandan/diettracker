@@ -52,9 +52,6 @@ export const addFoodItem = async (newItem: FoodItemType) => {
                 }
             }).then((user) => user.diet[user.diet.length - 1].id);
 
-        console.log("createdItemId");
-        console.log(createdItemId);
-
         //List Food Items of User
         if (newItem.listed) {
             await addItemToList(newItem, createdItemId);
@@ -120,8 +117,6 @@ export const updateFoodItem = async (editItem: FoodItemType, isListToggeled: boo
         }
 
         else if (isListToggeled && editItem.listed) {
-            console.log("editItem.id");
-            console.log(editItem.id)
             await addItemToList(editItem, editItem.id);
             revalidatePath("/");
 
@@ -182,7 +177,7 @@ export const deleteFoodItem = async (deleteItem: FoodItemType, isListToggeled: b
             revalidatePath("/");
 
             return {
-                message: "Item deleted & added in list",
+                message: "Item deleted & added to list",
             }
         }
 

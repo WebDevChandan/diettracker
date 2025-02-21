@@ -10,7 +10,7 @@ import { AllCategory } from "@prisma/client";
 import { ChangeEvent, useEffect, useState } from "react";
 import { MdInfoOutline, MdOutlinePlaylistAdd, MdOutlinePlaylistAddCheck } from "react-icons/md";
 import { toast } from "sonner";
-import { boolean, z } from 'zod';
+import { z } from 'zod';
 import { useDiet } from "../hooks/useDiet";
 import { useManageItemAction } from "../hooks/useManageItemAction";
 import { addFoodItem, deleteFoodItem, updateFoodItem } from "../server/diet.action";
