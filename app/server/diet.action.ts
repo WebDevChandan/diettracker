@@ -53,7 +53,7 @@ export const addFoodItem = async (newItem: FoodItemType) => {
             }).then((user) => user.diet[user.diet.length - 1].id);
 
         //List Food Items of User
-        if (newItem.listed) {
+        if (newItem.listed && !newItem.id) {
             await addItemToList(newItem, createdItemId);
 
             revalidatePath("/");
@@ -85,8 +85,6 @@ export const updateFoodItem = async (editItem: FoodItemType, isListToggeled: boo
 
         if (!editItem.id)
             throw new Error(`Item ID not Found`);
-
-        await isDuplicateItem(userEmail, editItem);
 
         await prisma.user.update({
             where: {
@@ -125,7 +123,15 @@ export const updateFoodItem = async (editItem: FoodItemType, isListToggeled: boo
             }
         }
 
-        await updateItemFromList(editItem);
+        else if (editItem.listed) {
+            await updateItemFromList(editItem);
+
+            revalidatePath("/");
+
+            return {
+                message: "Item & List updated successfully",
+            }
+        }
 
         revalidatePath("/");
 
