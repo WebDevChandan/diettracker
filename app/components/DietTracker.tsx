@@ -28,6 +28,7 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
             enableCellChangeFlash: true,
         };
     }, []);
+    
     const calcNutrientPerAmntOfWght = useCallback(
         (p: any, currValue: number) => {
             if (p.data.currentWeight > 2000)
@@ -58,10 +59,10 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
                     <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
                             <DialogTitle>Edit Item for {itemFixedNutrientValue?.category}</DialogTitle>
-                            <DialogDescription>Update Item as <b>Amount Per (g)</b> </DialogDescription>
+                            <DialogDescription>Add <b>Intake Weight (g)</b> or Update Item as <b>Amount Per (g)</b> </DialogDescription>
                         </DialogHeader>
                         <ManageItemProvider itemToManage={itemFixedNutrientValue} >
-                            <ManageItem isNewItem={false} currentCategory={itemFixedNutrientValue.category} isListedItem={itemFixedNutrientValue.listed}/>
+                            <ManageItem isNewItem={false} currentCategory={itemFixedNutrientValue.category} isListedItem={itemFixedNutrientValue.listed} />
                         </ManageItemProvider>
                     </DialogContent>
                 </Dialog>

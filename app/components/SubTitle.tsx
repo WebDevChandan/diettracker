@@ -39,7 +39,7 @@ export default function SubTitle({ label }: { label: AllCategory }) {
                     </Tooltip>
                 </TooltipProvider>
 
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-[425px] overflow-y-auto h-4/5">
                     <DialogHeader>
                         <DialogTitle>Add Item for {label} </DialogTitle>
                         <DialogDescription>
