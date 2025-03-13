@@ -518,7 +518,7 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
                 </div>
             </div >
 
-            <div className="grid gap-4">
+            {/* <div className="grid gap-4">
                 <div className="w-full">
                     <Label htmlFor="category" className="text-right">Category*</Label>
                     <Label htmlFor="category" className="text-red-500 text-xs ml-1">{invalidItemError.category}</Label>
@@ -536,6 +536,21 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
                             </SelectGroup>
                         </SelectContent>
                     </Select>
+                </div>
+            </div> */}
+            <div className="grid gap-4">
+                <div className="w-full">
+                    <Label htmlFor="category" className="text-right">Category*</Label>
+                    <Label htmlFor="category" className="text-red-500 text-xs ml-1">{invalidItemError.category}</Label>
+                    <MultipleSelector
+                        defaultOptions={OPTIONS}
+                        placeholder="Select frameworks you like..."
+                        emptyIndicator={
+                            <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                                no results found.
+                            </p>
+                        }
+                    />
                 </div>
             </div>
 
