@@ -1,6 +1,6 @@
 "use client"
 import { Button } from "@/components/ui/button";
-import { CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from "@/components/ui/command";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,7 @@ import { FoodItemType } from "@/types/FoodItem";
 import { AllCategory } from "@prisma/client";
 import { Command } from "cmdk";
 import { Check, RotateCcw } from "lucide-react";
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { MdInfoOutline, MdOutlinePlaylistAdd, MdOutlinePlaylistAddCheck } from "react-icons/md";
 import { toast } from "sonner";
 import { z } from 'zod';
@@ -20,6 +20,17 @@ import useDebounce from "../hooks/useDebounce";
 import { useDiet } from "../hooks/useDiet";
 import { useManageItemAction } from "../hooks/useManageItemAction";
 import { addFoodItem, deleteFoodItem, updateFoodItem } from "../server/diet.action";
+import {
+    MultiSelector,
+    MultiSelectorTrigger,
+    MultiSelectorInput,
+    MultiSelectorContent,
+    MultiSelectorList,
+    MultiSelectorItem,
+} from "@/components/ui/MultiSelector";
+import { UserListedItemType } from "@/types/UserListedItem";
+import { createId } from "@paralleldrive/cuid2";
+
 
 
 const itemSchema = z.object({
@@ -31,10 +42,10 @@ const itemSchema = z.object({
     fat: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(2000, { message: "Min: 0g Max: 2000g" }),
     sugar: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(2000, { message: "Min: 0g Max: 2000g" }),
     amountPer: z.number().min(1, { message: "Min: 1g Max: 2kg" }).max(2000, { message: "Min: 1g Max: 2kg" }),
-    category: z.string().min(1, { message: "Select at least one category" }),
+    category: z.string().array().nonempty({ message: "At least 1 category required" }),
 })
 
-export default function ManageItem({ isNewItem, currentCategory, isListedItem = false }: { isNewItem: boolean, currentCategory: AllCategory, isListedItem?: boolean }) {
+export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: boolean, currentCategory: AllCategory }) {
     const { diet, setDiet } = useDiet();
     const { open, setOpen } = useDialog();
     const { foodItem, setFoodItem } = useManageItemAction();
@@ -43,6 +54,7 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
     const [hasItemChanged, setHasItemChanged] = useState(false);
 
     const [selectedListItem, setSelectedListItem] = useState<FoodItemType>({
+        id: "",
         name: "",
         currentWeight: 0,
         calories: 0,
@@ -51,11 +63,14 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
         fat: 0,
         sugar: 0,
         amountPer: 0,
-        category: "" as AllCategory,
+        category: [] as AllCategory[],
         listed: false,
+        listed_item_id: "",
     });
     const [userListedItems, setUserListedItems] = useState<FoodItemType[]>([]);
+    const [recentlyListedItems, setRecentlyListedItems] = useState<FoodItemType[]>([]);
     const [hideListedItems, setHideListedItems] = useState(false);
+    const commandInputRef = useRef<HTMLInputElement>(null);
     const commandListRef = useRef<HTMLDivElement>(null);
     const resetItemRef = useRef<SVGSVGElement>(null);
 
@@ -72,6 +87,24 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
         category: '',
         currentWeight: '',
     });
+
+    const CATEGORY_OPTIONS = [
+        { label: AllCategory.breakfast, value: AllCategory.breakfast },
+        { label: AllCategory.dinner, value: AllCategory.dinner },
+        { label: AllCategory.lunch, value: AllCategory.lunch },
+        { label: AllCategory.snacks, value: AllCategory.snacks },
+        { label: AllCategory.other, value: AllCategory.other },
+    ];
+
+    useEffect(() => {
+        const userListedDiet = diet.filter(foodItem => foodItem.listed === true);
+        const transformedData: FoodItemType[] = userListedDiet.map(({ id, ...rest }) => ({
+            id: createId(),
+            ...rest,
+        }));
+
+        setRecentlyListedItems(transformedData);
+    }, [diet]);
 
     useEffect(() => {
         if (
@@ -90,13 +123,9 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
         else
             setHasItemChanged(false);
 
-        // if (foodItem.category !== currentCategory) {
-        //     setFoodItem({
-        //         ...foodItem,
-        //         category: currentCategory,
-        //     });
-        // }
+    }, [foodItem, hasItemChanged])
 
+    useEffect(() => {
         if (foodItem.name === "" && selectedListItem.id) {
             setFoodItem(initialFoodItemstate);
             setSelectedListItem(initialFoodItemstate);
@@ -104,10 +133,15 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
 
         } else if (selectedListItem.id && !hideListedItems) {
             setFoodItem(selectedListItem);
+            setFoodItem({
+                ...selectedListItem,
+                currentWeight: foodItem.currentWeight,
+                category: [currentCategory],
+            })
             setHideListedItems(true);
 
-        } else if (foodItem.name.trim().length >= 3 && !selectedListItem.id
-            && hasItemChanged && foodItem.name.toLocaleLowerCase() !== initialFoodItemstate.name.toLocaleLowerCase()
+        } else if ((foodItem.name.trim().length >= 3 && !selectedListItem.id
+            && hasItemChanged && foodItem.name.toLocaleLowerCase() !== initialFoodItemstate.name.toLocaleLowerCase()) || (isNewItem && foodItem.name.trim().length < 3 && recentlyListedItems.length)
         ) {
             setHideListedItems(true);
 
@@ -115,7 +149,7 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
             setHideListedItems(false);
         }
 
-    }, [foodItem, selectedListItem, hasItemChanged])
+    }, [foodItem.name, selectedListItem.id]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -129,15 +163,28 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
                 return;
             };
 
+            const isRecentlyListedItem = recentlyListedItems.some(item => item.name.trim().toLocaleLowerCase().startsWith(debounceValue.trim().toLocaleLowerCase()));
+
+            if (isRecentlyListedItem) {
+                return;
+            }
+
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/itemlist?search=${debounceValue.trim().toLocaleLowerCase()}`, {
-                    cache: "force-cache",
+                const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/itemlist?search=${encodeURIComponent(debounceValue.trim().toLowerCase())}`, {
+                    cache: "no-store",
                 });
 
                 if (!response.ok) throw new Error("Failed to fetch data");
 
-                const { data } = await response.json();
-                setUserListedItems(data);
+
+                const responseData: { data: FoodItemType[] } = await response.json();
+                const transformedData: FoodItemType[] = responseData.data.map(({ ...rest }) => ({
+                    ...rest,
+                    id: createId(),
+                    listed_item_id: rest.id,
+                }));
+
+                setUserListedItems(transformedData);
 
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -150,47 +197,81 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
     }, [debounceValue]);
 
     useEffect(() => {
-        const handleClick = (event: MouseEvent) => {
+        let lastInteractionType = "mouse";
+
+        const handleKeyboardInteraction = () => {
+            lastInteractionType = "keyboard";
+        };
+
+        const handleMouseInteraction = (event: MouseEvent) => {
             if (commandListRef && !commandListRef.current?.contains(event.target as Node) && hideListedItems) {
+                setHideListedItems(false);
+            }
+
+            if (commandInputRef && commandInputRef.current?.contains(event.target as Node) && isNewItem) {
+                setHideListedItems(true);
+            }
+
+            lastInteractionType = "mouse";
+        };
+
+        const handleFocus = (event: FocusEvent) => {
+            if (commandInputRef.current && event.target === commandInputRef.current && isNewItem) {
+                setHideListedItems(true);
+            }
+        };
+
+        const handleBlur = (event: FocusEvent) => {
+            if ((commandInputRef.current && event.target === commandInputRef.current && lastInteractionType === "keyboard")) {
                 setHideListedItems(false);
             }
         };
 
-        document.addEventListener('click', handleClick);
+        document.addEventListener("keydown", handleKeyboardInteraction);
+        document.addEventListener("mousedown", handleMouseInteraction);
 
-        return () => {
-            document.removeEventListener('click', handleClick);
+        if (commandInputRef.current) {
+            commandInputRef.current.addEventListener('focus', handleFocus);
+            commandInputRef.current.addEventListener("blur", handleBlur);
         }
 
-    }, [hideListedItems]);
+        return () => {
+            document.removeEventListener("keydown", handleKeyboardInteraction);
+            document.removeEventListener("mousedown", handleMouseInteraction);
+
+            if (commandInputRef.current) {
+                commandInputRef.current.removeEventListener('focus', handleFocus);
+                commandInputRef.current.removeEventListener("blur", handleBlur);
+            }
+        }
+
+    }, [hideListedItems, isNewItem]);
+
+    useEffect(() => {
+        if (recentlyListedItems.length > 0)
+            setHideListedItems(true);
+
+    }, [recentlyListedItems.length])
 
     const handleFoodItem = (event: ChangeEvent<HTMLInputElement>) => {
         event.preventDefault();
 
         const value = event.target.value === '' ? 0 : parseFloat(event.target.value);
 
-        if (selectedListItem && selectedListItem.id) {
-            setSelectedListItem({
-                ...selectedListItem,
-                [event.target.id]: value,
-            });
-
-        } else {
-            setFoodItem({ ...foodItem, [event.target.id]: value });
-        }
+        setFoodItem({ ...foodItem, [event.target.id]: value });
     };
 
-    const handleFoodItemCategory = (value: string) => {
-        if (!value) return
+    const handleFoodItemCategory = (value: string[]) => {
+        if (!value.length) return
 
         if (selectedListItem && selectedListItem.id) {
             setSelectedListItem({
                 ...selectedListItem,
-                category: value as AllCategory,
+                category: value as AllCategory[],
             });
 
         } else {
-            setFoodItem({ ...foodItem, category: value as AllCategory });
+            setFoodItem({ ...foodItem, category: value as AllCategory[] });
         }
 
     }
@@ -228,7 +309,7 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
             })
         }
 
-        const isDuplicateItem = diet.some(item => item.name.toLocaleLowerCase() === foodItem.name.toLocaleLowerCase() && foodItem.name.toLocaleLowerCase() !== initialFoodItemstate.name.toLocaleLowerCase() && item.category === currentCategory && hasItemChanged);
+        const isDuplicateItem = diet.some(item => item.name.toLocaleLowerCase() === foodItem.name.toLocaleLowerCase() && foodItem.name.toLocaleLowerCase() !== initialFoodItemstate.name.toLocaleLowerCase() && item.category.includes(currentCategory) && hasItemChanged);
 
         return {
             isValidItem: validation.success,
@@ -243,7 +324,7 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
             return toast.info(`Duplicate item found in ${currentCategory}`);
 
         if (isValidItem && !isDuplicateItem) {
-
+            console.log(foodItem);
             toast.promise(
                 addFoodItem(foodItem),
                 {
@@ -258,6 +339,7 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
                             ]);
 
                             setFoodItem({
+                                id: '',
                                 name: '',
                                 calories: 0,
                                 currentWeight: 0,
@@ -266,8 +348,9 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
                                 fat: 0,
                                 sugar: 0,
                                 amountPer: 100,
-                                category: "" as AllCategory,
+                                category: [] as AllCategory[],
                                 listed: foodItem.listed,
+                                listed_item_id: "",
                             });
 
                             setOpen(false);
@@ -333,7 +416,7 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
             const isListToggeled = initialFoodItemstate.listed !== foodItem.listed;
 
             toast.promise(
-                deleteFoodItem(foodItem, isListToggeled),
+                deleteFoodItem(foodItem, isListToggeled, currentCategory),
                 {
                     loading: 'Item Deleting...',
                     success: (data) => {
@@ -384,7 +467,20 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
         }
     }
 
-    console.log(foodItem);
+    const handleToSelectItem = (listedFoodItem: FoodItemType, currentSelectedValue: string) => {
+        setFoodItem({
+            ...listedFoodItem,
+            name: currentSelectedValue.search(listedFoodItem.name) === -1 ? "" : listedFoodItem.name,
+            currentWeight: foodItem.currentWeight,
+            category: [currentCategory],
+        })
+
+        setSelectedListItem({
+            ...listedFoodItem,
+            category: listedFoodItem.category.includes(currentCategory) ? [currentCategory] : [currentCategory, ...listedFoodItem.category]
+        });
+    }
+
     return (
         <>
             <div className="grid gap-4">
@@ -412,36 +508,48 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
                             disabled={selectedListItem.id ? true : false}
                             minLength={3}
                             maxLength={50}
+                            ref={commandInputRef}
                         />
 
-                        {foodItem.name &&
-                            <CommandList hidden={!hideListedItems} ref={commandListRef}>
-                                <CommandGroup heading="Your Listed Items">
-                                    {userListedItems.map((foodItem) => (
-                                        <CommandItem
-                                            key={foodItem.id}
-                                            value={foodItem.name}
-                                            onSelect={(currentValue) => {
-                                                setFoodItem({
-                                                    ...foodItem,
-                                                    name: currentValue.search(foodItem.name) === -1 ? "" : currentValue,
-                                                    category: foodItem.category !== currentCategory ? currentCategory : foodItem.category
-                                                })
-                                                setSelectedListItem(foodItem);
-                                            }}
-                                            style={{ cursor: "pointer" }}
-                                        >
-                                            {foodItem.name}
-                                            <Check
-                                                className={cn(
-                                                    "ml-auto",
-                                                    foodItem.name.search(foodItem.name) === -1 ? "opacity-100" : "opacity-0"
-                                                )}
-                                            />
-                                        </CommandItem>
-                                    ))}
-                                </CommandGroup>
-                            </CommandList>}
+                        <div className="relative">
+                            {
+                                (foodItem.name || userListedItems.length > 0 || recentlyListedItems.length > 0) && isNewItem &&
+                                <CommandList hidden={!hideListedItems} ref={commandListRef} className="absolute top-0 w-full rounded-b-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
+                                    {recentlyListedItems.length > 0 && <CommandGroup heading="Recently Listed Items">
+                                        {recentlyListedItems.map((listedFoodItem) => (
+                                            <CommandItem
+                                                key={listedFoodItem.id}
+                                                value={`${listedFoodItem.name} - ${listedFoodItem.category[0]}`}
+                                                onSelect={(currentValue) => handleToSelectItem(listedFoodItem, currentValue)}
+                                                style={{ cursor: "pointer" }}
+                                            >
+                                                {`${listedFoodItem.name} - ${listedFoodItem.category[0]}`}
+
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>}
+
+                                    {userListedItems.length > 0 && <CommandGroup heading="Your Listed Items">
+                                        {userListedItems.map((listedFoodItem) => (
+                                            <CommandItem
+                                                key={listedFoodItem.id}
+                                                value={listedFoodItem.name}
+                                                onSelect={(currentValue) => handleToSelectItem(listedFoodItem, currentValue)}
+                                                style={{ cursor: "pointer" }}
+                                            >
+                                                {listedFoodItem.name}
+                                                <Check
+                                                    className={cn(
+                                                        "ml-auto",
+                                                        foodItem.name.search(listedFoodItem.name) === -1 ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>}
+                                </CommandList>
+                            }
+                        </div>
                     </Command>
                 </div>
             </div>
@@ -518,41 +626,45 @@ export default function ManageItem({ isNewItem, currentCategory, isListedItem = 
                 </div>
             </div >
 
-            {/* <div className="grid gap-4">
-                <div className="w-full">
-                    <Label htmlFor="category" className="text-right">Category*</Label>
-                    <Label htmlFor="category" className="text-red-500 text-xs ml-1">{invalidItemError.category}</Label>
-                    <Select onValueChange={handleFoodItemCategory} defaultValue={currentCategory} disabled={currentCategory ? true : false}>
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select Category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                <SelectItem value="breakfast" className="cursor-pointer hover:bg-accent">Breakfast</SelectItem>
-                                <SelectItem value="lunch" className="cursor-pointer hover:bg-accent">Lunch</SelectItem>
-                                <SelectItem value="dinner" className="cursor-pointer hover:bg-accent">Dinner</SelectItem>
-                                <SelectItem value="snacks" className="cursor-pointer hover:bg-accent">Snacks</SelectItem>
-                                <SelectItem value="other" className="cursor-pointer hover:bg-accent">Other</SelectItem>
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
+            {!isNewItem ?
+                <div className="grid gap-4">
+                    <div className="w-full">
+                        <Label htmlFor="category" className="text-right">Category*</Label>
+                        <Label htmlFor="category" className="text-red-500 text-xs ml-1">{invalidItemError.category}</Label>
+                        <Select defaultValue={currentCategory} disabled={true}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select Category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectItem value={currentCategory} className="cursor-pointer hover:bg-accent">{currentCategory}</SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
-            </div> */}
-            <div className="grid gap-4">
-                <div className="w-full">
-                    <Label htmlFor="category" className="text-right">Category*</Label>
-                    <Label htmlFor="category" className="text-red-500 text-xs ml-1">{invalidItemError.category}</Label>
-                    <MultipleSelector
-                        defaultOptions={OPTIONS}
-                        placeholder="Select frameworks you like..."
-                        emptyIndicator={
-                            <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                                no results found.
-                            </p>
-                        }
-                    />
+                :
+                <div className="grid gap-4">
+                    <div className="w-full">
+                        <Label htmlFor="category" className="text-right">Category*</Label>
+                        <Label htmlFor="category" className="text-red-500 text-xs ml-1">{invalidItemError.category}</Label>
+                        <MultiSelector values={selectedListItem.id ? selectedListItem.category : foodItem.category} onValuesChange={handleFoodItemCategory} loop={false} defaultValue={currentCategory}>
+                            <MultiSelectorTrigger defaultValue={currentCategory}>
+                                <MultiSelectorInput placeholder="Select your category" disabled={true} />
+                            </MultiSelectorTrigger>
+                            <MultiSelectorContent>
+                                <MultiSelectorList>
+                                    {CATEGORY_OPTIONS.map((option, i) => (
+                                        <MultiSelectorItem key={i} value={option.value} disabled={option.value === currentCategory ? true : false}>
+                                            {option.label}
+                                        </MultiSelectorItem>
+                                    ))}
+                                </MultiSelectorList>
+                            </MultiSelectorContent>
+                        </MultiSelector>
+                    </div>
                 </div>
-            </div>
+            }
 
             <DialogFooter>
                 {isNewItem

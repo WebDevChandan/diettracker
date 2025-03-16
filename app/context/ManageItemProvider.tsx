@@ -8,6 +8,7 @@ type ManageItemType = {
 }
 export const ManageItemContext = createContext<ManageItemType>({
     foodItem: {
+        id: "",
         name: "",
         currentWeight: 0,
         calories: 0,
@@ -16,8 +17,9 @@ export const ManageItemContext = createContext<ManageItemType>({
         fat: 0,
         sugar: 0,
         amountPer: 0,
-        category: "" as AllCategory,
+        category: [] as AllCategory[],
         listed: false,
+        listed_item_id: "",
     },
     setFoodItem: () => { },
 });

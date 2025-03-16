@@ -14,7 +14,7 @@ import ManageItem from "./ManageItem";
 
 ModuleRegistry.registerModules([AllCommunityModule, ValidationModule]);
 
-export default function DietTracker({ diet, category }: { diet: DietType, category: AllCategory }) {
+export default function DietTracker({ diet, currentCategory }: { diet: DietType, currentCategory: AllCategory }) {
     const { total, setTotal } = useDiet();
 
     const gridRef = useRef<AgGridReact>(null);
@@ -28,7 +28,7 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
             enableCellChangeFlash: true,
         };
     }, []);
-    
+
     const calcNutrientPerAmntOfWght = useCallback(
         (p: any, currValue: number) => {
             if (p.data.currentWeight > 2000)
@@ -62,13 +62,13 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
                             <DialogDescription>Add <b>Intake Weight (g)</b> or Update Item as <b>Amount Per (g)</b> </DialogDescription>
                         </DialogHeader>
                         <ManageItemProvider itemToManage={itemFixedNutrientValue} >
-                            <ManageItem isNewItem={false} currentCategory={itemFixedNutrientValue.category} isListedItem={itemFixedNutrientValue.listed} />
+                            <ManageItem isNewItem={false} currentCategory={currentCategory} />
                         </ManageItemProvider>
                     </DialogContent>
                 </Dialog>
             );
         },
-        [diet]
+        [diet, currentCategory]
     );
 
     const rowClassRules = useMemo(() => ({
@@ -140,16 +140,16 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
             sugar: diet.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
             amountPer: 0,
             category: {
-                name: `${category}` as AllCategory,
+                name: `${currentCategory}` as AllCategory,
             }
         }
 
-    }, [diet, category]);
+    }, [diet, currentCategory]);
 
     const [subTotal, setSubTotal] = useState(newSubTotal);
 
     useEffect(() => {
-        if (diet.length === 0 && diet[0]?.category === category) return;
+        if (diet.length === 0 && diet[0]?.category[0] === currentCategory) return;
 
         setRowData((prev) => [...diet]);
         setSubTotal(newSubTotal);
@@ -163,7 +163,7 @@ export default function DietTracker({ diet, category }: { diet: DietType, catego
         //     ];
         // });
 
-    }, [diet, newSubTotal, category]);
+    }, [diet, newSubTotal, currentCategory]);
 
 
     const colDefs = useMemo(

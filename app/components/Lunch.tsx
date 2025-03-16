@@ -11,10 +11,10 @@ export default function Lunch() {
   return (
     <DialogProvider>
       <div className="width-full flex justify-between items-center mt-5 mb-1">
-        <SubTitle label={AllCategory.lunch} />
+        <SubTitle currentCategory={AllCategory.lunch} />
         {/* <Button type="submit" size={"sm"}>Total Nutrients</Button> */}
       </div>
-      <DietTracker diet={lunch} category={AllCategory.lunch}/>
+      <DietTracker diet={lunch} currentCategory={AllCategory.lunch}/>
     </DialogProvider>
   )
 }

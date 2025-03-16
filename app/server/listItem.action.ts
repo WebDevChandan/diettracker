@@ -4,10 +4,10 @@ import { fetchUserId } from "@/utils/fetchUserId";
 import prisma from "@/utils/prisma";
 import { AllCategory } from "@prisma/client";
 
-const isExistedItem = async (itemId: string, userId: string) => {
+const isExistedItem = async (listedItemId: string, userId: string) => {
     return await prisma.foodItemList.findUnique({
         where: {
-            user_item_id: itemId,
+            id: listedItemId,
             user_id: userId!,
         }
     });
@@ -22,17 +22,17 @@ const isDuplicateItem = async (foodName: string, userID: string) => {
     });
 }
 
-export const addItemToList = async (foodItem: FoodItemType, createdItemId: string) => {
+export const addItemToList = async (foodItem: FoodItemType,) => {
     try {
         const userId = await fetchUserId();
 
-        if (!userId || !createdItemId)
+        if (!userId)
             throw new Error(`User or Item ID not Found`);
 
         const duplicateItem = await isDuplicateItem(foodItem.name, userId);
 
         if (!duplicateItem) {
-            await prisma.foodItemList.create({
+            const listedItemId = await prisma.foodItemList.create({
                 data: {
                     name: foodItem.name,
                     calories: foodItem.calories,
@@ -44,9 +44,10 @@ export const addItemToList = async (foodItem: FoodItemType, createdItemId: strin
                     category: foodItem.category,
                     listed: foodItem.listed,
                     user_id: userId!,
-                    user_item_id: createdItemId,
                 }
-            })
+            });
+
+            return listedItemId.id;
         }
 
     } catch (error: any) {
@@ -60,12 +61,12 @@ export const updateItemFromList = async (foodItem: FoodItemType) => {
 
         if (!userId || !foodItem.id) throw new Error(`User or Item not found`);
 
-        const item = await isExistedItem(foodItem.id, userId);
+        const item = await isExistedItem(foodItem.listed_item_id, userId);
 
         if (item) {
             await prisma.foodItemList.update({
                 where: {
-                    user_item_id: foodItem.id,
+                    id: foodItem.listed_item_id,
                     user_id: userId!,
                 },
                 data: {
@@ -76,7 +77,6 @@ export const updateItemFromList = async (foodItem: FoodItemType) => {
                     fat: foodItem.fat,
                     sugar: foodItem.sugar,
                     amountPer: foodItem.amountPer,
-                    category: foodItem.category,
                 }
             })
         }
@@ -86,21 +86,36 @@ export const updateItemFromList = async (foodItem: FoodItemType) => {
     }
 }
 
-export const deleteItemFromList = async (itemId: string) => {
+export const deleteItemFromList = async (deleteItem: FoodItemType) => {
     try {
         const userId = await fetchUserId();
 
-        if (!userId || !itemId) throw new Error(`User not found`);
+        if (!userId || !deleteItem.listed_item_id) throw new Error(`User or ItemID not found`);
 
-        const item = await isExistedItem(itemId, userId);
+        const existedListItem = await isExistedItem(deleteItem.listed_item_id, userId);
 
-        if (item) {
-            await prisma.foodItemList.delete({
-                where: {
-                    user_item_id: itemId,
-                    user_id: userId,
-                }
-            });
+        if (existedListItem) {
+            if (existedListItem.category.includes(deleteItem.category[0]) && existedListItem.category.length > 1) {
+                await prisma.foodItemList.update({
+                    where: {
+                        id: deleteItem.listed_item_id,
+                        user_id: userId,
+                    },
+                    data: {
+                        category: {
+                            set: existedListItem.category.filter((category: AllCategory) => category !== deleteItem.category[0])
+                        }
+                    }
+                });
+
+            } else if (existedListItem.category.includes(deleteItem.category[0]) && existedListItem.category.length === 1) {
+                await prisma.foodItemList.delete({
+                    where: {
+                        id: deleteItem.listed_item_id,
+                        user_id: userId,
+                    }
+                });
+            }
         }
 
     } catch (error: any) {
