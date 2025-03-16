@@ -1,7 +1,7 @@
 import { AllCategory } from "@prisma/client";
 
-export type DietType = {
-    id: string;
+export type UserListedItemType = {
+    user_item_id: string;
     name: string;
     currentWeight: number;
     calories: number;
@@ -10,7 +10,6 @@ export type DietType = {
     fat: number;
     sugar: number;
     amountPer: number;
-    category: AllCategory[];
+    category: AllCategory[],
     listed: boolean;
-    listed_item_id:string;
-}[]
+}

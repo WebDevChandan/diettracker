@@ -19,36 +19,36 @@ enum AllCategory {
 }
 
 type FoodItem {
-  id            String      @default(cuid())
-  name          String
-  currentWeight Int         @default(0)
-  calories      Int
-  protein       Int
-  fat           Int
-  carbs         Int
-  sugar         Int
-  amountPer     Int
-  category      AllCategory
-  listed        Boolean     @default(false)
+  id             String        @default(cuid())
+  name           String
+  currentWeight  Int           @default(0)
+  calories       Int
+  protein        Int
+  fat            Int
+  carbs          Int
+  sugar          Int
+  amountPer      Int
+  category       AllCategory[]
+  listed         Boolean       @default(false)
+  listed_item_id String
 }
 
 model FoodItemList {
-  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
   name          String
-  currentWeight Int         @default(0)
+  currentWeight Int           @default(0)
   calories      Int
   protein       Int
   fat           Int
   carbs         Int
   sugar         Int
   amountPer     Int
-  category      AllCategory
-  listed        Boolean     @default(false)
-  user_item_id  String      @unique
-  user          User        @relation(fields: [user_id], references: [id])
-  user_id       String      @db.ObjectId
-  created_at    DateTime    @default(now())
-  update_at     DateTime    @updatedAt
+  category      AllCategory[]
+  listed        Boolean       @default(false)
+  user          User          @relation(fields: [user_id], references: [id])
+  user_id       String        @db.ObjectId
+  created_at    DateTime      @default(now())
+  update_at     DateTime      @updatedAt
 }
 
 model User {

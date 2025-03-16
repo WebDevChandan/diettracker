@@ -2,6 +2,7 @@
 import { FoodItemType } from "@/types/FoodItem";
 import { fetchUserEmail } from "@/utils/fetchUserEmail";
 import prisma from "@/utils/prisma";
+import { createId } from '@paralleldrive/cuid2';
 import { revalidatePath } from "next/cache";
 import { addItemToList, deleteItemFromList, updateItemFromList } from "./listItem.action";
 
@@ -17,7 +18,9 @@ const isDuplicateItem = async (userEmail: string, foodItem: FoodItemType) => {
                     carbs: foodItem.carbs,
                     fat: foodItem.fat,
                     sugar: foodItem.sugar,
-                    category: foodItem.category,
+                    category: {
+                        hasEvery: foodItem.category
+                    },
                     listed: foodItem.listed,
                 }
             }
@@ -30,7 +33,7 @@ const isDuplicateItem = async (userEmail: string, foodItem: FoodItemType) => {
 
 export const addFoodItem = async (newItem: FoodItemType) => {
     try {
-        if (!newItem.category)
+        if (!newItem.category.length)
             throw new Error(`Invalid item category`);
 
         const userEmail = await fetchUserEmail();
@@ -40,21 +43,30 @@ export const addFoodItem = async (newItem: FoodItemType) => {
 
         await isDuplicateItem(userEmail, newItem);
 
-        const createdItemId =
-            await prisma.user.update({
-                where: {
-                    email: userEmail,
-                },
-                data: {
-                    diet: {
-                        push: newItem
-                    }
-                }
-            }).then((user) => user.diet[user.diet.length - 1].id);
+        let createdItemId = "";
 
-        //List Food Items of User
+        //Create NewItem with listing
         if (newItem.listed && !newItem.id) {
-            await addItemToList(newItem, createdItemId);
+            const listedItemId: string | undefined = await addItemToList(newItem);
+
+            if (!listedItemId)
+                throw new Error(`Failed to add item to list`);
+
+            createdItemId =
+                await prisma.user.update({
+                    where: {
+                        email: userEmail,
+                    },
+                    data: {
+                        diet: {
+                            push: {
+                                ...newItem,
+                                id: createId(),
+                                listed_item_id: `${listedItemId}`,
+                            }
+                        }
+                    }
+                }).then((user) => user.diet[user.diet.length - 1].id);
 
             revalidatePath("/");
 
@@ -62,6 +74,22 @@ export const addFoodItem = async (newItem: FoodItemType) => {
                 message: "Item added & listed successfully",
                 newItemId: createdItemId,
             }
+
+        } else {
+            createdItemId =
+                await prisma.user.update({
+                    where: {
+                        email: userEmail,
+                    },
+                    data: {
+                        diet: {
+                            push: {
+                                ...newItem,
+                                id: createId(),
+                            }
+                        }
+                    }
+                }).then((user) => user.diet[user.diet.length - 1].id);
         }
 
         revalidatePath("/");
@@ -86,6 +114,90 @@ export const updateFoodItem = async (editItem: FoodItemType, isListToggeled: boo
         if (!editItem.id)
             throw new Error(`Item ID not Found`);
 
+        if (isListToggeled && !editItem.listed) {
+            await deleteItemFromList(editItem);
+
+            await prisma.user.update({
+                where: {
+                    email: userEmail,
+                },
+                data: {
+                    diet: {
+                        updateMany: {
+                            where: {
+                                id: editItem.id,
+                            },
+                            data: {
+                                ...editItem
+                            }
+                        }
+                    }
+                }
+            })
+
+            revalidatePath("/");
+
+            return {
+                message: "Item updated & removed from list",
+            }
+        }
+
+        else if (isListToggeled && editItem.listed) {
+
+            const listedItemId: string | undefined = await addItemToList(editItem);
+
+            if (!listedItemId)
+                throw new Error(`Failed to add item to list`);
+
+            await prisma.user.update({
+                where: {
+                    email: userEmail,
+                },
+                data: {
+                    diet: {
+                        push: {
+                            ...editItem,
+                            listed_item_id: `${listedItemId}`,
+                        }
+                    }
+                }
+            });
+
+            revalidatePath("/");
+
+            return {
+                message: "Item updated & added to list",
+            }
+        }
+
+        else if (editItem.listed) {
+            await updateItemFromList(editItem);
+
+            await prisma.user.update({
+                where: {
+                    email: userEmail,
+                },
+                data: {
+                    diet: {
+                        updateMany: {
+                            where: {
+                                id: editItem.id,
+                            },
+                            data: {
+                                ...editItem
+                            }
+                        }
+                    }
+                }
+            })
+
+            revalidatePath("/");
+
+            return {
+                message: "Item & List updated successfully",
+            }
+        }
+
         await prisma.user.update({
             where: {
                 email: userEmail,
@@ -104,35 +216,6 @@ export const updateFoodItem = async (editItem: FoodItemType, isListToggeled: boo
             }
         })
 
-        if (isListToggeled && !editItem.listed) {
-            await deleteItemFromList(editItem.id);
-
-            revalidatePath("/");
-
-            return {
-                message: "Item updated & removed from list",
-            }
-        }
-
-        else if (isListToggeled && editItem.listed) {
-            await addItemToList(editItem, editItem.id);
-            revalidatePath("/");
-
-            return {
-                message: "Item updated & added to list",
-            }
-        }
-
-        else if (editItem.listed) {
-            await updateItemFromList(editItem);
-
-            revalidatePath("/");
-
-            return {
-                message: "Item & List updated successfully",
-            }
-        }
-
         revalidatePath("/");
 
         return {
@@ -144,7 +227,7 @@ export const updateFoodItem = async (editItem: FoodItemType, isListToggeled: boo
     }
 }
 
-export const deleteFoodItem = async (deleteItem: FoodItemType, isListToggeled: boolean) => {
+export const deleteFoodItem = async (deleteItem: FoodItemType, isListToggeled: boolean, currentCategory: string) => {
     try {
         const userEmail = await fetchUserEmail();
 
@@ -153,6 +236,40 @@ export const deleteFoodItem = async (deleteItem: FoodItemType, isListToggeled: b
 
         if (!deleteItem.id)
             throw new Error(`Item ID not Found`);
+
+        if (isListToggeled && !deleteItem.listed) {
+            await deleteItemFromList(deleteItem);
+
+            await prisma.user.update({
+                where: {
+                    email: userEmail,
+                },
+                data: {
+                    diet: {
+                        deleteMany: {
+                            where: {
+                                id: deleteItem.id,
+                            },
+                        }
+                    }
+                }
+            })
+
+            revalidatePath("/");
+
+            return {
+                message: "Item deleted & removed from list",
+            }
+        }
+
+        else if (isListToggeled && deleteItem.listed) {
+            await addItemToList(deleteItem);
+            revalidatePath("/");
+
+            return {
+                message: "Item deleted & added to list",
+            }
+        }
 
         await prisma.user.update({
             where: {
@@ -168,24 +285,6 @@ export const deleteFoodItem = async (deleteItem: FoodItemType, isListToggeled: b
                 }
             }
         })
-
-        if (isListToggeled && !deleteItem.listed) {
-            await deleteItemFromList(deleteItem.id);
-            revalidatePath("/");
-
-            return {
-                message: "Item deleted & removed from list",
-            }
-        }
-
-        else if (isListToggeled && deleteItem.listed) {
-            await addItemToList(deleteItem, deleteItem.id);
-            revalidatePath("/");
-
-            return {
-                message: "Item deleted & added to list",
-            }
-        }
 
         revalidatePath("/");
 
