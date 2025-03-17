@@ -1,18 +1,27 @@
 "use client"
 import { Button } from "@/components/ui/button";
-import { CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from "@/components/ui/command";
+import { CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+    MultiSelector,
+    MultiSelectorContent,
+    MultiSelectorInput,
+    MultiSelectorItem,
+    MultiSelectorList,
+    MultiSelectorTrigger,
+} from "@/components/ui/MultiSelector";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import useDialog from "@/hooks/useDialog";
 import { cn } from "@/lib/utils";
 import { FoodItemType } from "@/types/FoodItem";
+import { createId } from "@paralleldrive/cuid2";
 import { AllCategory } from "@prisma/client";
 import { Command } from "cmdk";
 import { Check, RotateCcw } from "lucide-react";
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { MdInfoOutline, MdOutlinePlaylistAdd, MdOutlinePlaylistAddCheck } from "react-icons/md";
 import { toast } from "sonner";
 import { z } from 'zod';
@@ -20,16 +29,6 @@ import useDebounce from "../hooks/useDebounce";
 import { useDiet } from "../hooks/useDiet";
 import { useManageItemAction } from "../hooks/useManageItemAction";
 import { addFoodItem, deleteFoodItem, updateFoodItem } from "../server/diet.action";
-import {
-    MultiSelector,
-    MultiSelectorTrigger,
-    MultiSelectorInput,
-    MultiSelectorContent,
-    MultiSelectorList,
-    MultiSelectorItem,
-} from "@/components/ui/MultiSelector";
-import { UserListedItemType } from "@/types/UserListedItem";
-import { createId } from "@paralleldrive/cuid2";
 
 
 
@@ -171,7 +170,10 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
 
             try {
                 const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/itemlist?search=${encodeURIComponent(debounceValue.trim().toLowerCase())}`, {
-                    cache: "no-store",
+                    cache: "force-cache",
+                    next: {
+                        revalidate: 3600,
+                    }
                 });
 
                 if (!response.ok) throw new Error("Failed to fetch data");
@@ -251,7 +253,11 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
         if (recentlyListedItems.length > 0)
             setHideListedItems(true);
 
-    }, [recentlyListedItems.length])
+        if (userListedItems.length > 0) {
+            setHideListedItems(true);
+        }
+
+    }, [recentlyListedItems.length, userListedItems.length])
 
     const handleFoodItem = (event: ChangeEvent<HTMLInputElement>) => {
         event.preventDefault();
@@ -504,7 +510,16 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                             placeholder="Type a name or search..."
                             onValueChange={handleFoodItemName}
                             value={foodItem.name}
-                            removeName={() => isNewItem ? setFoodItem(initialFoodItemstate) : setFoodItem({ ...foodItem, name: "" })}
+                            removeName={() => {
+                                if (isNewItem)
+                                    setFoodItem(initialFoodItemstate)
+                                else
+                                    setFoodItem({ ...foodItem, name: "" })
+
+                                if (commandInputRef.current) {
+                                    commandInputRef.current.focus();
+                                }
+                            }}
                             disabled={selectedListItem.id ? true : false}
                             minLength={3}
                             maxLength={50}
@@ -514,7 +529,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                         <div className="relative">
                             {
                                 (foodItem.name || userListedItems.length > 0 || recentlyListedItems.length > 0) && isNewItem &&
-                                <CommandList hidden={!hideListedItems} ref={commandListRef} className="absolute top-0 w-full rounded-b-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
+                                <CommandList hidden={!hideListedItems} ref={commandListRef} className="absolute top-0 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
                                     {recentlyListedItems.length > 0 && <CommandGroup heading="Recently Listed Items">
                                         {recentlyListedItems.map((listedFoodItem) => (
                                             <CommandItem
