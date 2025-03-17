@@ -50,25 +50,38 @@ export async function POST(req: Request) {
     }
 
     if (evt.type === 'user.created') {
-        const { id, email_addresses, first_name, last_name } = evt.data;
+        try {
+            const { id, email_addresses, first_name, last_name } = evt.data;
 
-        const newUser: UserType = {
-            name: first_name ?? "",
-            lastName: last_name ?? "",
-            email: email_addresses[0].email_address,
-            clerkUserID: id,
+            const newUser: UserType = {
+                name: first_name ?? "",
+                lastName: last_name ?? "",
+                email: email_addresses[0].email_address,
+                clerkUserID: id,
+            }
+
+            await createUser(newUser);
+
+        } catch (error) {
+            console.log(error + ':' + "Error creating user");
         }
-
-        await createUser(newUser);
     }
 
     if (evt.type === 'user.deleted') {
-        const clerkUserID = evt.data.id;
-        if (!clerkUserID)
-            return new Response('Error: User not Found', {
-                status: 400,
-            })
+        try {
+            const clerkUserID = evt.data.id;
+            if (!clerkUserID)
+                return new Response('Error: User not Found', {
+                    status: 400,
+                })
 
-        await deleteUser(clerkUserID);
+            await deleteUser(clerkUserID);
+
+        } catch (error) {
+            console.log(error + ': ' + "Error deleting user");
+        }
+
     }
+
+    return new Response('Webhook received', { status: 200 })
 }
