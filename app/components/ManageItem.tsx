@@ -34,13 +34,13 @@ import { addFoodItem, deleteFoodItem, updateFoodItem } from "../server/diet.acti
 
 const itemSchema = z.object({
     name: z.string().trim().min(3, { message: 'Invalid Food Name' }).max(30, { message: 'Name length exceeded' }),
-    calories: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(5000, { message: "Min: 0g Max: 5000g" }),
-    currentWeight: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(2000, { message: "Min: 0g Max: 2000g" }),
-    protein: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(2000, { message: "Min: 0g Max: 2000g" }),
-    carbs: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(2000, { message: "Min: 0g Max: 2000g" }),
-    fat: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(2000, { message: "Min: 0g Max: 2000g" }),
-    sugar: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(2000, { message: "Min: 0g Max: 2000g" }),
-    amountPer: z.number().min(1, { message: "Min: 1g Max: 2kg" }).max(2000, { message: "Min: 1g Max: 2kg" }),
+    calories: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(5001, { message: "Min: 0g Max: 5000g" }),
+    currentWeight: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(2001, { message: "Min: 0g Max: 2000g" }),
+    protein: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(2001, { message: "Min: 0g Max: 2000g" }),
+    carbs: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(2001, { message: "Min: 0g Max: 2000g" }),
+    fat: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(2001, { message: "Min: 0g Max: 2000g" }),
+    sugar: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(2001, { message: "Min: 0g Max: 2000g" }),
+    amountPer: z.number().min(1, { message: "Min: 1g Max: 2kg" }).max(2001, { message: "Min: 1g Max: 2kg" }),
     category: z.string().array().nonempty({ message: "At least 1 category required" }),
 })
 
@@ -150,9 +150,24 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
 
     }, [foodItem.name, selectedListItem.id]);
 
+    const fetchItemList = async () => {
+        if (debounceValue.trim().length < 3) {
+            return;
+        };
+
+        const response: Response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/itemlist?search=${encodeURIComponent(debounceValue.trim().toLowerCase())}`, {
+            cache: "force-cache",
+            next: {
+                revalidate: 3600,
+            }
+        });
+
+        return response;
+    }
+
     useEffect(() => {
         const fetchData = async () => {
-            if (!debounceValue) {
+            if (debounceValue.trim().length < 3) {
                 if (foodItem.id)
                     setFoodItem({
                         ...initialFoodItemstate,
@@ -169,14 +184,9 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
             }
 
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/itemlist?search=${encodeURIComponent(debounceValue.trim().toLowerCase())}`, {
-                    cache: "force-cache",
-                    next: {
-                        revalidate: 3600,
-                    }
-                });
+                const response = await fetchItemList();
 
-                if (!response.ok) throw new Error("Failed to fetch data");
+                if (!response?.ok) throw new Error("Failed to fetch data");
 
 
                 const responseData: { data: FoodItemType[] } = await response.json();
@@ -487,13 +497,33 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
         });
     }
 
+    const handleManualSearchListItem = async () => {
+        if (foodItem.name.trim().length < 3 || userListedItems.length) {
+            return;
+        };
+        console.log("handleManualSearchListItem")
+
+        const response = await fetchItemList();
+
+        if (!response?.ok) throw new Error("Failed to fetch data");
+
+
+        const responseData: { data: FoodItemType[] } = await response.json();
+        const transformedData: FoodItemType[] = responseData.data.map(({ ...rest }) => ({
+            ...rest,
+            id: createId(),
+            listed_item_id: rest.id,
+        }));
+
+        setUserListedItems(transformedData);
+    }
     return (
         <>
             <div className="grid gap-4">
                 <div className="w-full">
                     <Label htmlFor="name" className="text-right">
                         Food Name*
-                        {!isNewItem && <TooltipProvider delayDuration={200}>
+                        {!isNewItem && <TooltipProvider delayDuration={100}>
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <RotateCcw ref={resetItemRef} className="ml-1 h-4 w-4 shrink-0 opacity-50 cursor-pointer inline" onClick={handleResetItem} />
@@ -520,6 +550,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                     commandInputRef.current.focus();
                                 }
                             }}
+                            manualSearchListItem={handleManualSearchListItem}
                             disabled={selectedListItem.id ? true : false}
                             minLength={3}
                             maxLength={50}
@@ -597,19 +628,19 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                 <div className="w-full">
                     <Label htmlFor="amountPer" className="text-right">Amount Per* (g)</Label>
                     <Label htmlFor="amountPer" className="text-red-500 text-xs ml-1 block">{invalidItemError.amountPer}</Label>
-                    <Input id="amountPer" value={foodItem.amountPer <= 2000 ? foodItem.amountPer : 2000} className="col-span-3" type="number" min={0} max={2000} onChange={handleFoodItem} disabled={selectedListItem.id ? true : false} />
+                    <Input id="amountPer" value={foodItem.amountPer <= 2000 ? foodItem.amountPer : 2000} className="col-span-3" type="number" min={0} max={2001} onChange={handleFoodItem} disabled={selectedListItem.id ? true : false} />
                 </div>
                 <div className="w-full">
                     <Label htmlFor="currentWeight" className="text-right inline-flex gap-2 items-center mr-2">
                         Add Weight (g)
                     </Label>
-                    <TooltipProvider delayDuration={200}>
+                    <TooltipProvider delayDuration={100}>
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <MdInfoOutline cursor="pointer" size={16} className="inline" />
                             </TooltipTrigger>
                             <TooltipContent>
-                                <span>Food Intake Weight</span>
+                                <p>Food Intake Weight</p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
@@ -620,7 +651,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                     <Label htmlFor="currentWeight" className="text-right inline-flex gap-2 items-center mr-2">
                         Add Item to List
                     </Label>
-                    <TooltipProvider delayDuration={200}>
+                    <TooltipProvider delayDuration={100}>
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <MdInfoOutline cursor="pointer" size={16} className="inline" />
@@ -664,8 +695,8 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                         <Label htmlFor="category" className="text-right">Category*</Label>
                         <Label htmlFor="category" className="text-red-500 text-xs ml-1">{invalidItemError.category}</Label>
                         <MultiSelector values={selectedListItem.id ? selectedListItem.category : foodItem.category} onValuesChange={handleFoodItemCategory} loop={false} defaultValue={currentCategory}>
-                            <MultiSelectorTrigger defaultValue={currentCategory}>
-                                <MultiSelectorInput placeholder="Select your category" disabled={true} />
+                            <MultiSelectorTrigger defaultValue={currentCategory} aria-disabled={true}>
+                                <MultiSelectorInput disabled={true} />
                             </MultiSelectorTrigger>
                             <MultiSelectorContent>
                                 <MultiSelectorList>

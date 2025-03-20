@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { DietType } from "@/types/Diet";
 import { calNutrientFormula } from "@/utils/calNutrientFormula";
 import { AllCategory } from "@prisma/client";
-import { AllCommunityModule, ModuleRegistry, RowNodeTransaction, RowSelectionOptions, themeQuartz, ValidationModule } from 'ag-grid-community';
+import { AllCommunityModule, ColDef, ModuleRegistry, RowNodeTransaction, RowSelectionOptions, themeQuartz, ValidationModule } from 'ag-grid-community';
 import { AgGridReact } from "ag-grid-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -11,6 +11,8 @@ import ManageItemProvider from "../context/ManageItemProvider";
 import { useDiet } from "../hooks/useDiet";
 import "../styles.css";
 import ManageItem from "./ManageItem";
+import { FoodItemDialog } from "@/hooks/useDialog";
+import EditFoodItem from "./EditFoodItem";
 
 ModuleRegistry.registerModules([AllCommunityModule, ValidationModule]);
 
@@ -20,12 +22,14 @@ export default function DietTracker({ diet, currentCategory }: { diet: DietType,
     const gridRef = useRef<AgGridReact>(null);
     const gridStyle = useMemo(() => ({ height: "300px", width: "100%", outline: "none", border: "none" }), []);
 
-    const defaultColDef = useMemo(() => {
+    const defaultColDef = useMemo<ColDef>(() => {
         return {
             filter: null,
             flex: 1,
             minWidth: 100,
             enableCellChangeFlash: true,
+            lockPinned: true,
+            editable: false,
         };
     }, []);
 
@@ -51,21 +55,11 @@ export default function DietTracker({ diet, currentCategory }: { diet: DietType,
                 return <div style={{ fontWeight: "500" }}>{p.value}</div>
 
             return (
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <div style={{ cursor: "pointer", fontWeight: "500", color: "#181D1F" }}>{p.value}</div>
-                    </DialogTrigger>
-
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>Edit Item for {itemFixedNutrientValue?.category}</DialogTitle>
-                            <DialogDescription>Add <b>Intake Weight (g)</b> or Update Item as <b>Amount Per (g)</b> </DialogDescription>
-                        </DialogHeader>
-                        <ManageItemProvider itemToManage={itemFixedNutrientValue} >
-                            <ManageItem isNewItem={false} currentCategory={currentCategory} />
-                        </ManageItemProvider>
-                    </DialogContent>
-                </Dialog>
+                <EditFoodItem
+                    triggerElement={<div style={{ cursor: "pointer", fontWeight: "500", color: "#181D1F" }}>{p.value}</div>}
+                    key={itemFixedNutrientValue.id}
+                    itemToEdit={itemFixedNutrientValue}
+                />
             );
         },
         [diet, currentCategory]
@@ -166,7 +160,7 @@ export default function DietTracker({ diet, currentCategory }: { diet: DietType,
     }, [diet, newSubTotal, currentCategory]);
 
 
-    const colDefs = useMemo(
+    const colDefs = useMemo<ColDef[]>(
         () => [
             {
                 field: "name",
@@ -176,6 +170,9 @@ export default function DietTracker({ diet, currentCategory }: { diet: DietType,
                 sortable: false,
                 minWidth: 150,
                 filter: "agTextColumnFilter",
+                editable: true,
+                lockPosition: "left",
+                lockPinned: true,
             },
             {
                 field: "currentWeight",
@@ -229,14 +226,16 @@ export default function DietTracker({ diet, currentCategory }: { diet: DietType,
             <Button className="mr-2" onClick={onRemoveSelected}>Remove Selected</Button> */}
             <AgGridReact
                 defaultColDef={defaultColDef}
+                columnDefs={colDefs}
                 theme={themeQuartz}
                 ref={gridRef}
                 rowData={rowData}
-                columnDefs={colDefs}
                 groupDefaultExpanded={1}
                 rowClassRules={rowClassRules}
                 // rowSelection={rowSelection}
                 pinnedBottomRowData={[subTotal]}
+                suppressDragLeaveHidesColumns={true}
+                suppressMoveWhenColumnDragging={true}
             />
         </div>
     )
