@@ -63,7 +63,7 @@ export const updateItemFromList = async (foodItem: FoodItemType) => {
 
         const item = await isExistedItem(foodItem.listed_item_id, userId);
 
-        if (item) {
+        if (item && foodItem.listed_item_id) {
             await prisma.foodItemList.update({
                 where: {
                     id: foodItem.listed_item_id,
@@ -94,7 +94,7 @@ export const deleteItemFromList = async (deleteItem: FoodItemType) => {
 
         const existedListItem = await isExistedItem(deleteItem.listed_item_id, userId);
 
-        if (existedListItem) {
+        if (existedListItem && deleteItem.listed_item_id) {
             if (existedListItem.category.includes(deleteItem.category[0]) && existedListItem.category.length > 1) {
                 await prisma.foodItemList.update({
                     where: {

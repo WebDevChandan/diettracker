@@ -46,3 +46,4 @@ app/api/seed/route.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+public/data/

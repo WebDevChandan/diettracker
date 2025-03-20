@@ -1,13 +1,73 @@
+import ManageItem from "@/app/components/ManageItem";
+import ManageItemProvider from "@/app/context/ManageItemProvider";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DialogContext } from "@/context/DialogProvider";
-import { useContext } from "react";
+import { FoodItemType } from "@/types/FoodItem";
+import { AllCategory } from "@prisma/client";
+import { ReactNode, useContext } from "react";
+import { LuCirclePlus } from "react-icons/lu";
 
+interface ManageItemProps {
+    itemToManage: FoodItemType,
+    isNewItem: boolean,
+}
+
+interface TootTipProps {
+    triggerElement: ReactNode,
+    tooltipContent: string,
+}
+
+interface DialogType extends ManageItemProps, TootTipProps {
+    dialogTitle: string,
+    dialogDesc: ReactNode,
+    currentCategory: AllCategory
+}
+export const FoodItemDialog = ({ dialogTitle, dialogDesc, triggerElement, tooltipContent, currentCategory, itemToManage, isNewItem }: DialogType) => {
+    return (
+        <Dialog>
+            {tooltipContent.length
+                ? <TooltipProvider delayDuration={100}>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <DialogTrigger asChild>
+                                {triggerElement}
+                            </DialogTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{tooltipContent}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+                :
+                <DialogTrigger asChild>
+                    {triggerElement}
+                </DialogTrigger>
+            }
+
+            <DialogContent className="sm:max-w-[425px] overflow-y-auto h-4/5">
+                <DialogHeader>
+                    <DialogTitle>{dialogTitle}</DialogTitle>
+                    <DialogDescription>
+                        {dialogDesc}
+                    </DialogDescription>
+                </DialogHeader>
+                <ManageItemProvider itemToManage={itemToManage}>
+                    <ManageItem isNewItem={isNewItem} currentCategory={currentCategory} />
+                </ManageItemProvider>
+            </DialogContent>
+        </Dialog>
+    );
+}
 export default function useDialog() {
-    const context = useContext(DialogContext);
+    const { setOpen, open, ...context } = useContext(DialogContext);
 
     if (!context)
         throw new Error("DialogContext not found");
 
-    return (
-        context
-    )
+    return {
+        setOpen,
+        open,
+        FoodItemDialog,
+    };
 }

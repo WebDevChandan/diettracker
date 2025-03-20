@@ -10,12 +10,18 @@ export default function Breakfast() {
   const { breakfast } = useDiet();
 
   return (
-    <DialogProvider>
-      <div className="width-full flex justify-between items-center mt-2 mb-1">
-        <SubTitle currentCategory={AllCategory.breakfast} />
-        <Button type="submit" size={"sm"}>Total Nutrients</Button>
-      </div>
-      <DietTracker diet={breakfast} currentCategory={AllCategory.breakfast}/>
-    </DialogProvider>
+    <>
+      {
+        breakfast.length > 0 && (
+          <>
+            <div className="width-full flex justify-between items-center mt-2 mb-1">
+              <SubTitle currentCategory={AllCategory.breakfast} />
+              <Button type="submit" size={"sm"}>Total Nutrients</Button>
+            </div>
+            <DietTracker diet={breakfast} currentCategory={AllCategory.breakfast} />
+          </>
+        )
+      }
+    </>
   )
 }

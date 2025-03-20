@@ -260,7 +260,7 @@ const MultiSelectorTrigger = forwardRef<
           variant={"secondary"}
         >
           <span className="text-xs">{item}</span>
-          {item !== props.defaultValue && <button
+          {item !== props.defaultValue && !props["aria-disabled"] && <button
             aria-label={`Remove ${item} option`}
             aria-roledescription="button to remove option"
             type="button"
