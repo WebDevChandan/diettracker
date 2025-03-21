@@ -30,8 +30,6 @@ import { useDiet } from "../hooks/useDiet";
 import { useManageItemAction } from "../hooks/useManageItemAction";
 import { addFoodItem, deleteFoodItem, updateFoodItem } from "../server/diet.action";
 
-
-
 const itemSchema = z.object({
     name: z.string().trim().min(3, { message: 'Invalid Food Name' }).max(30, { message: 'Name length exceeded' }),
     calories: z.number().min(0, { message: "Min: 0g Max: 500g" }).max(5001, { message: "Min: 0g Max: 5000g" }),
@@ -46,7 +44,7 @@ const itemSchema = z.object({
 
 export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: boolean, currentCategory: AllCategory }) {
     const { diet, setDiet } = useDiet();
-    const { open, setOpen } = useDialog();
+    const { isDialogOpen, setIsDialogOpen } = useDialog();
     const { foodItem, setFoodItem } = useManageItemAction();
 
     const [initialFoodItemstate, setInitialFoodItemstate] = useState(foodItem);
@@ -369,7 +367,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                 listed_item_id: "",
                             });
 
-                            setOpen(false);
+                            setIsDialogOpen(false);
 
                             return `${data.message}`;
                         }
@@ -412,7 +410,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                 })
                             });
 
-                            setOpen(false);
+                            setIsDialogOpen(false);
 
                             return `${data.message}`;
                         }
@@ -443,7 +441,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                 });
                             });
 
-                            setOpen(false);
+                            setIsDialogOpen(false);
 
                             return `${data.message}`;
                         }
@@ -501,7 +499,6 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
         if (foodItem.name.trim().length < 3 || userListedItems.length) {
             return;
         };
-        console.log("handleManualSearchListItem")
 
         const response = await fetchItemList();
 
@@ -517,6 +514,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
 
         setUserListedItems(transformedData);
     }
+    
     return (
         <>
             <div className="grid gap-4">

@@ -10,6 +10,8 @@ import {
 import { AnimatePresence, motion } from 'framer-motion';
 import { Apple, Calculator, ListPlus, Plus } from 'lucide-react';
 import * as React from 'react';
+import NewFoodItem from './NewFoodItem';
+import { AllCategory } from '@prisma/client';
 
 interface SpeedDialItemProps {
     icon: React.ReactNode;
@@ -29,17 +31,35 @@ const SpeedDialItem = ({ icon, label, onClick, index }: SpeedDialItemProps) => (
                     transition={{ duration: 0.2, delay: index * 0.05 }}
                     className="absolute bottom-0 right-0"
                 >
-                    <Button
-                        variant="secondary"
-                        size="icon"
-                        className="h-12 w-12 rounded-full shadow-xl bg-white border-slate-100 border-1"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onClick();
-                        }}
-                    >
-                        {icon}
-                    </Button>
+
+                    {label === "Add New Item"
+                        ? <NewFoodItem
+                            currentCategory={AllCategory.lunch}
+                            triggerElement={
+                                <Button
+                                    variant="secondary"
+                                    size="icon"
+                                    className="h-12 w-12 rounded-full shadow-xl bg-white border-slate-100 border-1"
+                                    onClick={(e) => {
+                                        // e.stopPropagation();
+                                        // onClick();
+                                    }}
+                                >
+                                    {icon}
+                                </Button>
+                            }
+                            tooltipText={``}
+                        />
+                        :
+                        <Button
+                            variant="secondary"
+                            size="icon"
+                            className="h-12 w-12 rounded-full shadow-xl bg-white border-slate-100 border-1"
+                        >
+                            {icon}
+                        </Button>
+                    }
+
                 </motion.div>
             </TooltipTrigger>
             <TooltipContent side="left" align="center">
@@ -69,11 +89,11 @@ export function SpeedDial() {
             if (event.key === 'Escape') setIsOpen(false);
         };
 
-        document.addEventListener('click', handleClickOutside);
+        // document.addEventListener('click', handleClickOutside);
         document.addEventListener('keydown', handleKeyDown);
 
         return () => {
-            document.removeEventListener('click', handleClickOutside);
+            // document.removeEventListener('click', handleClickOutside);
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, []);
@@ -88,17 +108,14 @@ export function SpeedDial() {
         {
             icon: <Apple className="h-6 w-6" />,
             label: 'Add New Item',
-            onClick: () => console.log('Add New Item clicked'),
         },
         {
             icon: <ListPlus className="h-6 w-6" />,
             label: 'List Food Items',
-            onClick: () => console.log('List Food Items clicked'),
         },
         {
             icon: <Calculator className="h-6 w-6" />,
             label: 'Total Nutrients',
-            onClick: () => console.log('Calculate Nutrients clicked'),
         },
     ];
 
@@ -114,16 +131,11 @@ export function SpeedDial() {
                                     icon={item.icon}
                                     label={item.label}
                                     onClick={() => {
-                                        item.onClick();
                                         setIsOpen(false);
                                     }}
                                     index={index}
                                 />
                             ))}
-                            {/* <NewFoodItem
-                                currentCategory={AllCategory.breakfast}
-                                triggerElement={<ListPlus className="h-6 w-6" />}
-                            /> */}
                         </div>
                     </div>
                 )}

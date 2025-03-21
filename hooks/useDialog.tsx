@@ -25,7 +25,7 @@ interface DialogType extends ManageItemProps, TootTipProps {
 }
 export const FoodItemDialog = ({ dialogTitle, dialogDesc, triggerElement, tooltipContent, currentCategory, itemToManage, isNewItem }: DialogType) => {
     return (
-        <Dialog>
+        <>
             {tooltipContent.length
                 ? <TooltipProvider delayDuration={100}>
                     <Tooltip>
@@ -45,7 +45,7 @@ export const FoodItemDialog = ({ dialogTitle, dialogDesc, triggerElement, toolti
                 </DialogTrigger>
             }
 
-            <DialogContent className="sm:max-w-[425px] overflow-y-auto h-4/5">
+            <DialogContent className="sm:max-w-[425px] overflow-y-auto h-5/5">
                 <DialogHeader>
                     <DialogTitle>{dialogTitle}</DialogTitle>
                     <DialogDescription>
@@ -56,18 +56,20 @@ export const FoodItemDialog = ({ dialogTitle, dialogDesc, triggerElement, toolti
                     <ManageItem isNewItem={isNewItem} currentCategory={currentCategory} />
                 </ManageItemProvider>
             </DialogContent>
-        </Dialog>
+        </>
+
     );
 }
+
 export default function useDialog() {
-    const { setOpen, open, ...context } = useContext(DialogContext);
+    const { setIsDialogOpen, isDialogOpen, ...context } = useContext(DialogContext);
 
     if (!context)
         throw new Error("DialogContext not found");
 
     return {
-        setOpen,
-        open,
+        setIsDialogOpen,
+        isDialogOpen,
         FoodItemDialog,
     };
 }

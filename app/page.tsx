@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import DialogProvider from "@/context/DialogProvider";
 import { fetchUserEmail } from "@/utils/fetchUserEmail";
 import prisma from "@/utils/prisma";
 import { AllCategory } from "@prisma/client";
@@ -38,38 +39,40 @@ export default async function Home() {
   return (
     <DietProvider dietData={DietData ? DietData : []} >
       <Toaster richColors />
-      <div id="diet_tracker" className="p-2" >
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl mb-2 font-bold text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight text-center w-full "> Food Nutrition Tracker</h1>
-          <p className="text-lg text-muted-foreground text-center">
-            Track your food intake and nutritional information with ease.
-          </p>
-        </div>
-        {DietData?.length
-          ?
-          (<>
-            <Breakfast />
-            <Lunch />
-            <SpeedDial />
+      <DialogProvider>
+        <div id="diet_tracker" className="p-2" >
+          <div className="container mx-auto px-4">
+            <h1 className="text-4xl mb-2 font-bold text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight text-center w-full "> Food Nutrition Tracker</h1>
+            <p className="text-lg text-muted-foreground text-center">
+              Track your food intake and nutritional information with ease.
+            </p>
+          </div>
+          {DietData?.length
+            ?
+            (<>
+              <Breakfast />
+              <Lunch />
+              <SpeedDial />
 
-          </>)
-          :
-          (<div className="flex items-center justify-center min-h-[50vh]">
-            <NewFoodItem
-              currentCategory={AllCategory.lunch}
-              triggerElement={
-                <Button
-                  size="lg"
-                  className="flex items-center gap-2 text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
-                >
-                  <Plus className="h-6 w-6" />
-                  Add Food Item
-                </Button>}
-              tooltipText={``}
-            />
-          </div>)
-        }
-      </div>
+            </>)
+            :
+            (<div className="flex items-center justify-center min-h-[50vh]">
+              <NewFoodItem
+                currentCategory={AllCategory.lunch}
+                triggerElement={
+                  <Button
+                    size="lg"
+                    className="flex items-center gap-2 text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
+                  >
+                    <Plus className="h-6 w-6" />
+                    Add Food Item
+                  </Button>}
+                tooltipText={``}
+              />
+            </div>)
+          }
+        </div>
+      </DialogProvider>
     </DietProvider>
   );
 }

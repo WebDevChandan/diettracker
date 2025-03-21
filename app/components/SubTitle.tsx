@@ -1,12 +1,6 @@
 "use client"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import useDialog from "@/hooks/useDialog";
 import { AllCategory } from "@prisma/client";
 import { LuCirclePlus } from "react-icons/lu";
-import ManageItemProvider from "../context/ManageItemProvider";
-import ManageItem from "./ManageItem";
-import { FoodItemType } from "@/types/FoodItem";
 import NewFoodItem from "./NewFoodItem";
 
 export default function SubTitle({ currentCategory }: { currentCategory: AllCategory }) {
