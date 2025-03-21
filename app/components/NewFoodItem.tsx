@@ -1,13 +1,12 @@
 "use client";
 import { Dialog } from "@/components/ui/dialog";
-import DialogProvider from "@/context/DialogProvider";
 import useDialog from "@/hooks/useDialog";
 import { FoodItemType } from "@/types/FoodItem";
 import { AllCategory } from "@prisma/client";
 import { ReactNode } from "react";
 
 export default function NewFoodItem({ currentCategory, triggerElement, tooltipText }: { currentCategory: AllCategory, triggerElement: ReactNode, tooltipText: string }) {
-    const { open, setOpen, FoodItemDialog } = useDialog();
+    const { isDialogOpen, setIsDialogOpen, FoodItemDialog } = useDialog();
 
     const newItem: FoodItemType = {
         id: '',
@@ -25,23 +24,20 @@ export default function NewFoodItem({ currentCategory, triggerElement, tooltipTe
     }
 
     return (
-        <DialogProvider>
-            <Dialog open={open} onOpenChange={setOpen}>
-
-                <FoodItemDialog
-                    dialogTitle={`Add Item for ${currentCategory}`}
-                    dialogDesc={
-                        <>
-                            Add nutrients as <b>Amount Per (g)</b> from verified source
-                        </>
-                    }
-                    triggerElement={triggerElement}
-                    tooltipContent={tooltipText}
-                    currentCategory={currentCategory}
-                    isNewItem={true}
-                    itemToManage={newItem}
-                />
-            </Dialog>
-        </DialogProvider>
+        <Dialog>
+            <FoodItemDialog
+                dialogTitle={`Add Item for ${currentCategory}`}
+                dialogDesc={
+                    <>
+                        Add nutrients as <b>Amount Per (g)</b> from verified source
+                    </>
+                }
+                triggerElement={triggerElement}
+                tooltipContent={tooltipText}
+                currentCategory={currentCategory}
+                isNewItem={true}
+                itemToManage={newItem}
+            />
+        </Dialog>
     )
 }

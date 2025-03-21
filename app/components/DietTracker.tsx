@@ -29,7 +29,7 @@ export default function DietTracker({ diet, currentCategory }: { diet: DietType,
             minWidth: 100,
             enableCellChangeFlash: true,
             lockPinned: true,
-            editable: false,
+            cellEditor: false,
         };
     }, []);
 
