@@ -1,5 +1,4 @@
 "use client";
-import { Dialog } from "@/components/ui/dialog";
 import useDialog from "@/hooks/useDialog";
 import { FoodItemType } from "@/types/FoodItem";
 import { ReactNode } from "react";
@@ -17,7 +16,7 @@ export default function EditFoodItem({ triggerElement, itemToEdit }: { triggerEl
             }
             triggerElement={triggerElement}
             tooltipContent={`Edit ${itemToEdit.name}`}
-            currentCategory={itemToEdit.category[0]}
+            currentCategory={[itemToEdit.category[0]]}
             isNewItem={false}
             itemToManage={itemToEdit}
         />

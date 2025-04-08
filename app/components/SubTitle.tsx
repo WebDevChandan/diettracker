@@ -2,8 +2,6 @@
 import { AllCategory } from "@prisma/client";
 import { LuCirclePlus } from "react-icons/lu";
 import NewFoodItem from "./NewFoodItem";
-import { FoodItemDialog } from "@/hooks/useDialog";
-import { FoodItemType } from "@/types/FoodItem";
 
 export default function SubTitle({ currentCategory }: { currentCategory: AllCategory }) {
     return (
