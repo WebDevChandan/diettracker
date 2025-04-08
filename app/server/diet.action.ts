@@ -76,6 +76,16 @@ export const addFoodItem = async (newItem: FoodItemType) => {
             }
 
         } else {
+            const itemDividedByCategory: FoodItemType[] = [];
+
+            newItem.category.forEach((category: any) => {
+                itemDividedByCategory.push({
+                    ...newItem,
+                    id: createId(),
+                    category: [category],
+                })
+            });
+
             createdItemId =
                 await prisma.user.update({
                     where: {
@@ -83,10 +93,7 @@ export const addFoodItem = async (newItem: FoodItemType) => {
                     },
                     data: {
                         diet: {
-                            push: {
-                                ...newItem,
-                                id: createId(),
-                            }
+                            push: itemDividedByCategory,
                         }
                     }
                 }).then((user) => user.diet[user.diet.length - 1].id);

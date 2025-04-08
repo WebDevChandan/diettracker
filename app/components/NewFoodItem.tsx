@@ -5,8 +5,8 @@ import { FoodItemType } from "@/types/FoodItem";
 import { AllCategory } from "@prisma/client";
 import { ReactNode } from "react";
 
-export default function NewFoodItem({ currentCategory, triggerElement, tooltipText }: { currentCategory: AllCategory, triggerElement: ReactNode, tooltipText: string }) {
-    const { isDialogOpen, setIsDialogOpen, FoodItemDialog } = useDialog();
+export default function NewFoodItem({ currentCategory, triggerElement, tooltipText }: { currentCategory: AllCategory[], triggerElement: ReactNode, tooltipText: string }) {
+    const { FoodItemDialog, isMultiSelector } = useDialog();
 
     const newItem: FoodItemType = {
         id: '',
@@ -18,26 +18,24 @@ export default function NewFoodItem({ currentCategory, triggerElement, tooltipTe
         fat: 0,
         sugar: 0,
         amountPer: 100,
-        category: [currentCategory] as AllCategory[],
+        category: !isMultiSelector ? [...currentCategory] : [] as AllCategory[],
         listed: false,
         listed_item_id: '',
     }
-
+    
     return (
-        <Dialog>
-            <FoodItemDialog
-                dialogTitle={`Add Item for ${currentCategory}`}
-                dialogDesc={
-                    <>
-                        Add nutrients as <b>Amount Per (g)</b> from verified source
-                    </>
-                }
-                triggerElement={triggerElement}
-                tooltipContent={tooltipText}
-                currentCategory={currentCategory}
-                isNewItem={true}
-                itemToManage={newItem}
-            />
-        </Dialog>
+        <FoodItemDialog
+            dialogTitle={`Add Item for ${currentCategory}`}
+            dialogDesc={
+                <>
+                    Add nutrients as <b>Amount Per (g)</b> from verified source
+                </>
+            }
+            triggerElement={triggerElement}
+            tooltipContent={tooltipText}
+            currentCategory={!isMultiSelector ? currentCategory : []}
+            isNewItem={true}
+            itemToManage={newItem}
+        />
     )
 }

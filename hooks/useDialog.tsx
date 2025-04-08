@@ -21,7 +21,7 @@ interface TootTipProps {
 interface DialogType extends ManageItemProps, TootTipProps {
     dialogTitle: string,
     dialogDesc: ReactNode,
-    currentCategory: AllCategory
+    currentCategory: AllCategory[]
 }
 export const FoodItemDialog = ({ dialogTitle, dialogDesc, triggerElement, tooltipContent, currentCategory, itemToManage, isNewItem }: DialogType) => {
     return (
@@ -53,7 +53,7 @@ export const FoodItemDialog = ({ dialogTitle, dialogDesc, triggerElement, toolti
                     </DialogDescription>
                 </DialogHeader>
                 <ManageItemProvider itemToManage={itemToManage}>
-                    <ManageItem isNewItem={isNewItem} currentCategory={currentCategory} />
+                    <ManageItem isNewItem={isNewItem} currentCategory={[...currentCategory]} />
                 </ManageItemProvider>
             </DialogContent>
         </>
@@ -71,5 +71,6 @@ export default function useDialog() {
         setIsDialogOpen,
         isDialogOpen,
         FoodItemDialog,
+        ...context,
     };
 }

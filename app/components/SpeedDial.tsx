@@ -7,11 +7,10 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import useDialog from '@/hooks/useDialog';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Apple, Calculator, ListPlus, Plus } from 'lucide-react';
 import * as React from 'react';
-import NewFoodItem from './NewFoodItem';
-import { AllCategory } from '@prisma/client';
 
 interface SpeedDialItemProps {
     icon: React.ReactNode;
@@ -31,34 +30,17 @@ const SpeedDialItem = ({ icon, label, onClick, index }: SpeedDialItemProps) => (
                     transition={{ duration: 0.2, delay: index * 0.05 }}
                     className="absolute bottom-0 right-0"
                 >
-
-                    {label === "Add New Item"
-                        ? <NewFoodItem
-                            currentCategory={AllCategory.lunch}
-                            triggerElement={
-                                <Button
-                                    variant="secondary"
-                                    size="icon"
-                                    className="h-12 w-12 rounded-full shadow-xl bg-white border-slate-100 border-1"
-                                    onClick={(e) => {
-                                        // e.stopPropagation();
-                                        // onClick();
-                                    }}
-                                >
-                                    {icon}
-                                </Button>
-                            }
-                            tooltipText={``}
-                        />
-                        :
-                        <Button
-                            variant="secondary"
-                            size="icon"
-                            className="h-12 w-12 rounded-full shadow-xl bg-white border-slate-100 border-1"
-                        >
-                            {icon}
-                        </Button>
-                    }
+                    <Button
+                        variant="secondary"
+                        size="icon"
+                        className="h-12 w-12 rounded-full shadow-xl bg-white border-slate-100 border-1"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onClick();
+                        }}
+                    >
+                        {icon}
+                    </Button>
 
                 </motion.div>
             </TooltipTrigger>
@@ -71,16 +53,13 @@ const SpeedDialItem = ({ icon, label, onClick, index }: SpeedDialItemProps) => (
 
 // Main Speed Dial Component
 export function SpeedDial() {
+    const { isDialogOpen, setIsDialogOpen, isMultiSelector, setIsMultiSelector } = useDialog();
     const [isOpen, setIsOpen] = React.useState(false);
 
     // Click outside & keyboard escape handling
     React.useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (
-                !document
-                    .querySelector('.speed-dial-container')
-                    ?.contains(event.target as Node)
-            ) {
+            if (!document.querySelector('.speed-dial-container')?.contains(event.target as Node)) {
                 setIsOpen(false);
             }
         };
@@ -89,16 +68,16 @@ export function SpeedDial() {
             if (event.key === 'Escape') setIsOpen(false);
         };
 
-        // document.addEventListener('click', handleClickOutside);
+        document.addEventListener('click', handleClickOutside);
         document.addEventListener('keydown', handleKeyDown);
 
         return () => {
-            // document.removeEventListener('click', handleClickOutside);
+            document.removeEventListener('click', handleClickOutside);
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, []);
 
-    // Toggle Speed Dial
+    
     const toggleSpeedDial = (e: React.MouseEvent) => {
         e.stopPropagation();
         setIsOpen((prev) => !prev);
@@ -108,14 +87,20 @@ export function SpeedDial() {
         {
             icon: <Apple className="h-6 w-6" />,
             label: 'Add New Item',
+            onClick: () => {
+                setIsMultiSelector(!isMultiSelector);
+                setIsDialogOpen(!isDialogOpen);
+            },
         },
         {
             icon: <ListPlus className="h-6 w-6" />,
             label: 'List Food Items',
+            onClick: () => setIsDialogOpen(false),
         },
         {
             icon: <Calculator className="h-6 w-6" />,
             label: 'Total Nutrients',
+            onClick: () => setIsDialogOpen(false),
         },
     ];
 
@@ -132,6 +117,7 @@ export function SpeedDial() {
                                     label={item.label}
                                     onClick={() => {
                                         setIsOpen(false);
+                                        item.onClick();
                                     }}
                                     index={index}
                                 />

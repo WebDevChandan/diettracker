@@ -54,12 +54,29 @@ export default function DietTracker({ diet, currentCategory }: { diet: DietType,
             if (!itemFixedNutrientValue)
                 return <div style={{ fontWeight: "500" }}>{p.value}</div>
 
+            console.log(itemFixedNutrientValue);
             return (
-                <EditFoodItem
-                    triggerElement={<div style={{ cursor: "pointer", fontWeight: "500", color: "#181D1F" }}>{p.value}</div>}
-                    key={itemFixedNutrientValue.id}
-                    itemToEdit={itemFixedNutrientValue}
-                />
+                // <EditFoodItem
+                //     triggerElement={<div style={{ cursor: "pointer", fontWeight: "500", color: "#181D1F" }}>{p.value}</div>}
+                //     key={itemFixedNutrientValue.id}
+                //     itemToEdit={itemFixedNutrientValue}
+                // />
+
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <div style={{ cursor: "pointer", fontWeight: "500", color: "#181D1F" }}>{p.value}</div>
+                    </DialogTrigger>
+
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>Edit Item for {itemFixedNutrientValue?.category[0]}</DialogTitle>
+                            <DialogDescription>Delete or Update Item as <b>Amount Per (g)</b> </DialogDescription>
+                        </DialogHeader>
+                        <ManageItemProvider itemToManage={itemFixedNutrientValue} >
+                            <ManageItem isNewItem={false} currentCategory={[...itemFixedNutrientValue.category]} />
+                        </ManageItemProvider>
+                    </DialogContent>
+                </Dialog>
             );
         },
         [diet, currentCategory]
@@ -170,7 +187,6 @@ export default function DietTracker({ diet, currentCategory }: { diet: DietType,
                 sortable: false,
                 minWidth: 150,
                 filter: "agTextColumnFilter",
-                editable: true,
                 lockPosition: "left",
                 lockPinned: true,
             },

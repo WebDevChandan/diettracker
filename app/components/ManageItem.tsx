@@ -42,7 +42,7 @@ const itemSchema = z.object({
     category: z.string().array().nonempty({ message: "At least 1 category required" }),
 })
 
-export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: boolean, currentCategory: AllCategory }) {
+export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: boolean, currentCategory: AllCategory[] }) {
     const { diet, setDiet } = useDiet();
     const { isDialogOpen, setIsDialogOpen } = useDialog();
     const { foodItem, setFoodItem } = useManageItemAction();
@@ -128,12 +128,16 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
             setSelectedListItem(initialFoodItemstate);
             setHideListedItems(false);
 
+            if (commandInputRef.current) {
+                commandInputRef.current.focus();
+            }
+
         } else if (selectedListItem.id && !hideListedItems) {
             setFoodItem(selectedListItem);
             setFoodItem({
                 ...selectedListItem,
                 currentWeight: foodItem.currentWeight,
-                category: [currentCategory],
+                category: [...currentCategory],
             })
             setHideListedItems(true);
 
@@ -185,7 +189,6 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                 const response = await fetchItemList();
 
                 if (!response?.ok) throw new Error("Failed to fetch data");
-
 
                 const responseData: { data: FoodItemType[] } = await response.json();
                 const transformedData: FoodItemType[] = responseData.data.map(({ ...rest }) => ({
@@ -276,19 +279,23 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
     };
 
     const handleFoodItemCategory = (value: string[]) => {
-        if (!value.length) return
+        if (!value.length) return;
 
-        if (selectedListItem && selectedListItem.id) {
-            setSelectedListItem({
-                ...selectedListItem,
+        setFoodItem((prevFoodItem) => {
+            return {
+                ...prevFoodItem,
                 category: value as AllCategory[],
-            });
+            };
+        });
 
-        } else {
-            setFoodItem({ ...foodItem, category: value as AllCategory[] });
+        if (selectedListItem.id) {
+            setSelectedListItem((prevSelectedListItem) => ({
+                ...prevSelectedListItem,
+                category: value as AllCategory[],
+            }));
         }
+    };
 
-    }
 
     const handleItemValidation = () => {
         setInvalidItemError({
@@ -323,7 +330,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
             })
         }
 
-        const isDuplicateItem = diet.some(item => item.name.toLocaleLowerCase() === foodItem.name.toLocaleLowerCase() && foodItem.name.toLocaleLowerCase() !== initialFoodItemstate.name.toLocaleLowerCase() && item.category.includes(currentCategory) && hasItemChanged);
+        const isDuplicateItem = diet.some(item => item.name.toLocaleLowerCase() === foodItem.name.toLocaleLowerCase() && foodItem.name.toLocaleLowerCase() !== initialFoodItemstate.name.toLocaleLowerCase() && item.category.includes(currentCategory[0]) && hasItemChanged);
 
         return {
             isValidItem: validation.success,
@@ -430,7 +437,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
             const isListToggeled = initialFoodItemstate.listed !== foodItem.listed;
 
             toast.promise(
-                deleteFoodItem(foodItem, isListToggeled, currentCategory),
+                deleteFoodItem(foodItem, isListToggeled, currentCategory[0]),
                 {
                     loading: 'Item Deleting...',
                     success: (data) => {
@@ -486,12 +493,12 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
             ...listedFoodItem,
             name: currentSelectedValue.search(listedFoodItem.name) === -1 ? "" : listedFoodItem.name,
             currentWeight: foodItem.currentWeight,
-            category: [currentCategory],
+            category: [...currentCategory],
         })
 
         setSelectedListItem({
             ...listedFoodItem,
-            category: listedFoodItem.category.includes(currentCategory) ? [currentCategory] : [currentCategory, ...listedFoodItem.category]
+            category: listedFoodItem.category.includes(currentCategory[0]) ? [...currentCategory] : [currentCategory, ...listedFoodItem.category] as AllCategory[],
         });
     }
 
@@ -514,7 +521,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
 
         setUserListedItems(transformedData);
     }
-    
+console.log(foodItem);
     return (
         <>
             <div className="grid gap-4">
@@ -549,9 +556,9 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                 }
                             }}
                             manualSearchListItem={handleManualSearchListItem}
-                            disabled={selectedListItem.id ? true : false}
                             minLength={3}
                             maxLength={50}
+                            disabled={selectedListItem.id ? true : false}
                             ref={commandInputRef}
                         />
 
@@ -675,13 +682,13 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                     <div className="w-full">
                         <Label htmlFor="category" className="text-right">Category*</Label>
                         <Label htmlFor="category" className="text-red-500 text-xs ml-1">{invalidItemError.category}</Label>
-                        <Select defaultValue={currentCategory} disabled={true}>
+                        <Select defaultValue={currentCategory[0]} disabled={true}>
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select Category" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectGroup>
-                                    <SelectItem value={currentCategory} className="cursor-pointer hover:bg-accent">{currentCategory}</SelectItem>
+                                    <SelectItem value={currentCategory[0]} className="cursor-pointer hover:bg-accent">{currentCategory}</SelectItem>
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
@@ -692,17 +699,24 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                     <div className="w-full">
                         <Label htmlFor="category" className="text-right">Category*</Label>
                         <Label htmlFor="category" className="text-red-500 text-xs ml-1">{invalidItemError.category}</Label>
-                        <MultiSelector values={selectedListItem.id ? selectedListItem.category : foodItem.category} onValuesChange={handleFoodItemCategory} loop={false} defaultValue={currentCategory}>
-                            <MultiSelectorTrigger defaultValue={currentCategory} aria-disabled={true}>
-                                <MultiSelectorInput disabled={true} />
+                        <MultiSelector values={selectedListItem.id && currentCategory.length > 0 ? selectedListItem.category : foodItem.category} onValuesChange={handleFoodItemCategory} loop={false} defaultValue={currentCategory[0]}>
+                            <MultiSelectorTrigger defaultValue={currentCategory} aria-disabled={currentCategory.length > 0 ? true : false} >
+                                <MultiSelectorInput disabled={currentCategory.length > 0 ? true : false} placeholder={currentCategory.length > 0 ? `` : `Select your category`} />
                             </MultiSelectorTrigger>
                             <MultiSelectorContent>
                                 <MultiSelectorList>
-                                    {CATEGORY_OPTIONS.map((option, i) => (
-                                        <MultiSelectorItem key={i} value={option.value} disabled={option.value === currentCategory ? true : false}>
-                                            {option.label}
-                                        </MultiSelectorItem>
-                                    ))}
+                                    {currentCategory.length > 0 || selectedListItem.id
+                                        ? CATEGORY_OPTIONS.map((option, i) => (
+                                            <MultiSelectorItem key={i} value={option.value} disabled={option.value === currentCategory[i] ? true : false}>
+                                                {option.label}
+                                            </MultiSelectorItem>
+                                        ))
+                                        : CATEGORY_OPTIONS.map((option, i) => (
+                                            <MultiSelectorItem key={i} value={option.value}>
+                                                {option.label}
+                                            </MultiSelectorItem>
+                                        ))
+                                    }
                                 </MultiSelectorList>
                             </MultiSelectorContent>
                         </MultiSelector>

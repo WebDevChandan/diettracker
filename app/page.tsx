@@ -58,7 +58,7 @@ export default async function Home() {
             :
             (<div className="flex items-center justify-center min-h-[50vh]">
               <NewFoodItem
-                currentCategory={AllCategory.lunch}
+                currentCategory={[]}
                 triggerElement={
                   <Button
                     size="lg"
