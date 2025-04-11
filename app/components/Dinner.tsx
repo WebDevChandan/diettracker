@@ -4,19 +4,19 @@ import { useDiet } from "../hooks/useDiet";
 import DietTracker from "./DietTracker";
 import SubTitle from "./SubTitle";
 
-export default function Lunch() {
-  const { lunch } = useDiet();
+export default function Dinner() {
+  const { dinner } = useDiet();
 
   return (
     <>
       {
-        lunch.length > 0 && (
+        dinner.length > 0 && (
           <>
             <div className="width-full flex justify-between items-center mt-5 mb-1">
-              <SubTitle currentCategory={AllCategory.lunch} />
+              <SubTitle currentCategory={AllCategory.dinner} />
               {/* <Button type="submit" size={"sm"}>Total Nutrients</Button> */}
             </div>
-            <DietTracker diet={lunch} currentCategory={AllCategory.lunch} />
+            <DietTracker diet={dinner} currentCategory={AllCategory.dinner} />
           </>
         )
       }

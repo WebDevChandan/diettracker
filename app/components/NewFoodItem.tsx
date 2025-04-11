@@ -1,12 +1,11 @@
 "use client";
-import { Dialog } from "@/components/ui/dialog";
 import useDialog from "@/hooks/useDialog";
 import { FoodItemType } from "@/types/FoodItem";
 import { AllCategory } from "@prisma/client";
 import { ReactNode } from "react";
 
-export default function NewFoodItem({ currentCategory, triggerElement, tooltipText }: { currentCategory: AllCategory[], triggerElement: ReactNode, tooltipText: string }) {
-    const { FoodItemDialog, isMultiSelector } = useDialog();
+export default function NewFoodItem({ title, currentCategory, triggerElement, tooltipText }: { title: string, currentCategory: AllCategory[], triggerElement: ReactNode, tooltipText: string }) {
+    const { FoodItemDialog } = useDialog();
 
     const newItem: FoodItemType = {
         id: '',
@@ -18,14 +17,14 @@ export default function NewFoodItem({ currentCategory, triggerElement, tooltipTe
         fat: 0,
         sugar: 0,
         amountPer: 100,
-        category: !isMultiSelector ? [...currentCategory] : [] as AllCategory[],
+        category: [...currentCategory] as AllCategory[],
         listed: false,
         listed_item_id: '',
     }
-    
+
     return (
         <FoodItemDialog
-            dialogTitle={`Add Item for ${currentCategory}`}
+            dialogTitle={title}
             dialogDesc={
                 <>
                     Add nutrients as <b>Amount Per (g)</b> from verified source
@@ -33,7 +32,7 @@ export default function NewFoodItem({ currentCategory, triggerElement, tooltipTe
             }
             triggerElement={triggerElement}
             tooltipContent={tooltipText}
-            currentCategory={!isMultiSelector ? currentCategory : []}
+            currentCategory={currentCategory}
             isNewItem={true}
             itemToManage={newItem}
         />

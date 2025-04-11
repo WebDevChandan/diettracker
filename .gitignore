@@ -42,9 +42,8 @@ next-env.d.ts
 
 # Development Purpose
 /app/components/DietTracker_copy.tsx
-app/api/seed/route.ts
+app/api/seed/
+public/dataset/
 
 # clerk configuration (can include secrets)
 /.clerk/
-
-public/dataset/

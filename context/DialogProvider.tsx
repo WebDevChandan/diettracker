@@ -1,10 +1,9 @@
 "use client";
-import { Dialog } from "@/components/ui/dialog";
-import { createContext, Dispatch, ReactNode, SetStateAction, useEffect, useState } from "react";
+import { createContext, Dispatch, ReactNode, SetStateAction, useState } from "react";
 
 interface MultiSelectorType {
-    isMultiSelector: boolean
-    setIsMultiSelector: Dispatch<SetStateAction<boolean>>
+    isListedDialog: boolean
+    setIsListedDialog: Dispatch<SetStateAction<boolean>>
 };
 
 interface DialogContextType extends MultiSelectorType {
@@ -15,30 +14,22 @@ interface DialogContextType extends MultiSelectorType {
 export const DialogContext = createContext<DialogContextType>({
     isDialogOpen: false,
     setIsDialogOpen: () => { },
-    isMultiSelector: false,
-    setIsMultiSelector: () => { },
+    isListedDialog: false,
+    setIsListedDialog: () => { },
 });
 
 export default function DialogProvider({ children }: { children: ReactNode }) {
     const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-    const [isMultiSelector, setIsMultiSelector] = useState<boolean>(false);
+    const [isListedDialog, setIsListedDialog] = useState(false);
 
-    useEffect(() => {
-        if (!isDialogOpen) {
-            setIsMultiSelector(false);
-        }
-
-    }, [isDialogOpen])
     return (
         <DialogContext.Provider value={{
             isDialogOpen,
             setIsDialogOpen,
-            isMultiSelector,
-            setIsMultiSelector
+            isListedDialog,
+            setIsListedDialog
         }}>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                {children}
-            </Dialog>
+            {children}
         </DialogContext.Provider >
     )
 }

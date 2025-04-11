@@ -8,6 +8,7 @@ export default function SubTitle({ currentCategory }: { currentCategory: AllCate
         <h2 className="text-2xl mr-5 flex items-center gap-3 mt-2 mb-2 ml-1 capitalize">
             {currentCategory}
             <NewFoodItem
+                title={`Add item to ${currentCategory}`}
                 currentCategory={[currentCategory]}
                 triggerElement={<LuCirclePlus size="20px" cursor="pointer" />}
                 tooltipText={`Add item to ${currentCategory}`}

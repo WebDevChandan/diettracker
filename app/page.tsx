@@ -10,6 +10,7 @@ import Lunch from "./components/Lunch";
 import NewFoodItem from "./components/NewFoodItem";
 import { SpeedDial } from "./components/SpeedDial";
 import DietProvider from "./context/DietProvider";
+import Dinner from "./components/Dinner";
 
 const fetchUserDiet = async (userEmail: string) => {
   try {
@@ -36,6 +37,7 @@ export default async function Home() {
 
   const DietData = await fetchUserDiet(userEmail);
 
+  console.log(DietData);
   return (
     <DietProvider dietData={DietData ? DietData : []} >
       <Toaster richColors />
@@ -52,12 +54,14 @@ export default async function Home() {
             (<>
               <Breakfast />
               <Lunch />
+              <Dinner />
               <SpeedDial />
 
             </>)
             :
             (<div className="flex items-center justify-center min-h-[50vh]">
               <NewFoodItem
+              title="Add Food Item"
                 currentCategory={[]}
                 triggerElement={
                   <Button
