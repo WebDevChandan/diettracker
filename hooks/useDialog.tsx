@@ -23,11 +23,9 @@ interface DialogType extends ManageItemProps, TootTipProps {
     currentCategory: AllCategory[]
 }
 export const FoodItemDialog = ({ dialogTitle, dialogDesc, triggerElement, tooltipContent, currentCategory, itemToManage, isNewItem }: DialogType) => {
-    const { isDialogOpen, setIsDialogOpen } = useDialog();
-console.log("isDialogOpen");
-console.log(isDialogOpen);
+   
     return (
-        <Dialog onOpenChange={setIsDialogOpen} defaultOpen={false}>
+        <Dialog defaultOpen={false}>
             {tooltipContent.length
                 ? <TooltipProvider delayDuration={100}>
                     <Tooltip>

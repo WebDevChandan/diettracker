@@ -37,7 +37,6 @@ export default async function Home() {
 
   const DietData = await fetchUserDiet(userEmail);
 
-  console.log(DietData);
   return (
     <DietProvider dietData={DietData ? DietData : []} >
       <Toaster richColors />

@@ -44,6 +44,7 @@ next-env.d.ts
 /app/components/DietTracker_copy.tsx
 app/api/seed/
 public/dataset/
+.vscode
 
 # clerk configuration (can include secrets)
 /.clerk/

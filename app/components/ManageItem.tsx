@@ -1,7 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/button";
 import { CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { DialogFooter } from "@/components/ui/dialog";
+import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -345,7 +345,6 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
             return toast.info(`Duplicate item found in ${currentCategory}`);
 
         if (isValidItem && !isDuplicateItem) {
-            console.log(foodItem);
             toast.promise(
                 addFoodItem(foodItem),
                 {
@@ -375,7 +374,6 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                             });
 
                             setIsDialogOpen(false);
-
                             return `${data.message}`;
                         }
 
@@ -725,13 +723,15 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
             }
 
             <DialogFooter>
-                {isNewItem
-                    ? !isListedDialog ? <Button type="submit" onClick={handleAddFoodItem}>Add Item</Button> : <Button type="submit" onClick={handleAddFoodItem}>List Item</Button>
-                    : <div className="flex justify-center items-center gap-2">
-                        <Button type="submit" onClick={handleDeleteFoodItem} className="hover:bg-red-800">Delete Item</Button>
-                        <Button type="submit" onClick={handleUpdateFoodItem}>Update Item</Button>
-                    </div>
-                }
+                <DialogClose asChild>
+                    {isNewItem
+                        ? !isListedDialog ? <Button type="submit" onClick={handleAddFoodItem}>Add Item</Button> : <Button type="submit" onClick={handleAddFoodItem}>List Item</Button>
+                        : <div className="flex justify-center items-center gap-2">
+                            <Button type="submit" onClick={handleDeleteFoodItem} className="hover:bg-red-800">Delete Item</Button>
+                            <Button type="submit" onClick={handleUpdateFoodItem}>Update Item</Button>
+                        </div>
+                    }
+                </DialogClose>
             </DialogFooter>
         </>
     )
