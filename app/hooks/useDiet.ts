@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { DietContext } from "../context/DietProvider";
 
 export function useDiet() {
-    const { diet, setDiet, total, setTotal } = useContext(DietContext);
+    const { diet, setDiet, total, setTotal, subTotal, setSubTotal } = useContext(DietContext);
 
     if (!diet) {
         throw new Error("useDiet must be used within a DietProvider");
@@ -23,6 +23,6 @@ export function useDiet() {
         diet,
         setDiet,
         total,
-        setTotal
+        setTotal, subTotal, setSubTotal
     };
 }

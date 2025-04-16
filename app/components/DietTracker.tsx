@@ -14,13 +14,13 @@ import ManageItem from "./ManageItem";
 import { FoodItemDialog } from "@/hooks/useDialog";
 import EditFoodItem from "./EditFoodItem";
 import { createId } from "@paralleldrive/cuid2";
+import { Edit } from "lucide-react";
 
 ModuleRegistry.registerModules([AllCommunityModule, ValidationModule]);
 
 export default function DietTracker({ diet, currentCategory }: { diet: DietType, currentCategory: AllCategory }) {
-    const { total, setTotal } = useDiet();
     const [subTotal, setSubTotal] = useState<DietType[0]>({
-        id: "subtotal-id",
+        id: `${currentCategory}-subtotal-id`,
         name: "SubTotal",
         currentWeight: 0,
         calories: 0,
@@ -33,7 +33,6 @@ export default function DietTracker({ diet, currentCategory }: { diet: DietType,
         listed: false,
         listed_item_id: "subtotal-listed-id"
     });
-
 
     const gridRef = useRef<AgGridReact>(null);
     const gridStyle = useMemo(() => ({ height: "300px", width: "100%", outline: "none", border: "none" }), []);
@@ -79,7 +78,7 @@ export default function DietTracker({ diet, currentCategory }: { diet: DietType,
 
                 <Dialog>
                     <DialogTrigger asChild>
-                        <div style={{ cursor: "pointer", fontWeight: "500", color: "#181D1F" }}>{p.value}</div>
+                        <div style={{ cursor: "pointer", fontWeight: "500", color: "#181D1F" }}><label className="inline-block"><Edit size={"12px"} /></label> {p.value}</div>
                     </DialogTrigger>
 
                     <DialogContent className="sm:max-w-[425px]">
@@ -170,44 +169,13 @@ export default function DietTracker({ diet, currentCategory }: { diet: DietType,
 
     }, [diet, currentCategory]);
 
-    // const newTotal = useMemo(() => {
-    //     return {
-    //         ...total,
-    //         currentWeight: subTotal.currentWeight + total.currentWeight,
-    //         calories: subTotal.calories + total.calories,
-    //         protein: subTotal.protein + total.protein,
-    //         carbs: subTotal.carbs + total.carbs,
-    //         fat: subTotal.fat + total.fat,
-    //         sugar: subTotal.sugar + total.sugar,
-    //         amountPer: 0,
-    //         category: [`${currentCategory}` as AllCategory],
-    //     }
-
-    // }, [subTotal]);
-
     useEffect(() => {
         if (diet.length === 0 && diet[0]?.category[0] === currentCategory) return;
 
         setRowData([...diet]);
         setSubTotal(newSubTotal);
-        // setTotal(newTotal);
-
-        // setTotal((prev: any) => {
-        //     if (JSON.stringify(prev.breakfast) === JSON.stringify(newSubTotal)) {
-        //         return prev; // Prevent redundant updates
-        //     }
-        //     return [
-        //         { "breakfast": newSubTotal }
-        //     ];
-        // });
 
     }, [diet, newSubTotal, currentCategory]);
-
-    // useEffect(() => {
-    //     setTotal(subTotal);
-
-    // }, [subTotal])
-
 
     const colDefs = useMemo<ColDef[]>(
         () => [

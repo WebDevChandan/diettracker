@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
     Tooltip,
     TooltipContent,
@@ -16,6 +16,11 @@ import { Apple, Calculator, ListPlus, Plus } from 'lucide-react';
 import * as React from 'react';
 import ManageItemProvider from '../context/ManageItemProvider';
 import ManageItem from './ManageItem';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { useDiet } from '../hooks/useDiet';
+import TotalNutrients from './TotalNutrients';
+import SpeedDialFoodItem from './SpeedDialFoodItem';
 
 interface SpeedDialItemProps {
     icon: React.ReactNode;
@@ -58,8 +63,7 @@ const SpeedDialItem = ({ icon, label, onClick, index }: SpeedDialItemProps) => (
 
 // Main Speed Dial Component
 export function SpeedDial() {
-    const { isListedDialog, setIsListedDialog } = useDialog();
-    const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+    const { isAddNewItemDialog, setIsAddNewItemDialog, isListedDialog, setIsListedDialog, isTotalDialog, setIsTotalDialog } = useDialog();
     const [isDialOpen, setIsDialOpen] = React.useState(false);
 
     // Click outside & keyboard escape handling
@@ -84,9 +88,9 @@ export function SpeedDial() {
     }, []);
 
     React.useEffect(() => {
-        if (isListedDialog && !isDialogOpen)
+        if (isListedDialog && !isAddNewItemDialog)
             setIsListedDialog(false)
-    }, [isListedDialog, isDialogOpen])
+    }, [isListedDialog, isAddNewItemDialog])
 
     const toggleSpeedDial = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -99,7 +103,7 @@ export function SpeedDial() {
             label: 'Add New Item',
             onClick: () => {
                 setIsListedDialog(false)
-                setIsDialogOpen(!isDialogOpen)
+                setIsAddNewItemDialog(!isAddNewItemDialog)
             }
         },
         {
@@ -107,49 +111,24 @@ export function SpeedDial() {
             label: 'List Food Items',
             onClick: () => {
                 setIsListedDialog(!isListedDialog)
-                setIsDialogOpen(!isDialogOpen)
+                setIsAddNewItemDialog(!isAddNewItemDialog)
             },
         },
         {
             icon: <Calculator className="h-6 w-6" />,
             label: 'Total Nutrients',
-            onClick: () => setIsDialogOpen(false),
+            onClick: () => setIsTotalDialog(!isTotalDialog),
         },
     ];
 
-    const newItem: FoodItemType = {
-        id: '',
-        name: '',
-        calories: 0,
-        currentWeight: 0,
-        protein: 0,
-        carbs: 0,
-        fat: 0,
-        sugar: 0,
-        amountPer: 100,
-        category: [] as AllCategory[],
-        listed: false,
-        listed_item_id: '',
-    }
+
 
     return (
         <div className="speed-dial-container fixed bottom-6 right-6 z-50">
 
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-[425px] overflow-y-auto h-5/5">
-                    <DialogHeader>
-                        <DialogTitle>{!isListedDialog ? `Add Food Item` : "List Food Item"}</DialogTitle>
-                        <DialogDescription>
-                            <>
-                                Add nutrients as <b>Amount Per (g)</b> from verified source
-                            </>
-                        </DialogDescription>
-                    </DialogHeader>
-                    <ManageItemProvider itemToManage={newItem}>
-                        <ManageItem isNewItem={true} currentCategory={[]} />
-                    </ManageItemProvider>
-                </DialogContent>
-            </Dialog>
+            <SpeedDialFoodItem />
+
+            <TotalNutrients />
 
             <AnimatePresence>
                 {isDialOpen && (

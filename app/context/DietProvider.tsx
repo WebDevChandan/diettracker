@@ -1,13 +1,16 @@
 "use client";
 import { DietType } from "@/types/Diet";
+import { calNutrientFormula } from "@/utils/calNutrientFormula";
 import { AllCategory } from "@prisma/client";
-import { createContext, Dispatch, ReactNode, SetStateAction, useState } from "react";
+import { createContext, Dispatch, ReactNode, SetStateAction, useEffect, useState } from "react";
 
 type DietContextType = {
     diet: DietType
     setDiet: Dispatch<SetStateAction<DietType>>;
     total: DietType[0],
     setTotal: Dispatch<SetStateAction<DietType[0]>>;
+    subTotal: DietType[0],
+    setSubTotal: Dispatch<SetStateAction<DietType[0]>>;
 };
 
 export const DietContext = createContext<DietContextType>({
@@ -23,11 +26,26 @@ export const DietContext = createContext<DietContextType>({
         fat: 0,
         sugar: 0,
         amountPer: 0,
-        category: [AllCategory.breakfast, AllCategory.lunch, AllCategory.dinner, AllCategory.snacks, AllCategory.other] as AllCategory[],
+        category: [] as AllCategory[],
         listed: false,
         listed_item_id: "total-listed-id"
     },
     setTotal: () => { },
+    subTotal: {
+        id: "subtotal-id",
+        name: "SubTotal",
+        currentWeight: 0,
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        sugar: 0,
+        amountPer: 0,
+        category: [] as AllCategory[],
+        listed: false,
+        listed_item_id: "subtotal-listed-id"
+    },
+    setSubTotal: () => { },
 });
 
 export default function DietProvider({ children, dietData }: { children: ReactNode, dietData: DietType }) {
@@ -42,10 +60,44 @@ export default function DietProvider({ children, dietData }: { children: ReactNo
         fat: 0,
         sugar: 0,
         amountPer: 0,
-        category: [AllCategory.breakfast, AllCategory.lunch, AllCategory.dinner, AllCategory.snacks, AllCategory.other] as AllCategory[],
+        category: [] as AllCategory[],
         listed: false,
         listed_item_id: "total-listed-id"
     } as DietType[0]);
+
+    const [subTotal, setSubTotal] = useState<DietType[0]>({
+        id: "subtotal-id",
+        name: "SubTotal",
+        currentWeight: 0,
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        sugar: 0,
+        amountPer: 0,
+        category: [] as AllCategory[],
+        listed: false,
+        listed_item_id: "subtotal-listed-id"
+    });
+
+    useEffect(() => {
+        const calculateTotal = (dietItems: DietType) => {
+            console.log(dietItems);
+            if (dietItems.length === 0) return total;
+
+            return {
+                ...total,
+                currentWeight: dietItems.reduce((acc, curr) => acc + curr.currentWeight, 0),
+                calories: dietItems.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.calories, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                protein: dietItems.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.protein, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                carbs: dietItems.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.carbs, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                fat: dietItems.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.fat, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                sugar: dietItems.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+            };
+        };
+
+        setTotal(calculateTotal(diet));
+    }, [diet]);
 
     return (
         <DietContext.Provider value={{
@@ -53,6 +105,8 @@ export default function DietProvider({ children, dietData }: { children: ReactNo
             setDiet,
             total,
             setTotal,
+            subTotal,
+            setSubTotal,
         }}>
             {children}
         </DietContext.Provider >

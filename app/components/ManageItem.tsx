@@ -44,7 +44,7 @@ const itemSchema = z.object({
 
 export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: boolean, currentCategory: AllCategory[] }) {
     const { diet, setDiet } = useDiet();
-    const { isDialogOpen, setIsDialogOpen, isListedDialog } = useDialog();
+    const { isListedDialog } = useDialog();
     const { foodItem, setFoodItem } = useManageItemAction();
 
     const [initialFoodItemstate, setInitialFoodItemstate] = useState(foodItem);
@@ -373,7 +373,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                 listed_item_id: "",
                             });
 
-                            setIsDialogOpen(false);
+                            // setIsDialogOpen(false);
                             return `${data.message}`;
                         }
 
@@ -415,7 +415,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                 })
                             });
 
-                            setIsDialogOpen(false);
+                            // setIsDialogOpen(false);
 
                             return `${data.message}`;
                         }
@@ -446,7 +446,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                 });
                             });
 
-                            setIsDialogOpen(false);
+                            // setIsDialogOpen(false);
 
                             return `${data.message}`;
                         }
@@ -519,7 +519,8 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
 
         setUserListedItems(transformedData);
     }
-    console.log(foodItem);
+    console.log(invalidItemError);
+
     return (
         <>
             <div className="grid gap-4">
@@ -725,7 +726,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
             <DialogFooter>
                 <DialogClose asChild>
                     {isNewItem
-                        ? !isListedDialog ? <Button type="submit" onClick={handleAddFoodItem}>Add Item</Button> : <Button type="submit" onClick={handleAddFoodItem}>List Item</Button>
+                        ? !isListedDialog ? <Button type="submit" onClick={handleAddFoodItem} disabled={invalidItemError.name ? true : false}>Add Item</Button> : <Button type="submit" onClick={handleAddFoodItem}>List Item</Button>
                         : <div className="flex justify-center items-center gap-2">
                             <Button type="submit" onClick={handleDeleteFoodItem} className="hover:bg-red-800">Delete Item</Button>
                             <Button type="submit" onClick={handleUpdateFoodItem}>Update Item</Button>
