@@ -1,4 +1,4 @@
-# Diet Tracker
+# DietTracker
 
 **AI-Enabled Nutrition Management Web App**  
 Track your daily food intake, calculate calories, and stay aligned with your fat-loss goals using AI-powered insights built on [USDA](https://fdc.nal.usda.gov/) datasets.
