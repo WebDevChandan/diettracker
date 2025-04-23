@@ -15,7 +15,7 @@ Track your daily food intake, calculate calories, and stay aligned with your fat
 
 ## Overview
 
-**Diet Tracker** is a full-stack AI-enabled web application built with the latest web technologies like **Next.js**, **React**, **Prisma ORM**, **MongoDB**, **Tailwind CSS**, **Clerk**, and **AG Grid**. It integrates **Google Gemini 2.0 Flash** via **Vertex AI Studio**—fine-tuned on the USDA dataset—to help users track and analyze their diet with minimal manual input while maintaining a calorie deficit cycle for fat loss.
+**DietTracker** is a full-stack AI-enabled web application built with the latest web technologies like **Next.js**, **React**, **Prisma ORM**, **MongoDB**, **Tailwind CSS**, **Clerk**, and **AG Grid**. It integrates **Google Gemini 2.0 Flash** via **Vertex AI Studio**—fine-tuned on the USDA dataset—to help users track and analyze their diet with minimal manual input while maintaining a calorie deficit cycle for fat loss.
 
 ---
 
