@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import useDialog from '@/hooks/useDialog';
-import { useDiet } from '../hooks/useDiet';
+import useDialog from '@/app/hooks/useDialog';
+import { useDiet } from '../hook/useDiet';
 
 export default function TotalNutrients() {
     const { total } = useDiet();

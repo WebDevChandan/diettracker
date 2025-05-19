@@ -1,5 +1,5 @@
 "use client";
-import useDialog from "@/hooks/useDialog";
+import useDialog from "@/app/hooks/useDialog";
 import { FoodItemType } from "@/types/FoodItem";
 import { ReactNode } from "react";
 

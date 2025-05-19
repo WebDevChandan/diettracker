@@ -1,10 +1,10 @@
 "use client"
 import { Button } from "@/components/ui/button";
+import useDialog from "@/app/hooks/useDialog";
 import { AllCategory } from "@prisma/client";
-import { useDiet } from "../hooks/useDiet";
+import { useDiet } from "../hook/useDiet";
 import DietTracker from "./DietTracker";
 import SubTitle from "./SubTitle";
-import useDialog from "@/hooks/useDialog";
 
 export default function Breakfast() {
   const { breakfast } = useDiet();

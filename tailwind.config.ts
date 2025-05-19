@@ -11,43 +11,86 @@ export default {
 		extend: {
 			animation: {
 				'reverse-spin': 'reverse-spin 0.5s ease-in-out infinite',
+				'accordion-down': 'accordion-down 0.2s ease-out',
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in-up': 'fade-in-up 0.5s ease-out',
+				'fade-in': 'fade-in 0.5s ease-out',
 			},
 			keyframes: {
+				'accordion-down': {
+					from: {
+						height: '0',
+					},
+					to: {
+						height: 'var(--radix-accordion-content-height)',
+					},
+				},
+				'accordion-up': {
+					from: {
+						height: 'var(--radix-accordion-content-height)',
+					},
+					to: {
+						height: '0',
+					},
+				},
+				'fade-in-up': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(20px)',
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)',
+					},
+				},
+				'fade-in': {
+					'0%': {
+						opacity: '0',
+					},
+					'100%': {
+						opacity: '1',
+					},
+				},
 				'reverse-spin': {
 					'0%': { transform: 'rotate(0deg)' },
 					'100%': { transform: 'rotate(-360deg)' },
 				},
+			},
+			backgroundImage: {
+				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+				'gradient-conic':
+					'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
 			},
 			colors: {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				card: {
 					DEFAULT: 'hsl(var(--card))',
-					foreground: 'hsl(var(--card-foreground))'
+					foreground: 'hsl(var(--card-foreground))',
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
-					foreground: 'hsl(var(--popover-foreground))'
+					foreground: 'hsl(var(--popover-foreground))',
 				},
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
-					foreground: 'hsl(var(--secondary-foreground))'
+					foreground: 'hsl(var(--secondary-foreground))',
 				},
 				muted: {
 					DEFAULT: 'hsl(var(--muted))',
-					foreground: 'hsl(var(--muted-foreground))'
+					foreground: 'hsl(var(--muted-foreground))',
 				},
 				accent: {
 					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
+					foreground: 'hsl(var(--accent-foreground))',
 				},
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
-					foreground: 'hsl(var(--destructive-foreground))'
+					foreground: 'hsl(var(--destructive-foreground))',
 				},
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -57,8 +100,33 @@ export default {
 					'2': 'hsl(var(--chart-2))',
 					'3': 'hsl(var(--chart-3))',
 					'4': 'hsl(var(--chart-4))',
-					'5': 'hsl(var(--chart-5))'
-				}
+					'5': 'hsl(var(--chart-5))',
+				},
+				// DietTracker Custom Colors
+				dietBlue: {
+					'50': '#e5f0f7',
+					'100': '#cce0ef',
+					'200': '#99c1df',
+					'300': '#66a2cf',
+					'400': '#3383bf',
+					'500': '#0064af',
+					'600': '#00508c',
+					'700': '#0F3057', // primary blue from logo
+					'800': '#002844',
+					'900': '#001422',
+				},
+				dietGreen: {
+					'50': '#e7f9f0',
+					'100': '#d0f4e0',
+					'200': '#a1e9c2',
+					'300': '#72dea3',
+					'400': '#3CC47C', // secondary green from logo
+					'500': '#2aa05d',
+					'600': '#22804a',
+					'700': '#1a6038',
+					'800': '#114025',
+					'900': '#092013',
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

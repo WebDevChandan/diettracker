@@ -1,8 +1,8 @@
 "use client"
 import { AllCategory } from "@prisma/client";
-import { useDiet } from "../hooks/useDiet";
 import DietTracker from "./DietTracker";
 import SubTitle from "./SubTitle";
+import { useDiet } from "../hook/useDiet";
 
 export default function Lunch() {
   const { lunch } = useDiet();

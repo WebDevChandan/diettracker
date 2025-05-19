@@ -1,9 +1,9 @@
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import useDialog from '@/app/hooks/useDialog';
+import { FoodItemType } from '@/types/FoodItem';
+import { AllCategory } from '@prisma/client';
 import ManageItemProvider from '../context/ManageItemProvider';
 import ManageItem from './ManageItem';
-import { AllCategory } from '@prisma/client';
-import { FoodItemType } from '@/types/FoodItem';
-import useDialog from '@/hooks/useDialog';
 
 export default function SpeedDialFoodItem() {
     const { isAddNewItemDialog, setIsAddNewItemDialog, isListedDialog } = useDialog();

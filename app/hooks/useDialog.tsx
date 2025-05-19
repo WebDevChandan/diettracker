@@ -1,11 +1,11 @@
-import ManageItem from "@/app/components/ManageItem";
-import ManageItemProvider from "@/app/context/ManageItemProvider";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { DialogContext } from "@/context/DialogProvider";
+import { DialogContext } from "@/app/context/DialogProvider";
 import { FoodItemType } from "@/types/FoodItem";
 import { AllCategory } from "@prisma/client";
 import { ReactNode, useContext } from "react";
+import ManageItemProvider from "@/app/tracker/context/ManageItemProvider";
+import ManageItem from "@/app/tracker/components/ManageItem";
 
 interface ManageItemProps {
     itemToManage: FoodItemType,

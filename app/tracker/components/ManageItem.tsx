@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/MultiSelector";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import useDialog from "@/hooks/useDialog";
+import useDialog from "@/app/hooks/useDialog";
 import { cn } from "@/lib/utils";
 import { FoodItemType } from "@/types/FoodItem";
 import { createId } from "@paralleldrive/cuid2";
@@ -25,9 +25,9 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { MdInfoOutline, MdOutlinePlaylistAdd, MdOutlinePlaylistAddCheck } from "react-icons/md";
 import { toast } from "sonner";
 import { z } from 'zod';
-import useDebounce from "../hooks/useDebounce";
-import { useDiet } from "../hooks/useDiet";
-import { useManageItemAction } from "../hooks/useManageItemAction";
+import useDebounce from "../../hooks/useDebounce";
+import { useDiet } from "../hook/useDiet";
+import { useManageItemAction } from "../hook/useManageItemAction";
 import { addFoodItem, deleteFoodItem, updateFoodItem } from "../server/diet.action";
 
 const itemSchema = z.object({

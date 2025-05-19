@@ -1,5 +1,4 @@
 import { FoodItemType } from "@/types/FoodItem";
-import { fetchUserEmail } from "@/utils/fetchUserEmail";
 import { fetchUserId } from "@/utils/fetchUserId";
 import prisma from "@/utils/prisma";
 import { AllCategory } from "@prisma/client";

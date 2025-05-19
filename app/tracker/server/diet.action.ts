@@ -68,7 +68,7 @@ export const addFoodItem = async (newItem: FoodItemType) => {
                     }
                 }).then((user) => user.diet[user.diet.length - 1].id);
 
-            revalidatePath("/");
+            revalidatePath("/tracker");
 
             return {
                 message: "Item added & listed successfully",
@@ -99,7 +99,7 @@ export const addFoodItem = async (newItem: FoodItemType) => {
                 }).then((user) => user.diet[user.diet.length - 1].id);
         }
 
-        revalidatePath("/");
+        revalidatePath("/tracker");
 
         return {
             message: "Item added successfully",
@@ -142,7 +142,7 @@ export const updateFoodItem = async (editItem: FoodItemType, isListToggeled: boo
                 }
             })
 
-            revalidatePath("/");
+            revalidatePath("/tracker");
 
             return {
                 message: "Item updated & removed from list",
@@ -170,7 +170,7 @@ export const updateFoodItem = async (editItem: FoodItemType, isListToggeled: boo
                 }
             });
 
-            revalidatePath("/");
+            revalidatePath("/tracker");
 
             return {
                 message: "Item updated & added to list",
@@ -198,7 +198,7 @@ export const updateFoodItem = async (editItem: FoodItemType, isListToggeled: boo
                 }
             })
 
-            revalidatePath("/");
+            revalidatePath("/tracker");
 
             return {
                 message: "Item & List updated successfully",
@@ -223,7 +223,7 @@ export const updateFoodItem = async (editItem: FoodItemType, isListToggeled: boo
             }
         })
 
-        revalidatePath("/");
+        revalidatePath("/tracker");
 
         return {
             message: "Item updated successfully",
@@ -262,7 +262,7 @@ export const deleteFoodItem = async (deleteItem: FoodItemType, isListToggeled: b
                 }
             })
 
-            revalidatePath("/");
+            revalidatePath("/tracker");
 
             return {
                 message: "Item deleted & removed from list",
@@ -271,7 +271,7 @@ export const deleteFoodItem = async (deleteItem: FoodItemType, isListToggeled: b
 
         else if (isListToggeled && deleteItem.listed) {
             await addItemToList(deleteItem);
-            revalidatePath("/");
+            revalidatePath("/tracker");
 
             return {
                 message: "Item deleted & added to list",
@@ -293,7 +293,7 @@ export const deleteFoodItem = async (deleteItem: FoodItemType, isListToggeled: b
             }
         })
 
-        revalidatePath("/");
+        revalidatePath("/tracker");
 
         return {
             message: "Item deleted successfully",

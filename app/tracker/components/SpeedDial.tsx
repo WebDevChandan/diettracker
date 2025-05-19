@@ -1,26 +1,17 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import useDialog from '@/hooks/useDialog';
-import { FoodItemType } from '@/types/FoodItem';
-import { AllCategory } from '@prisma/client';
+import useDialog from '@/app/hooks/useDialog';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Apple, Calculator, ListPlus, Plus } from 'lucide-react';
 import * as React from 'react';
-import ManageItemProvider from '../context/ManageItemProvider';
-import ManageItem from './ManageItem';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { useDiet } from '../hooks/useDiet';
-import TotalNutrients from './TotalNutrients';
 import SpeedDialFoodItem from './SpeedDialFoodItem';
+import TotalNutrients from './TotalNutrients';
 
 interface SpeedDialItemProps {
     icon: React.ReactNode;
