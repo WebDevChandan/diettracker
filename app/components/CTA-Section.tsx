@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { useInView } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { SignedIn, SignedOut } from '@clerk/nextjs';
 
 export function CtaSection() {
     const sectionRef = useRef<HTMLDivElement>(null);
@@ -37,13 +38,22 @@ export function CtaSection() {
                     </p>
 
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
-                        <Button variant="diet" size="xl" className="group" onClick={() => router.push("/sign-up")}>
-                            Get Started Free
-                            <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </Button>
-                        <Button variant="outline" size="xl" className="bg-transparent border-white text-white hover:bg-white/10">
-                            View Plans
-                        </Button>
+                        <SignedOut>
+                            <Button variant="diet" size="xl" className="group" onClick={() => router.push("/sign-up")}>
+                                Get Started Free
+                                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                            </Button>
+                            <Button variant="outline" size="xl" className="bg-transparent border-white text-white hover:bg-white/10">
+                                View Plans
+                            </Button>
+                        </SignedOut>
+
+                        <SignedIn>
+                            <Button variant="diet" size="xl" className="group" onClick={() => router.push("/tracker")}>
+                                Start Tracking
+                                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                            </Button>
+                        </SignedIn>
                     </div>
 
                     <p className="text-gray-300 mt-6 text-sm">

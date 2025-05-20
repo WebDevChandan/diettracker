@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useRef } from 'react';
 import { useCarousel } from '../hooks/useCarousel';
+import { SignedIn, SignedOut } from '@clerk/nextjs';
 
 const heroImages = [
     "https://images.pexels.com/photos/3621181/pexels-photo-3621181.jpeg",
@@ -80,11 +81,19 @@ export function HeroSection() {
                                 transitionDelay: '0.7s'
                             }}
                         >
-                            <Button variant="diet" size="xl" className="group" onClick={() => router.push('/sign-up')}>
-                                Start Your Journey
-                                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                            </Button>
-                            <Button variant="dietOutline" size="xl" onClick={()=>router.push("#features")}>
+                            <SignedOut>
+                                <Button variant="diet" size="xl" className="group" onClick={() => router.push('/sign-up')}>
+                                    Start Your Journey
+                                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                </Button>
+                            </SignedOut>
+                            <SignedIn>
+                                <Button variant="diet" size="xl" className="group" onClick={() => router.push('/tracker')}>
+                                    Track Your Journey
+                                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                </Button>
+                            </SignedIn>
+                            <Button variant="dietOutline" size="xl" onClick={() => router.push("#features")}>
                                 Learn More
                             </Button>
                         </div>

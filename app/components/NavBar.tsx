@@ -1,12 +1,13 @@
 "use client";
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { SignedIn, SignedOut } from '@clerk/nextjs';
 import { Menu, X } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -17,7 +18,7 @@ export function Navbar() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-    
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -29,15 +30,15 @@ export function Navbar() {
   return (
     <header className={cn(
       "fixed top-0 w-full z-50 transition-all duration-300",
-      isScrolled 
-        ? "bg-white/95 backdrop-blur-sm shadow-sm py-2" 
+      isScrolled
+        ? "bg-white/95 backdrop-blur-sm shadow-sm py-2"
         : "bg-transparent py-4"
     )}>
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
           <div className="relative h-10 w-10 md:h-12 md:w-12">
-            <Image 
-              src="/assets/logo.svg" 
+            <Image
+              src="/assets/logo.svg"
               alt="DietTracker Logo"
               width={48}
               height={48}
@@ -55,8 +56,8 @@ export function Navbar() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <Link 
-            href="#features" 
+          <Link
+            href="#features"
             className={cn(
               "text-sm font-medium transition-colors hover:text-dietGreen-400",
               isScrolled ? "text-dietBlue-700" : "text-dietBlue-700"
@@ -64,8 +65,8 @@ export function Navbar() {
           >
             Features
           </Link>
-          <Link 
-            href="#testimonials" 
+          <Link
+            href="#testimonials"
             className={cn(
               "text-sm font-medium transition-colors hover:text-dietGreen-400",
               isScrolled ? "text-dietBlue-700" : "text-dietBlue-700"
@@ -73,8 +74,8 @@ export function Navbar() {
           >
             Testimonials
           </Link>
-          <Link 
-            href="#about" 
+          <Link
+            href="#about"
             className={cn(
               "text-sm font-medium transition-colors hover:text-dietGreen-400",
               isScrolled ? "text-dietBlue-700" : "text-dietBlue-700"
@@ -86,16 +87,24 @@ export function Navbar() {
 
         {/* Call to Action Buttons */}
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="dietOutline" size="sm" onClick={handleLogin}>
-            Login
-          </Button>
-          <Button variant="diet" size="sm" onClick={()=>router.push("/sign-up")}>
-            Get Started
-          </Button>
+          <SignedOut>
+            <Button variant="dietOutline" size="sm" onClick={handleLogin}>
+              Login
+            </Button>
+            <Button variant="diet" size="sm" onClick={() => router.push("/sign-up")}>
+              Get Started
+            </Button>
+          </SignedOut>
+
+          <SignedIn>
+            <Button variant="diet" size="sm" onClick={() => router.push("/tracker")}>
+              Tracker
+            </Button>
+          </SignedIn>
         </div>
 
         {/* Mobile Menu Button */}
-        <button 
+        <button
           className="md:hidden text-dietBlue-700"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
@@ -108,34 +117,42 @@ export function Navbar() {
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t">
           <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
-            <Link 
-              href="#features" 
+            <Link
+              href="#features"
               className="text-dietBlue-700 font-medium py-2"
               onClick={() => setMobileMenuOpen(false)}
             >
               Features
             </Link>
-            <Link 
-              href="#testimonials" 
+            <Link
+              href="#testimonials"
               className="text-dietBlue-700 font-medium py-2"
               onClick={() => setMobileMenuOpen(false)}
             >
               Testimonials
             </Link>
-            <Link 
-              href="#about" 
+            <Link
+              href="#about"
               className="text-dietBlue-700 font-medium py-2"
               onClick={() => setMobileMenuOpen(false)}
             >
               About
             </Link>
             <div className="flex flex-col space-y-2 pt-2">
-               <Button variant="dietOutline" className="w-full" onClick={handleLogin}>
-                Login
-              </Button>
-              <Button variant="diet" className="w-full" onClick={()=>router.push("/sign-up")}>
-                Get Started
-              </Button>
+              <SignedOut>
+                <Button variant="dietOutline" size="sm" onClick={handleLogin}>
+                  Login
+                </Button>
+                <Button variant="diet" size="sm" onClick={() => router.push("/sign-up")}>
+                  Get Started
+                </Button>
+              </SignedOut>
+
+              <SignedIn>
+                <Button variant="diet" size="sm" onClick={() => router.push("/tracker")}>
+                  Tracker
+                </Button>
+              </SignedIn>
             </div>
           </div>
         </div>
