@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Diet Tracker",
+  title: "DietTracker",
   description: "Track your Macros and Calories of your Diet",
 };
 
