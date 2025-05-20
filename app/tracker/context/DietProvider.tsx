@@ -82,7 +82,6 @@ export default function DietProvider({ children, dietData }: { children: ReactNo
 
     useEffect(() => {
         const calculateTotal = (dietItems: DietType) => {
-            console.log(dietItems);
             if (dietItems.length === 0) return total;
 
             return {

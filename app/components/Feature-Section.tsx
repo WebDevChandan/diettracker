@@ -50,7 +50,7 @@ const features = [
 
 export function FeaturesSection() {
     const sectionRef = useRef<HTMLDivElement>(null);
-    const isInView = useInView(sectionRef, { once: true, amount: 0.5 });
+    const isInView = useInView(sectionRef, { once: true});
 
     return (
         <section
