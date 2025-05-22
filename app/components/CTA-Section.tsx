@@ -11,7 +11,6 @@ export function CtaSection() {
     const isInView = useInView(sectionRef, { once: true });
     const router = useRouter();
 
-
     return (
         <section
             ref={sectionRef}
@@ -43,8 +42,8 @@ export function CtaSection() {
                                 Get Started Free
                                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                             </Button>
-                            <Button variant="outline" size="xl" className="bg-transparent border-white text-white hover:bg-white/10">
-                                View Plans
+                            <Button variant="outline" size="xl" className="bg-transparent border-white text-white hover:bg-white/10:text-white" onClick={() => router.push("/calorie-calculator")}>
+                                Calorie Calculator
                             </Button>
                         </SignedOut>
 
@@ -57,7 +56,7 @@ export function CtaSection() {
                     </div>
 
                     <p className="text-gray-300 mt-6 text-sm">
-                        No credit card required. Start with our free plan today.
+                        No credit card required. Start with today for free.
                     </p>
                 </div>
             </div>

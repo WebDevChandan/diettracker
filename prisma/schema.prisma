@@ -33,6 +33,27 @@ type FoodItem {
   listed_item_id String
 }
 
+type Profile {
+  weight                   Int
+  heightCm                 Int
+  heightFeet               Int
+  heightInches             Int
+  age                      Int
+  weightUnit               String
+  heightUnit               String
+  gender                   String
+  activityLevel            String
+  weeklyWeightLoss         String @default("")
+  calorieDeficitPreference String @default("")
+}
+
+type Goal {
+  bmr            Int
+  tdee           Int
+  calorieDeficit Int
+  calorieGoal    Int
+}
+
 model FoodItemList {
   id            String        @id @default(auto()) @map("_id") @db.ObjectId
   name          String
@@ -61,4 +82,15 @@ model User {
   FoodItemList FoodItemList[]
   created_at   DateTime       @default(now())
   update_at    DateTime       @updatedAt
+  UserFitness  UserFitness?
+}
+
+model UserFitness {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userEmail  String   @unique
+  profile    Profile
+  goal       Goal
+  User       User     @relation(fields: [userEmail], references: [email])
+  created_at DateTime @default(now())
+  update_at  DateTime @updatedAt
 }

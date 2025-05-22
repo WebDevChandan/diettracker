@@ -57,6 +57,16 @@ export function Navbar() {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           <Link
+            href="/calorie-calculator"
+            className={cn(
+              "text-sm font-medium transition-colors hover:text-dietGreen-400",
+              isScrolled ? "text-dietBlue-700" : "text-dietBlue-700"
+            )}
+            prefetch={true}
+          >
+            Calorie Calculator
+          </Link>
+          <Link
             href="#features"
             className={cn(
               "text-sm font-medium transition-colors hover:text-dietGreen-400",
@@ -64,15 +74,6 @@ export function Navbar() {
             )}
           >
             Features
-          </Link>
-          <Link
-            href="#testimonials"
-            className={cn(
-              "text-sm font-medium transition-colors hover:text-dietGreen-400",
-              isScrolled ? "text-dietBlue-700" : "text-dietBlue-700"
-            )}
-          >
-            Testimonials
           </Link>
           <Link
             href="#about"
@@ -98,7 +99,7 @@ export function Navbar() {
 
           <SignedIn>
             <Button variant="diet" size="sm" onClick={() => router.push("/tracker")}>
-              Tracker
+              Dashboard
             </Button>
           </SignedIn>
         </div>
@@ -118,18 +119,21 @@ export function Navbar() {
         <div className="md:hidden bg-white border-t">
           <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
             <Link
+              href="/calorie-calculator"
+              className={cn(
+                "text-sm font-medium transition-colors hover:text-dietGreen-400",
+                isScrolled ? "text-dietBlue-700" : "text-dietBlue-700"
+              )}
+              prefetch={true}
+            >
+              Calorie Calculator
+            </Link>
+            <Link
               href="#features"
               className="text-dietBlue-700 font-medium py-2"
               onClick={() => setMobileMenuOpen(false)}
             >
               Features
-            </Link>
-            <Link
-              href="#testimonials"
-              className="text-dietBlue-700 font-medium py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Testimonials
             </Link>
             <Link
               href="#about"
@@ -150,7 +154,7 @@ export function Navbar() {
 
               <SignedIn>
                 <Button variant="diet" size="sm" onClick={() => router.push("/tracker")}>
-                  Tracker
+                  Dashboard
                 </Button>
               </SignedIn>
             </div>

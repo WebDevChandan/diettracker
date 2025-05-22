@@ -93,8 +93,8 @@ export function HeroSection() {
                                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                                 </Button>
                             </SignedIn>
-                            <Button variant="dietOutline" size="xl" onClick={() => router.push("#features")}>
-                                Learn More
+                            <Button variant="dietOutline" size="xl" onClick={() => router.push("/calorie-calculator")}>
+                                Calculate Calorie
                             </Button>
                         </div>
                     </div>

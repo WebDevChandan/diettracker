@@ -1,6 +1,8 @@
 "use client"
 
+import { setLocalStorageData } from "@/app/client/localstorage.action"
 import { fetchGoal, saveGoal, type GoalFormValues } from "@/app/goal/server/goal.action"
+import useUserGoal from "@/app/hooks/userUserGoal"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -15,6 +17,7 @@ import { ArrowRight, HelpCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
+import { toast } from "sonner"
 import { z } from "zod"
 
 // Define the schema for form validation
@@ -33,21 +36,29 @@ const formSchema = z.object({
         .max(100, { message: "Age must be 100 or less" }),
     gender: z.enum(["male", "female"]),
     activityLevel: z.enum(["1.2", "1.375", "1.55", "1.725", "1.9"]),
-    weeklyWeightLoss: z.enum(["0.25", "0.5", "1"]).optional(),
+    weeklyWeightLoss: z.enum(["0.25", "0.5", "1", ""]).optional(),
     calorieDeficitPreference: z.enum(["mild", "moderate", "aggressive"]).optional(),
     privacyConsent: z.boolean().refine(val => val === true),
 })
 
 type FormValues = z.infer<typeof formSchema>
 
-export function GoalForm() {
+type UserGoal = {
+    bmr: number
+    tdee: number
+    calorieDeficit: number
+    calorieGoal: number
+} | null
+
+export type UserFitnessType = {
+    profile: GoalFormValues,
+    goal: UserGoal
+} | null
+
+export function GoalForm({ isGoalForm }: { isGoalForm: boolean }) {
+    const { existedUserGoal } = useUserGoal();
     const router = useRouter();
-    const [calculationResults, setCalculationResults] = useState<{
-        bmr: number
-        tdee: number
-        calorieDeficit: number
-        calorieGoal: number
-    } | null>(null)
+    const [calculationResults, setCalculationResults] = useState<UserGoal>(existedUserGoal?.id ? existedUserGoal?.goal : null)
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -55,23 +66,25 @@ export function GoalForm() {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            weight: 80,
-            heightCm: 170,
-            heightFeet: 5,
-            heightInches: 6,
-            age: 25,
-            weightUnit: "kg",
-            heightUnit: "cm",
-            gender: "male",
-            activityLevel: "1.2",
-            weeklyWeightLoss: undefined,
-            calorieDeficitPreference: undefined,
+            weight: existedUserGoal?.profile.weight || 80,
+            heightCm: existedUserGoal?.profile.heightCm || 170,
+            heightFeet: existedUserGoal?.profile.heightFeet || 5,
+            heightInches: existedUserGoal?.profile.heightInches || 6,
+            age: existedUserGoal?.profile.age || 25,
+            weightUnit: existedUserGoal?.profile.weightUnit as "kg" | "lbs" || "kg",
+            heightUnit: existedUserGoal?.profile.heightUnit as "cm" | "ft" || "cm",
+            gender: existedUserGoal?.profile.gender as "male" | "female" || "male",
+            activityLevel: existedUserGoal?.profile.activityLevel as "1.2" | "1.375" | "1.55" | "1.725" | "1.9" || "1.2",
+            weeklyWeightLoss: existedUserGoal?.profile.weeklyWeightLoss as "0.25" | "0.5" | "1" | "" || undefined,
+            calorieDeficitPreference: existedUserGoal?.profile.calorieDeficitPreference as "mild" | "moderate" | "aggressive" | "" || undefined,
             privacyConsent: false,
         },
         mode: 'onChange',
     });
 
     const bottomRef = useRef<HTMLDivElement | null>(null)
+
+    const [userFitnessData, setUserFitnessData] = useState<UserFitnessType>(null)
 
     useEffect(() => {
         if (calculationResults && bottomRef.current) {
@@ -84,7 +97,21 @@ export function GoalForm() {
         try {
             const result = await fetchGoal(values as GoalFormValues)
             if (result.success && result.data) {
-                setCalculationResults(result.data)
+                setCalculationResults(result.data);
+
+                setUserFitnessData({
+                    profile: {
+                        ...values as GoalFormValues
+                    },
+                    goal: {
+                        ...result.data
+                    }
+                });
+                setLocalStorageData("user-data", userFitnessData);
+
+            }
+            else if (result.error) {
+                toast.error(result.error);
             }
         } catch (error) {
             console.error("Error submitting form:", error)
@@ -97,11 +124,19 @@ export function GoalForm() {
         setIsSaving(true)
         try {
             if (!calculationResults) return null;
-            const result = await saveGoal(form.getValues() as GoalFormValues, calculationResults)
-            // if (result.success && result.data) {
-            //     setCalculationResults(result.data)
-            // }
-            // console.log(saveData);
+            toast.promise(
+                saveGoal(userFitnessData),
+                {
+                    loading: 'Saving Goal...',
+                    success: (data) => {
+                        router.push("/tracker");
+                        return `${data?.message}`;
+                    },
+                    error: (error) => {
+                        return error.message || "Something went wrong";
+                    },
+                }
+            );
         } catch (error) {
             console.error("Error submitting form:", error)
         } finally {
@@ -109,6 +144,7 @@ export function GoalForm() {
         }
     }
 
+    console.log(userFitnessData);
     return (
         <div className="space-y-8">
             <Form {...form}>
@@ -290,13 +326,16 @@ export function GoalForm() {
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0">
+                                                                    <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0" type="button">
                                                                         <HelpCircle className="h-4 w-4" />
                                                                         <span className="sr-only">Activity level info</span>
                                                                     </Button>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent className="max-w-sm">
-                                                                    <p>Choose the option that best describes your typical weekly activity level.</p>
+                                                                    <p>
+                                                                        Choose the option that best describes
+                                                                        <br /> your typical weekly activity level.
+                                                                    </p>
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         </TooltipProvider>
@@ -328,8 +367,8 @@ export function GoalForm() {
 
                                     {/* Weekly Weight Loss */}
                                     <FormField
-                                        control={form.control}
                                         name="weeklyWeightLoss"
+                                        control={form.control}
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>
@@ -338,19 +377,30 @@ export function GoalForm() {
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0">
+                                                                    <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0" type="button">
                                                                         <HelpCircle className="h-4 w-4" />
                                                                         <span className="sr-only">Weekly weight loss info</span>
                                                                     </Button>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent className="max-w-sm">
-                                                                    <p>Recommended weight loss is 0.5-1 kg per week for sustainable results.</p>
+                                                                    <p>
+                                                                        Recommended weight loss is 0.5-1 kg
+                                                                        <br />per week for sustainable results.
+                                                                    </p>
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         </TooltipProvider>
+
+                                                        {form.getValues("weeklyWeightLoss") && <button
+                                                            type="button"
+                                                            onClick={() => form.resetField("weeklyWeightLoss", { defaultValue: "" })}
+                                                            className="text-sm text-muted-foreground italic underline underline-offset-2 hover:text-primary"
+                                                        >
+                                                            clear
+                                                        </button>}
                                                     </div>
                                                 </FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <Select onValueChange={field.onChange} value={field.value}>
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder="Select weekly weight loss goal" />
@@ -358,11 +408,11 @@ export function GoalForm() {
                                                     </FormControl>
                                                     <SelectContent>
                                                         <SelectItem value="0.25">0.25 kg (0.55 lbs) per week (gentle)</SelectItem>
-                                                        <SelectItem value="0.5">0.5 kg (1.1 lbs)per week (moderate)</SelectItem>
+                                                        <SelectItem value="0.5">0.5 kg (1.1 lbs) per week (moderate)</SelectItem>
                                                         <SelectItem value="1">1 kg (2.2 lbs) per week (aggressive)</SelectItem>
                                                     </SelectContent>
                                                 </Select>
-                                                <FormDescription>Optional: Choose your desired weekly weight loss rate.</FormDescription>
+                                                <FormDescription>Optional: Choose your desired weekly weight loss rate. If you selected this, no need to choose below preference.</FormDescription>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
@@ -380,7 +430,7 @@ export function GoalForm() {
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0">
+                                                                    <Button type="button" variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0">
                                                                         <HelpCircle className="h-4 w-4" />
                                                                         <span className="sr-only">Calorie deficit info</span>
                                                                     </Button>
@@ -398,29 +448,30 @@ export function GoalForm() {
                                                         </TooltipProvider>
                                                     </div>
                                                 </FormLabel>
-                                                <FormControl>
+                                                <FormControl aria-disabled="true">
                                                     <RadioGroup
                                                         onValueChange={field.onChange}
                                                         defaultValue={field.value}
                                                         className="flex flex-col space-y-1"
+                                                        disabled={form.getValues("weeklyWeightLoss") ? true : false}
                                                     >
                                                         <FormItem className="flex items-center space-x-3 space-y-0">
                                                             <FormControl>
                                                                 <RadioGroupItem value="mild" />
                                                             </FormControl>
-                                                            <FormLabel className="font-normal">Mild (10-15% deficit)</FormLabel>
+                                                            <FormLabel className={`font-normal ${form.getValues("weeklyWeightLoss") ? "text-muted-foreground" : ""}`}>Mild (10-15% deficit)</FormLabel>
                                                         </FormItem>
                                                         <FormItem className="flex items-center space-x-3 space-y-0">
                                                             <FormControl>
                                                                 <RadioGroupItem value="moderate" />
                                                             </FormControl>
-                                                            <FormLabel className="font-normal">Moderate (15-20% deficit)</FormLabel>
+                                                            <FormLabel className={`font-normal ${form.getValues("weeklyWeightLoss") ? "text-muted-foreground" : ""}`}>Moderate (15-20% deficit)</FormLabel>
                                                         </FormItem>
                                                         <FormItem className="flex items-center space-x-3 space-y-0">
                                                             <FormControl>
                                                                 <RadioGroupItem value="aggressive" />
                                                             </FormControl>
-                                                            <FormLabel className="font-normal">Aggressive (20-25% deficit)</FormLabel>
+                                                            <FormLabel className={`font-normal ${form.getValues("weeklyWeightLoss") ? "text-muted-foreground" : ""}`}>Aggressive (20-25% deficit)</FormLabel>
                                                         </FormItem>
                                                     </RadioGroup>
                                                 </FormControl>
@@ -462,10 +513,21 @@ export function GoalForm() {
                             </FormItem>
                         )}
                     />
-                    <div className="flex justify-center">
-                        <Button type="submit" size="lg" className="bg-primary hover:bg-primary/90" disabled={isSubmitting}>
-                            {isSubmitting ? "Calculating..." : "Calculate My Goals"}
-                        </Button>
+                    <div className="flex justify-center gap-8">
+                        {isGoalForm
+                            ? (
+                                <>
+                                    <Button type="button" variant="dietOutline" size="lg" onClick={() => router.push("/tracker")}>
+                                        Skip to Tracker
+                                    </Button>
+                                    <Button type="submit" size="lg" className="bg-primary hover:bg-primary/90" disabled={isSubmitting}>
+                                        {isSubmitting ? "Calculating..." : "Calculate My Goals"}
+                                    </Button>
+                                </>
+                            )
+                            : <Button type="submit" size="lg" className="bg-primary hover:bg-primary/90" disabled={isSubmitting}>
+                                {isSubmitting ? "Calculating..." : "Calculate Calorie"}
+                            </Button>}
                     </div>
                 </form>
             </Form>
@@ -490,9 +552,32 @@ export function GoalForm() {
                                 </div>
 
                                 <div className="bg-gray-50 p-4 rounded-lg">
-                                    <h3 className="text-lg font-medium text-gray-700">Daily Calorie Deficit</h3>
+                                    <h3 className="flex justify-start items-center text-lg font-medium text-gray-700 gap-2">
+                                        Daily Calorie Deficit
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0" type="button">
+                                                        <HelpCircle className="h-4 w-4" />
+                                                        <span className="sr-only">System Default Calorie Deficit</span>
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent className="max-w-sm">
+                                                    <p>
+                                                        System default calorie deficit will be recommended if you don't select either <b> Desired Weekly Weight Loss</b> or <b>Calorie Deficit Preference</b>.
+                                                        For most users, this ensures a safe and effective calorie reduction tailored to your profile.
+                                                        For more control, choose one of the options above.
+                                                    </p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+
+                                    </h3>
                                     <p className="text-3xl font-bold text-secondary">{calculationResults.calorieDeficit} calories</p>
-                                    <p className="text-sm text-gray-500 mt-1">Your recommended daily calorie reduction</p>
+                                    {form.getValues("weeklyWeightLoss") && form.getValues("calorieDeficitPreference")
+                                        ? <p className="text-sm text-gray-500 mt-1">Your recommended daily calorie reduction</p>
+                                        : <p className="text-sm text-gray-500 mt-1"><span className="font-bold">System default</span> daily calorie reduction</p>
+                                    }
                                 </div>
 
                                 <div className="bg-primary p-4 rounded-lg">
@@ -511,11 +596,15 @@ export function GoalForm() {
                                 </p>
                             </div>
                             <div className="flex justify-center mt-6">
-                                {/*  onClick={() => router.push("/tracker")} */}
-                                <Button className="bg-secondary hover:bg-secondary/90" onClick={handleSaveGoal}>
-                                    Save & Continue Tracking
-                                    <ArrowRight className="ml-2 h-4 w-4" />
-                                </Button>
+                                {isGoalForm
+                                    ? <Button className="bg-secondary hover:bg-secondary/90" onClick={handleSaveGoal} disabled={userFitnessData ? false : true}>
+                                        Save & Continue Tracking
+                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Button>
+                                    : <Button className="bg-secondary hover:bg-secondary/90" onClick={() => { router.push("/tracker") }}>
+                                        Start Tracking
+                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Button>}
                             </div>
 
                             {/* Reference div placed at the end of scrollable content */}

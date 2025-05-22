@@ -1,34 +1,30 @@
 "use server"
-import { z } from "zod"
+import { fetchUserEmail } from "@/utils/fetchUserEmail"
+import prisma from "@/utils/prisma"
+import { revalidatePath } from "next/cache"
+import { z, ZodError } from "zod"
+import { UserFitnessType } from "../components/Goal-Form"
 
 // Define the schema for form validation
 const goalFormSchema = z.object({
-    weight: z.number().positive(),
-    weightUnit: z.enum(["kg", "lbs"]),
-    heightCm: z.number().positive().optional(),
-    heightFeet: z.number().nonnegative().optional(),
-    heightInches: z.number().nonnegative().optional(),
-    heightUnit: z.enum(["cm", "ft"]),
+    weight: z.number().positive().min(10, "Should be at least 10"),
+    weightUnit: z.enum(["kg", "lbs"], { message: "Invlid WeightUnit" }),
+    heightCm: z.number().positive().min(10, "Should be at least 10"),
+    heightFeet: z.number().nonnegative().min(1, "Should be at least 1"),
+    heightInches: z.number().nonnegative(),
+    heightUnit: z.enum(["cm", "ft"], { message: "Invlid HeightUnit" }),
     age: z.number().positive().int().min(18).max(100),
-    gender: z.enum(["male", "female"]),
-    activityLevel: z.enum(["1.2", "1.375", "1.55", "1.725", "1.9"]),
-    weeklyWeightLoss: z.enum(["0.25", "0.5", "1"]).optional(),
-    calorieDeficitPreference: z.enum(["mild", "moderate", "aggressive"]).optional(),
+    gender: z.enum(["male", "female"], { message: "Invlid Gender Value" }),
+    activityLevel: z.enum(["1.2", "1.375", "1.55", "1.725", "1.9"], { message: "Invlid ActivityLevel Value" }),
+    weeklyWeightLoss: z.enum(["0.25", "0.5", "1", ""], { message: "Invlid WeightLoss Value" }).optional(),
+    calorieDeficitPreference: z.enum(["mild", "moderate", "aggressive"], { message: "Invlid Preference Value" }).optional(),
 })
 
 export type GoalFormValues = z.infer<typeof goalFormSchema>
 
-type CalculatedGoal = {
-    bmr: number
-    tdee: number
-    calorieDeficit: number
-    calorieGoal: number
-}
-
 export async function fetchGoal(formData: GoalFormValues) {
     try {
-        // Validate the form data
-        const validatedData = goalFormSchema.parse(formData)
+        const validatedData = goalFormSchema.parse(formData);
 
         // Convert weight to kg if needed
         let weightInKg = validatedData.weight
@@ -36,7 +32,6 @@ export async function fetchGoal(formData: GoalFormValues) {
             weightInKg = Number.parseFloat((validatedData.weight * 0.45359237).toFixed(1));
         }
 
-        // Calculate height in cm
         let heightInCm = 0
         if (validatedData.heightUnit === "cm" && validatedData.heightCm) {
             heightInCm = validatedData.heightCm
@@ -93,7 +88,13 @@ export async function fetchGoal(formData: GoalFormValues) {
             },
         }
     } catch (error) {
-        console.error("Error saving goal:", error)
+        if (error instanceof ZodError) {
+            return {
+                success: false,
+                error: JSON.parse(error.message)[0].message,
+            }
+        }
+
         return {
             success: false,
             error: "Failed to save goal. Please check your inputs and try again.",
@@ -101,11 +102,130 @@ export async function fetchGoal(formData: GoalFormValues) {
     }
 }
 
+export async function saveGoal(userFitnessData: UserFitnessType) {
+    try {
+        const userEmail = await fetchUserEmail();
 
-export async function saveGoal(formData: GoalFormValues, calculationResults: CalculatedGoal) {
-    console.log("formData");
-    console.log(formData);
+        if (!userEmail)
+            throw new Error(`User not found`);
 
-    console.log("calculationResults");
-    console.log(calculationResults);
+        if (!userFitnessData)
+            throw new Error(`Re-Calculate Daily Calorie Goal`);
+
+        const userGoalExisted = await fetchExistedUserGoal(userEmail);
+
+        if (userGoalExisted?.id) {
+            const response = await prisma.userFitness.update({
+                where: {
+                    userEmail: userEmail,
+                },
+                data: {
+                    profile: {
+                        weight: userFitnessData.profile.weight,
+                        weightUnit: userFitnessData.profile.weightUnit,
+                        heightCm: userFitnessData.profile.heightCm,
+                        heightFeet: userFitnessData.profile.heightFeet,
+                        heightInches: userFitnessData.profile.heightInches,
+                        heightUnit: userFitnessData.profile.heightUnit,
+                        age: userFitnessData.profile.age,
+                        gender: userFitnessData.profile.gender,
+                        activityLevel: userFitnessData.profile.activityLevel,
+                        weeklyWeightLoss: userFitnessData.profile.weeklyWeightLoss,
+                        calorieDeficitPreference: userFitnessData.profile.calorieDeficitPreference,
+                    },
+                    goal: {
+                        bmr: userFitnessData.goal?.bmr || 0,
+                        tdee: userFitnessData.goal?.tdee || 0,
+                        calorieDeficit: userFitnessData.goal?.calorieDeficit || 0,
+                        calorieGoal: userFitnessData.goal?.calorieGoal || 0,
+                    }
+                }
+
+            }).then(() => {
+                return {
+                    success: true,
+                    message: "Goal updated successfully!"
+                }
+            }).catch((error) => {
+                console.log("Error while Updating User Profile & Goal: " + error)
+
+                return {
+                    success: false,
+                    message: "Goal failed to update!"
+                }
+            })
+
+            if (response.success) {
+                revalidatePath("/goal");
+                return { message: response.message }
+
+            } else {
+                throw new Error(`Failed to updte Goal`);
+            }
+
+        } else {
+            const response = await prisma.userFitness.create({
+                data: {
+                    userEmail,
+                    profile: {
+                        weight: userFitnessData.profile.weight,
+                        weightUnit: userFitnessData.profile.weightUnit,
+                        heightCm: userFitnessData.profile.heightCm,
+                        heightFeet: userFitnessData.profile.heightFeet,
+                        heightInches: userFitnessData.profile.heightInches,
+                        heightUnit: userFitnessData.profile.heightUnit,
+                        age: userFitnessData.profile.age,
+                        gender: userFitnessData.profile.gender,
+                        activityLevel: userFitnessData.profile.activityLevel,
+                        weeklyWeightLoss: userFitnessData.profile.weeklyWeightLoss,
+                        calorieDeficitPreference: userFitnessData.profile.calorieDeficitPreference,
+                    },
+                    goal: {
+                        bmr: userFitnessData.goal?.bmr || 0,
+                        tdee: userFitnessData.goal?.tdee || 0,
+                        calorieDeficit: userFitnessData.goal?.calorieDeficit || 0,
+                        calorieGoal: userFitnessData.goal?.calorieGoal || 0,
+                    },
+                }
+            }).then(() => {
+                return {
+                    success: true,
+                    message: "Goal saved successfully!"
+                }
+            }).catch((error) => {
+                console.log("Error while Creating User Profile & Goal: " + error)
+
+                return {
+                    success: false,
+                    message: "Goal failed to save!"
+                }
+            })
+
+            if (response.success) {
+                revalidatePath("/goal");
+                return { message: response.message }
+
+            } else {
+                throw new Error(`Failed to create Goal`);
+            }
+        }
+
+
+    } catch (error: any) {
+        throw new Error(error.message || `Failed to update item`);
+    }
+}
+
+export const fetchExistedUserGoal = async (userEmail: string) => {
+    return await prisma.userFitness.findUnique({
+        where: {
+            userEmail: userEmail,
+        },
+        select: {
+            id: true,
+            profile: true,
+            goal: true,
+            userEmail: true,
+        }
+    });
 }
