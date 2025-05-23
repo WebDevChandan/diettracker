@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { SignedIn, SignedOut } from '@clerk/nextjs';
+import { SignedIn, SignedOut, SignOutButton } from '@clerk/nextjs';
 import { Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -98,8 +98,15 @@ export function Navbar() {
           </SignedOut>
 
           <SignedIn>
+            <SignOutButton >
+              <Button variant="dietOutline" size="sm">
+                Logout
+              </Button>
+
+            </SignOutButton>
+
             <Button variant="diet" size="sm" onClick={() => router.push("/tracker")}>
-              Dashboard
+              Tracker Dashboard
             </Button>
           </SignedIn>
         </div>
@@ -154,7 +161,7 @@ export function Navbar() {
 
               <SignedIn>
                 <Button variant="diet" size="sm" onClick={() => router.push("/tracker")}>
-                  Dashboard
+                  Tracker Dashboard
                 </Button>
               </SignedIn>
             </div>

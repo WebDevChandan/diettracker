@@ -18,12 +18,9 @@ export default async function GoalPage() {
     if (!userEmail) return <div>Not signed in</div>
 
     const existedUserGoal = await fetchCachedUserGoal(userEmail);
-
-    if (!existedUserGoal)
-        return null;
-
+    
     return (
-        <UserGoalProvider existeUserGoalData={existedUserGoal}>
+        <UserGoalProvider existeUserGoalData={existedUserGoal ? existedUserGoal : undefined}>
             <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
                 <main className="flex-1 container mx-auto px-4 py-8 md:py-12">
                     <div className="max-w-3xl mx-auto">

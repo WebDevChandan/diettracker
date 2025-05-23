@@ -27,6 +27,7 @@ export interface existedUserGoalType extends userFitnessData {
         calorieGoal: number
     }
 }
+
 interface UserGoalContextType {
     existedUserGoal?: existedUserGoalType,
     setExistedUserGoal: Dispatch<SetStateAction<existedUserGoalType | undefined>>,

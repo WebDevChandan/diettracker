@@ -1,6 +1,7 @@
 "use client"
 
 import { setLocalStorageData } from "@/app/client/localstorage.action"
+import ResponsiveHint from "@/app/components/ResponsiveHint"
 import { fetchGoal, saveGoal, type GoalFormValues } from "@/app/goal/server/goal.action"
 import useUserGoal from "@/app/hooks/userUserGoal"
 import { Button } from "@/components/ui/button"
@@ -11,7 +12,6 @@ import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRight, HelpCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -144,7 +144,6 @@ export function GoalForm({ isGoalForm }: { isGoalForm: boolean }) {
         }
     }
 
-    console.log(userFitnessData);
     return (
         <div className="space-y-8">
             <Form {...form}>
@@ -323,22 +322,17 @@ export function GoalForm({ isGoalForm }: { isGoalForm: boolean }) {
                                                 <FormLabel>
                                                     <div className="flex items-center gap-2">
                                                         Activity Level
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0" type="button">
-                                                                        <HelpCircle className="h-4 w-4" />
-                                                                        <span className="sr-only">Activity level info</span>
-                                                                    </Button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent className="max-w-sm">
-                                                                    <p>
-                                                                        Choose the option that best describes
-                                                                        <br /> your typical weekly activity level.
-                                                                    </p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
+                                                        <ResponsiveHint
+                                                            icon={<HelpCircle className="h-4 w-4" />}
+                                                            label="Activity level info"
+                                                            content={
+                                                                <>
+                                                                    Choose the option that best describes
+                                                                    <br />
+                                                                    your typical weekly activity level.
+                                                                </>
+                                                            }
+                                                        />
                                                     </div>
                                                 </FormLabel>
                                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -374,22 +368,16 @@ export function GoalForm({ isGoalForm }: { isGoalForm: boolean }) {
                                                 <FormLabel>
                                                     <div className="flex items-center gap-2">
                                                         Desired Weekly Weight Loss
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0" type="button">
-                                                                        <HelpCircle className="h-4 w-4" />
-                                                                        <span className="sr-only">Weekly weight loss info</span>
-                                                                    </Button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent className="max-w-sm">
-                                                                    <p>
-                                                                        Recommended weight loss is 0.5-1 kg
-                                                                        <br />per week for sustainable results.
-                                                                    </p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
+                                                        <ResponsiveHint
+                                                            icon={<HelpCircle className="h-4 w-4" />}
+                                                            label="Weekly weight loss info"
+                                                            content={
+                                                                <>
+                                                                    Recommended weight loss is 0.5-1 kg
+                                                                    <br />per week for sustainable results.
+                                                                </>
+                                                            }
+                                                        />
 
                                                         {form.getValues("weeklyWeightLoss") && <button
                                                             type="button"
@@ -427,25 +415,19 @@ export function GoalForm({ isGoalForm }: { isGoalForm: boolean }) {
                                                 <FormLabel>
                                                     <div className="flex items-center gap-2">
                                                         Calorie Deficit Preference
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <Button type="button" variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0">
-                                                                        <HelpCircle className="h-4 w-4" />
-                                                                        <span className="sr-only">Calorie deficit info</span>
-                                                                    </Button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent className="max-w-sm">
-                                                                    <p>
-                                                                        Mild: 10-15% of TDEE (slower but more sustainable)
-                                                                        <br />
-                                                                        Moderate: 15-20% of TDEE (balanced approach)
-                                                                        <br />
-                                                                        Aggressive: 20-25% of TDEE (faster but more challenging)
-                                                                    </p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
+                                                        <ResponsiveHint
+                                                            icon={<HelpCircle className="h-4 w-4" />}
+                                                            label="Calorie deficit info"
+                                                            content={
+                                                                <>
+                                                                    Mild: 10-15% of TDEE (slower but more sustainable)
+                                                                    <br />
+                                                                    Moderate: 15-20% of TDEE (balanced approach)
+                                                                    <br />
+                                                                    Aggressive: 20-25% of TDEE (faster but more challenging)
+                                                                </>
+                                                            }
+                                                        />
                                                     </div>
                                                 </FormLabel>
                                                 <FormControl aria-disabled="true">
@@ -554,23 +536,17 @@ export function GoalForm({ isGoalForm }: { isGoalForm: boolean }) {
                                 <div className="bg-gray-50 p-4 rounded-lg">
                                     <h3 className="flex justify-start items-center text-lg font-medium text-gray-700 gap-2">
                                         Daily Calorie Deficit
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0" type="button">
-                                                        <HelpCircle className="h-4 w-4" />
-                                                        <span className="sr-only">System Default Calorie Deficit</span>
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent className="max-w-sm">
-                                                    <p>
-                                                        System default calorie deficit will be recommended if you don't select either <b> Desired Weekly Weight Loss</b> or <b>Calorie Deficit Preference</b>.
-                                                        For most users, this ensures a safe and effective calorie reduction tailored to your profile.
-                                                        For more control, choose one of the options above.
-                                                    </p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
+                                        <ResponsiveHint
+                                            icon={<HelpCircle className="h-4 w-4" />}
+                                            label="System Default Calorie Deficit"
+                                            content={
+                                                <>
+                                                    System default calorie deficit will be recommended if you don't select either <b> Desired Weekly Weight Loss</b> or <b>Calorie Deficit Preference</b>.
+                                                    For most users, this ensures a safe and effective calorie reduction tailored to your profile.
+                                                    For more control, choose one of the options above.
+                                                </>
+                                            }
+                                        />
 
                                     </h3>
                                     <p className="text-3xl font-bold text-secondary">{calculationResults.calorieDeficit} calories</p>
