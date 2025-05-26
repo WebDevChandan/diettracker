@@ -58,10 +58,10 @@ export default async function Home() {
         <DietProvider dietData={DietData ? DietData : []}>
             <UserGoalProvider existeUserGoalData={UserFitness ? UserFitness : undefined}>
                 <DialogProvider>
-                    <div id="diet_tracker" className="p-2" >
+                    <div id="diet_tracker" className="p-2 relative mt-14 sm:mt-8" >
                         <div className="container mx-auto px-4">
-                            <h1 className="text-4xl mb-2 font-bold text-secondary-foreground sm:truncate sm:text-3xl sm:tracking-tight text-center w-full "> Food Nutrition Tracker</h1>
-                            <p className="text-lg text-muted-foreground text-center">
+                            <h1 className="text-2xl mb-2 font-bold text-secondary-foreground sm:truncate sm:text-3xl sm:tracking-tight text-center w-full "> Food Nutrition Tracker</h1>
+                            <p className="text-sm text-muted-foreground text-center sm:text-lg">
                                 Track your food intake and nutritional information with ease.
                             </p>
                         </div>

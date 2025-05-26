@@ -24,7 +24,7 @@ export default async function GoalPage() {
         <UserGoalProvider existeUserGoalData={existedUserGoal ? existedUserGoal : undefined}>
             <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
                 <main className="flex-1 container mx-auto px-4 py-8 md:py-12">
-                    <div className="max-w-3xl mx-auto">
+                    <div className="max-w-3xl mx-auto mt-14 sm:mt-8">
                         <div className="mb-8 text-center">
                             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-primary">
                                 Set Your Weight Loss Goals

@@ -8,13 +8,11 @@ import { Navbar } from "../components/NavBar";
 export default async function Home() {
   return (
     <main className="flex flex-col min-h-screen">
-      {/* <ScrollAnimationProvider> */}
         <HeroSection />
         <FeaturesSection />
         {/* <TestimonialsSection /> */}
         <CtaSection />
         <Footer />
-      {/* </ScrollAnimationProvider> */}
     </main>
   );
 }

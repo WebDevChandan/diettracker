@@ -8,7 +8,7 @@ import { AgGridReact } from "ag-grid-react";
 import { Edit } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import "../styles/styles.css";
+import "../styles/tracker.css";
 import ManageItem from "./ManageItem";
 import ManageItemProvider from "../context/ManageItemProvider";
 

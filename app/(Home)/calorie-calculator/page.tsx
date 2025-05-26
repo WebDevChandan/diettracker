@@ -6,7 +6,7 @@ export default function page() {
         <UserGoalProvider>
             <div className="min-h-screen bg-[#FAFAFA] flex flex-col pt-8">
                 <main className="flex-1 container mx-auto px-4 py-8 md:py-12">
-                    <div className="max-w-3xl mx-auto">
+                    <div className="max-w-3xl mx-auto mt-10 sm:mt-8">
                         <div className="mb-8 text-center">
                             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-primary">
                                 Find your daily calorie needs

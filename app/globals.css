@@ -44,7 +44,7 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
- 
+
   .dark {
     --background: 205 75% 10%;
     --foreground: 210 40% 98%;
@@ -77,8 +77,21 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@keyframes slide-in-from-top {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -102,4 +115,16 @@
 .feature-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.animate-in {
+  animation-fill-mode: both;
+}
+
+.slide-in-from-top-2 {
+  animation-name: slide-in-from-top;
+}
+
+.duration-200 {
+  animation-duration: 200ms;
 }

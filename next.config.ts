@@ -9,7 +9,12 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      new URL('https://images.pexels.com/photos/**')
+      new URL('https://images.pexels.com/photos/**'),
+      {
+        protocol: 'https',
+        hostname: 'img.clerk.com',
+        pathname: '/**'
+      },
     ]
   },
 };

@@ -1,15 +1,12 @@
 'use client';
 import useDialog from '@/app/hooks/useDialog';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Apple, Calculator, ChartNoAxesCombined, ListPlus, Plus } from 'lucide-react';
-import * as React from 'react';
+import { Apple, ChartNoAxesCombined, Goal, ListPlus, Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import dialerBG from '../styles/SpeedDial.module.css';
 import NutrientSummary from './NutrientSummary';
 import SpeedDialFoodItem from './SpeedDialFoodItem';
 
@@ -21,44 +18,39 @@ interface SpeedDialItemProps {
 }
 
 const SpeedDialItem = ({ icon, label, onClick, index }: SpeedDialItemProps) => (
-    <TooltipProvider delayDuration={100}>
-        <Tooltip>
-            <TooltipTrigger asChild>
-                <motion.div
-                    initial={{ opacity: 0, y: 0 }}
-                    animate={{ opacity: 1, y: -60 * (index + 1) }}
-                    exit={{ opacity: 0, y: 0 }}
-                    transition={{ duration: 0.2, delay: index * 0.05 }}
-                    className="absolute bottom-0 right-0"
-                >
-                    <Button
-                        variant="default"
-                        size="icon"
-                        className="h-12 w-12 rounded-full shadow-xl bg-white border-slate-100 border-1 text-secondary-foreground hover:text-primary-foreground"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onClick();
-                        }}
-                    >
-                        {icon}
-                    </Button>
+    <motion.div
+        initial={{ opacity: 0, y: 0 }}
+        animate={{ opacity: 1, y: -60 * (index + 1) }}
+        exit={{ opacity: 0, y: 0 }}
+        transition={{ duration: 0.2, delay: index * 0.05 }}
+        className="absolute bottom-0 right-0 w-screen"
+    >
+        <div className='flex justify-center items-center gap-2 z-10 float-right'>
+            <Badge >{label}</Badge>
+            <Button
+                variant="default"
+                size="icon"
+                className="h-12 w-12 rounded-full shadow-xl bg-white border-slate-100 border-1 text-secondary-foreground hover:text-primary-foreground"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onClick();
+                }}
+            >
+                {icon}
+            </Button>
+        </div>
 
-                </motion.div>
-            </TooltipTrigger>
-            <TooltipContent side="left" align="center">
-                <p>{label}</p>
-            </TooltipContent>
-        </Tooltip>
-    </TooltipProvider>
+    </motion.div>
 );
 
 // Main Speed Dial Component
 export function SpeedDial() {
     const { isAddNewItemDialog, setIsAddNewItemDialog, isListedDialog, setIsListedDialog, isTotalDialog, setIsTotalDialog } = useDialog();
-    const [isDialOpen, setIsDialOpen] = React.useState(false);
+    const [isDialOpen, setIsDialOpen] = useState(false);
+    const router = useRouter();
 
     // Click outside & keyboard escape handling
-    React.useEffect(() => {
+    useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (!document.querySelector('.speed-dial-container')?.contains(event.target as Node)) {
                 setIsDialOpen(false);
@@ -78,7 +70,7 @@ export function SpeedDial() {
         };
     }, []);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (isListedDialog && !isAddNewItemDialog)
             setIsListedDialog(false)
     }, [isListedDialog, isAddNewItemDialog])
@@ -99,7 +91,7 @@ export function SpeedDial() {
         },
         {
             icon: <ListPlus className="h-6 w-6" />,
-            label: 'List Food Items',
+            label: 'List Food Item',
             onClick: () => {
                 setIsListedDialog(!isListedDialog)
                 setIsAddNewItemDialog(!isAddNewItemDialog)
@@ -110,54 +102,61 @@ export function SpeedDial() {
             label: 'Nutrient Summary',
             onClick: () => setIsTotalDialog(!isTotalDialog),
         },
+        {
+            icon: <Goal className="h-6 w-6" />,
+            label: 'Set Goal',
+            onClick: () => router.push('/goal'),
+        },
     ];
 
-
-
     return (
-        <div className="speed-dial-container fixed bottom-6 right-6 z-50">
+        <>
+            <div className="speed-dial-container fixed bottom-6 right-6 z-50">
 
-            <SpeedDialFoodItem />
+                <SpeedDialFoodItem />
 
-            <NutrientSummary />
+                <NutrientSummary />
 
-            <AnimatePresence>
-                {isDialOpen && (
-                    <div className="absolute bottom-2 right-1 pointer-events-none">
-                        <div className="pointer-events-auto">
-                            {speedDialItems.map((item, index) => (
-                                <SpeedDialItem
-                                    key={item.label}
-                                    icon={item.icon}
-                                    label={item.label}
-                                    onClick={() => {
-                                        setIsDialOpen(false);
-                                        item.onClick();
-                                    }}
-                                    index={index}
-                                />
-                            ))}
+                <AnimatePresence>
+                    {isDialOpen && (
+                        <div className="absolute bottom-2 right-1 pointer-events-none">
+                            <div className="pointer-events-auto">
+                                {speedDialItems.map((item, index) => (
+                                    <SpeedDialItem
+                                        key={item.label}
+                                        icon={item.icon}
+                                        label={item.label}
+                                        onClick={() => {
+                                            setIsDialOpen(false);
+                                            item.onClick();
+                                        }}
+                                        index={index}
+                                    />
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                )}
-            </AnimatePresence>
+                    )}
+                </AnimatePresence>
 
-            <motion.div
-                animate={{ rotate: isDialOpen ? 45 : 0 }}
-                transition={{ duration: 0.2 }}
-                className="cursor-pointer"
-            >
-                <Button
-                    variant="default"
-                    size="icon"
-                    className="h-14 w-14 rounded-full shadow-xl"
-                    onClick={toggleSpeedDial}
-                    aria-expanded={isDialOpen}
-                    aria-label={isDialOpen ? 'Close menu' : 'Open menu'}
+                <motion.div
+                    animate={{ rotate: isDialOpen ? 45 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="cursor-pointer"
                 >
-                    <Plus className="h-6 w-6" />
-                </Button>
-            </motion.div>
-        </div>
+                    <Button
+                        variant="default"
+                        size="icon"
+                        className="h-14 w-14 rounded-full shadow-xl"
+                        onClick={toggleSpeedDial}
+                        aria-expanded={isDialOpen}
+                        aria-label={isDialOpen ? 'Close menu' : 'Open menu'}
+                    >
+                        <Plus className="h-6 w-6" />
+                    </Button>
+                </motion.div>
+            </div>
+
+            <div className={isDialOpen ? dialerBG.show : dialerBG.hide}></div>
+        </>
     );
 }
