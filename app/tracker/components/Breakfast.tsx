@@ -17,7 +17,7 @@ export default function Breakfast() {
           <>
             <div className="width-full flex justify-between items-center mt-2 mb-1">
               <SubTitle currentCategory={AllCategory.breakfast} />
-              <Button type="submit" size={"sm"} onClick={() => setIsTotalDialog(!isTotalDialog)}>Total Nutrients</Button>
+              <Button type="button" size={"sm"} className="p-2 text-sm" onClick={() => setIsTotalDialog(!isTotalDialog)}>Nutrition Summary</Button>
             </div>
             <DietTracker diet={breakfast} currentCategory={AllCategory.breakfast} />
           </>

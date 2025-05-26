@@ -25,6 +25,12 @@ export interface existedUserGoalType extends userFitnessData {
         tdee: number
         calorieDeficit: number
         calorieGoal: number
+        nutrients: {
+            protein: number
+            fat: number
+            carbs: number
+            sugar: number
+        }
     }
 }
 
@@ -54,7 +60,13 @@ export const UserGoalContext = createContext<UserGoalContextType>({
             bmr: 0,
             tdee: 0,
             calorieDeficit: 0,
-            calorieGoal: 0
+            calorieGoal: 0,
+            nutrients: {
+                protein: 0,
+                fat: 0,
+                carbs: 0,
+                sugar: 0
+            }
         },
     },
     setExistedUserGoal: () => { },

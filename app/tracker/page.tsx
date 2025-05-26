@@ -5,7 +5,7 @@ import { fetchUserEmail } from "@/utils/fetchUserEmail";
 import prisma from "@/utils/prisma";
 import { Plus } from "lucide-react";
 import { redirect } from "next/navigation";
-import { existedUserGoalType } from "../context/UserGoalProvider";
+import UserGoalProvider, { existedUserGoalType } from "../context/UserGoalProvider";
 import Breakfast from "./components/Breakfast";
 import Dinner from "./components/Dinner";
 import Lunch from "./components/Lunch";
@@ -54,47 +54,46 @@ export default async function Home() {
 
     const { DietData, UserFitness } = await fetchUserData(userEmail) as { DietData: DietType, UserFitness: existedUserGoalType };
 
-    if (!UserFitness?.id)
-        redirect("/goal");
-
     return (
-        <DietProvider dietData={DietData ? DietData : []} >
-            <DialogProvider>
-                <div id="diet_tracker" className="p-2" >
-                    <div className="container mx-auto px-4">
-                        <h1 className="text-4xl mb-2 font-bold text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight text-center w-full "> Food Nutrition Tracker</h1>
-                        <p className="text-lg text-muted-foreground text-center">
-                            Track your food intake and nutritional information with ease.
-                        </p>
-                    </div>
-                    {DietData?.length
-                        ?
-                        (<>
-                            <Breakfast />
-                            <Lunch />
-                            <Dinner />
-                            <SpeedDial />
+        <DietProvider dietData={DietData ? DietData : []}>
+            <UserGoalProvider existeUserGoalData={UserFitness ? UserFitness : undefined}>
+                <DialogProvider>
+                    <div id="diet_tracker" className="p-2" >
+                        <div className="container mx-auto px-4">
+                            <h1 className="text-4xl mb-2 font-bold text-secondary-foreground sm:truncate sm:text-3xl sm:tracking-tight text-center w-full "> Food Nutrition Tracker</h1>
+                            <p className="text-lg text-muted-foreground text-center">
+                                Track your food intake and nutritional information with ease.
+                            </p>
+                        </div>
+                        {DietData?.length
+                            ?
+                            (<>
+                                <Breakfast />
+                                <Lunch />
+                                <Dinner />
+                                <SpeedDial />
 
-                        </>)
-                        :
-                        (<div className="flex items-center justify-center min-h-[50vh]">
-                            <NewFoodItem
-                                title="Add Food Item"
-                                currentCategory={[]}
-                                triggerElement={
-                                    <Button
-                                        size="lg"
-                                        className="flex items-center gap-2 text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
-                                    >
-                                        <Plus className="h-6 w-6" />
-                                        Add Food Item
-                                    </Button>}
-                                tooltipText={``}
-                            />
-                        </div>)
-                    }
-                </div>
-            </DialogProvider>
+                            </>)
+                            :
+                            (<div className="flex items-center justify-center min-h-[50vh]">
+                                <NewFoodItem
+                                    title="Add Food Item"
+                                    currentCategory={[]}
+                                    triggerElement={
+                                        <Button
+                                            size="lg"
+                                            className="flex items-center gap-2 text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
+                                        >
+                                            <Plus className="h-6 w-6" />
+                                            Add Food Item
+                                        </Button>}
+                                    tooltipText={``}
+                                />
+                            </div>)
+                        }
+                    </div>
+                </DialogProvider>
+            </UserGoalProvider>
         </DietProvider>
     );
 }

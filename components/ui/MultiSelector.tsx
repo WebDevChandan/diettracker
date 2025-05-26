@@ -254,22 +254,23 @@ const MultiSelectorTrigger = forwardRef<
         <Badge
           key={item}
           className={cn(
-            "px-2 flex items-center gap-1",
+            "px-2 flex items-center gap-1 bg-secondary-foreground hover:bg-secondary-foreground",
             activeIndex === index && "ring-2 ring-muted-foreground ",
           )}
           variant={"secondary"}
         >
-          <span className="text-xs">{item}</span>
-          {item !== props.defaultValue && !props["aria-disabled"] && <button
-            aria-label={`Remove ${item} option`}
-            aria-roledescription="button to remove option"
-            type="button"
-            onMouseDown={mousePreventDefault}
-            onClick={() => onValueChange(item)}
-          >
-            <span className="sr-only">Remove {item} option</span>
-            <RemoveIcon className="h-4 w-4 hover:stroke-destructive" />
-          </button>}
+          <span className="text-xs text-primary-foreground">{item}</span>
+          {item !== props.defaultValue && !props["aria-disabled"]
+            && <button
+              aria-label={`Remove ${item} option`}
+              aria-roledescription="button to remove option"
+              type="button"
+              onMouseDown={mousePreventDefault}
+              onClick={() => onValueChange(item)}
+            >
+              <span className="sr-only">Remove {item} option</span>
+              <RemoveIcon className="h-4 w-4 text-primary-foreground hover:stroke-destructive" />
+            </button>}
         </Badge>
       ))}
       {children}

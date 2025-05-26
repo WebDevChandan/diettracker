@@ -4,6 +4,7 @@ import prisma from "@/utils/prisma"
 import { revalidatePath } from "next/cache"
 import { z, ZodError } from "zod"
 import { UserFitnessType } from "../components/Goal-Form"
+import { cookies } from "next/headers"
 
 // Define the schema for form validation
 const goalFormSchema = z.object({
@@ -76,7 +77,14 @@ export async function fetchGoal(formData: GoalFormValues) {
         }
 
         // Calculate final calorie goal
-        const calorieGoal = Math.round(tdee - calorieDeficit)
+        const calorieGoal = Math.round(tdee - calorieDeficit);
+
+        // Calculate nutrient goals based on calorie goal
+        const proteinGrams = Math.round((calorieGoal * 0.3) / 4) // 30% of calories, 4 kcal/g
+        const fatGrams = Math.round((calorieGoal * 0.25) / 9) // 25% of calories, 9 kcal/g
+        const carbsGrams = Math.round((calorieGoal - proteinGrams * 4 - fatGrams * 9) / 4) // Remaining calories / 4 kcal/g
+        const sugarGrams = Math.min(Math.round((calorieGoal * 0.1) / 4), 50) // Cap at 10% or 50g
+
 
         return {
             success: true,
@@ -85,6 +93,12 @@ export async function fetchGoal(formData: GoalFormValues) {
                 tdee: Math.round(tdee),
                 calorieDeficit: Math.round(calorieDeficit),
                 calorieGoal: calorieGoal,
+                nutrients: {
+                    protein: proteinGrams,
+                    fat: fatGrams,
+                    carbs: carbsGrams,
+                    sugar: sugarGrams,
+                },
             },
         }
     } catch (error) {
@@ -138,6 +152,12 @@ export async function saveGoal(userFitnessData: UserFitnessType) {
                         tdee: userFitnessData.goal?.tdee || 0,
                         calorieDeficit: userFitnessData.goal?.calorieDeficit || 0,
                         calorieGoal: userFitnessData.goal?.calorieGoal || 0,
+                        nutrients: {
+                            protein: userFitnessData.goal?.nutrients?.protein || 0,
+                            fat: userFitnessData.goal?.nutrients?.fat || 0,
+                            carbs: userFitnessData.goal?.nutrients?.carbs || 0,
+                            sugar: userFitnessData.goal?.nutrients?.sugar || 0,
+                        }
                     }
                 }
 
@@ -185,6 +205,12 @@ export async function saveGoal(userFitnessData: UserFitnessType) {
                         tdee: userFitnessData.goal?.tdee || 0,
                         calorieDeficit: userFitnessData.goal?.calorieDeficit || 0,
                         calorieGoal: userFitnessData.goal?.calorieGoal || 0,
+                        nutrients: {
+                            protein: userFitnessData.goal?.nutrients?.protein || 0,
+                            fat: userFitnessData.goal?.nutrients?.fat || 0,
+                            carbs: userFitnessData.goal?.nutrients?.carbs || 0,
+                            sugar: userFitnessData.goal?.nutrients?.sugar || 0,
+                        }
                     },
                 }
             }).then(() => {
@@ -210,14 +236,16 @@ export async function saveGoal(userFitnessData: UserFitnessType) {
             }
         }
 
-
     } catch (error: any) {
         throw new Error(error.message || `Failed to update item`);
     }
 }
 
 export const fetchExistedUserGoal = async (userEmail: string) => {
-    return await prisma.userFitness.findUnique({
+    if (!userEmail)
+        throw new Error(`User not found`);
+
+    return await prisma.userFitness.findFirst({
         where: {
             userEmail: userEmail,
         },
@@ -227,5 +255,8 @@ export const fetchExistedUserGoal = async (userEmail: string) => {
             goal: true,
             userEmail: true,
         }
+    }).catch((error) => {
+        console.error("Error fetching existed user goal: ", error);
+        return null;
     });
 }

@@ -14,7 +14,7 @@
     "@hookform/resolvers": "^3.10.0",
     "@next/swc-wasm-nodejs": "13.5.1",
     "@paralleldrive/cuid2": "^2.2.2",
-    "@prisma/client": "^6.4.0",
+    "@prisma/client": "^6.8.2",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-aspect-ratio": "^1.1.0",
@@ -68,7 +68,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.1.5",
     "postcss": "^8",
-    "prisma": "^6.4.0",
+    "prisma": "^6.8.2",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }

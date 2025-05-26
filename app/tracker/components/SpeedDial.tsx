@@ -1,4 +1,5 @@
 'use client';
+import useDialog from '@/app/hooks/useDialog';
 import { Button } from '@/components/ui/button';
 import {
     Tooltip,
@@ -6,12 +7,11 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import useDialog from '@/app/hooks/useDialog';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Apple, Calculator, ListPlus, Plus } from 'lucide-react';
+import { Apple, Calculator, ChartNoAxesCombined, ListPlus, Plus } from 'lucide-react';
 import * as React from 'react';
+import NutrientSummary from './NutrientSummary';
 import SpeedDialFoodItem from './SpeedDialFoodItem';
-import TotalNutrients from './TotalNutrients';
 
 interface SpeedDialItemProps {
     icon: React.ReactNode;
@@ -32,9 +32,9 @@ const SpeedDialItem = ({ icon, label, onClick, index }: SpeedDialItemProps) => (
                     className="absolute bottom-0 right-0"
                 >
                     <Button
-                        variant="secondary"
+                        variant="default"
                         size="icon"
-                        className="h-12 w-12 rounded-full shadow-xl bg-white border-slate-100 border-1"
+                        className="h-12 w-12 rounded-full shadow-xl bg-white border-slate-100 border-1 text-secondary-foreground hover:text-primary-foreground"
                         onClick={(e) => {
                             e.stopPropagation();
                             onClick();
@@ -106,8 +106,8 @@ export function SpeedDial() {
             },
         },
         {
-            icon: <Calculator className="h-6 w-6" />,
-            label: 'Total Nutrients',
+            icon: <ChartNoAxesCombined className="h-6 w-6" />,
+            label: 'Nutrient Summary',
             onClick: () => setIsTotalDialog(!isTotalDialog),
         },
     ];
@@ -119,7 +119,7 @@ export function SpeedDial() {
 
             <SpeedDialFoodItem />
 
-            <TotalNutrients />
+            <NutrientSummary />
 
             <AnimatePresence>
                 {isDialOpen && (

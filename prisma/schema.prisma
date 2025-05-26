@@ -47,11 +47,19 @@ type Profile {
   calorieDeficitPreference String @default("")
 }
 
+type Nutrients {
+  protein Int
+  fat     Int
+  carbs   Int
+  sugar   Int
+}
+
 type Goal {
   bmr            Int
   tdee           Int
   calorieDeficit Int
   calorieGoal    Int
+  nutrients      Nutrients
 }
 
 model FoodItemList {

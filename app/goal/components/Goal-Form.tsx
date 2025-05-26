@@ -4,6 +4,7 @@ import { setLocalStorageData } from "@/app/client/localstorage.action"
 import ResponsiveHint from "@/app/components/ResponsiveHint"
 import { fetchGoal, saveGoal, type GoalFormValues } from "@/app/goal/server/goal.action"
 import useUserGoal from "@/app/hooks/userUserGoal"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -13,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowRight, HelpCircle } from "lucide-react"
+import { ArrowRight, HelpCircle, Target } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
@@ -48,6 +49,12 @@ type UserGoal = {
     tdee: number
     calorieDeficit: number
     calorieGoal: number
+    nutrients: {
+        protein: number
+        fat: number
+        carbs: number
+        sugar: number
+    }
 } | null
 
 export type UserFitnessType = {
@@ -499,11 +506,17 @@ export function GoalForm({ isGoalForm }: { isGoalForm: boolean }) {
                         {isGoalForm
                             ? (
                                 <>
-                                    <Button type="button" variant="dietOutline" size="lg" onClick={() => router.push("/tracker")}>
-                                        Skip to Tracker
+                                    <Button
+                                        type="button"
+                                        variant="dietOutline"
+                                        size="lg"
+                                        onClick={() => router.push("/tracker")}
+                                        className="p-4" 
+                                    >
+                                        Back to Tracker
                                     </Button>
-                                    <Button type="submit" size="lg" className="bg-primary hover:bg-primary/90" disabled={isSubmitting}>
-                                        {isSubmitting ? "Calculating..." : "Calculate My Goals"}
+                                    <Button type="submit" size="lg" className="bg-primary hover:bg-primary/90 p-4" disabled={isSubmitting}>
+                                        {isSubmitting ? "Calculating..." : "Calculate Goal"}
                                     </Button>
                                 </>
                             )
@@ -520,57 +533,117 @@ export function GoalForm({ isGoalForm }: { isGoalForm: boolean }) {
                         <div className="space-y-6">
                             <h2 className="text-2xl font-bold text-center text-dietBlue-700">Your Personalized Results</h2>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                    <h3 className="text-lg font-medium text-gray-700">Basal Metabolic Rate (BMR)</h3>
-                                    <p className="text-3xl font-bold text-dietBlue-700">{calculationResults.bmr} calories</p>
-                                    <p className="text-sm text-gray-500 mt-1">The calories your body needs at complete rest</p>
-                                </div>
+                            <Tabs defaultValue="calories" className="w-full">
+                                <TabsList className="grid w-full grid-cols-2">
+                                    <TabsTrigger value="calories">Daily Calorie Goal</TabsTrigger>
+                                    <TabsTrigger value="nutrients">Daily Nutrient Goal</TabsTrigger>
+                                </TabsList>
 
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                    <h3 className="text-lg font-medium text-gray-700">Total Daily Energy Expenditure (TDEE)</h3>
-                                    <p className="text-3xl font-bold text-dietBlue-700">{calculationResults.tdee} calories</p>
-                                    <p className="text-sm text-gray-500 mt-1">Your maintenance calories with activity level</p>
-                                </div>
+                                <TabsContent value="calories" className="mt-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="bg-gray-50 p-4 rounded-lg">
+                                            <h3 className="text-lg font-medium text-gray-700">Basal Metabolic Rate (BMR)</h3>
+                                            <p className="text-3xl font-bold text-dietBlue-700">{calculationResults.bmr} calories</p>
+                                            <p className="text-sm text-gray-500 mt-1">The calories your body needs at complete rest</p>
+                                        </div>
 
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                    <h3 className="flex justify-start items-center text-lg font-medium text-gray-700 gap-2">
-                                        Daily Calorie Deficit
-                                        <ResponsiveHint
-                                            icon={<HelpCircle className="h-4 w-4" />}
-                                            label="System Default Calorie Deficit"
-                                            content={
-                                                <>
-                                                    System default calorie deficit will be recommended if you don't select either <b> Desired Weekly Weight Loss</b> or <b>Calorie Deficit Preference</b>.
-                                                    For most users, this ensures a safe and effective calorie reduction tailored to your profile.
-                                                    For more control, choose one of the options above.
-                                                </>
+                                        <div className="bg-gray-50 p-4 rounded-lg">
+                                            <h3 className="text-lg font-medium text-gray-700">Total Daily Energy Expenditure (TDEE)</h3>
+                                            <p className="text-3xl font-bold text-dietBlue-700">{calculationResults.tdee} calories</p>
+                                            <p className="text-sm text-gray-500 mt-1">Your maintenance calories with activity level</p>
+                                        </div>
+
+                                        <div className="bg-gray-50 p-4 rounded-lg">
+                                            <h3 className="flex justify-start items-center text-lg font-medium text-gray-700 gap-2">
+                                                Daily Calorie Deficit
+                                                <ResponsiveHint
+                                                    icon={<HelpCircle className="h-4 w-4" />}
+                                                    label="System Default Calorie Deficit"
+                                                    content={
+                                                        <>
+                                                            System default calorie deficit will be recommended if you don't select either <b> Desired Weekly Weight Loss</b> or <b>Calorie Deficit Preference</b>.
+                                                            For most users, this ensures a safe and effective calorie reduction tailored to your profile.
+                                                            For more control, choose one of the options above.
+                                                        </>
+                                                    }
+                                                />
+
+                                            </h3>
+                                            <p className="text-3xl font-bold text-secondary">{calculationResults.calorieDeficit} calories</p>
+                                            {form.getValues("weeklyWeightLoss") && form.getValues("calorieDeficitPreference")
+                                                ? <p className="text-sm text-gray-500 mt-1">Your recommended daily calorie reduction</p>
+                                                : <p className="text-sm text-gray-500 mt-1"><span className="font-bold">System default</span> daily calorie reduction</p>
                                             }
-                                        />
+                                        </div>
 
-                                    </h3>
-                                    <p className="text-3xl font-bold text-secondary">{calculationResults.calorieDeficit} calories</p>
-                                    {form.getValues("weeklyWeightLoss") && form.getValues("calorieDeficitPreference")
-                                        ? <p className="text-sm text-gray-500 mt-1">Your recommended daily calorie reduction</p>
-                                        : <p className="text-sm text-gray-500 mt-1"><span className="font-bold">System default</span> daily calorie reduction</p>
-                                    }
-                                </div>
+                                        <div className="bg-primary p-4 rounded-lg">
+                                            <h3 className="text-lg font-medium text-white">Your Daily Calorie Goal</h3>
+                                            <p className="text-3xl font-bold text-white">{calculationResults.calorieGoal} calories</p>
+                                            <p className="text-sm text-gray-200 mt-1">Aim for this daily calorie intake to reach your goal</p>
+                                        </div>
+                                    </div>
 
-                                <div className="bg-primary p-4 rounded-lg">
-                                    <h3 className="text-lg font-medium text-white">Your Daily Calorie Goal</h3>
-                                    <p className="text-3xl font-bold text-white">{calculationResults.calorieGoal} calories</p>
-                                    <p className="text-sm text-gray-200 mt-1">Aim for this daily calorie intake to reach your goal</p>
-                                </div>
-                            </div>
+                                    <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mt-6">
+                                        <h4 className="font-semibold text-blue-800 mb-2">🤔 What This Means</h4>
+                                        <ul className="text-sm text-blue-700 space-y-1">
+                                            <li>• Protein To achieve your weight loss goal, aim to consume approximately <strong>{calculationResults.calorieGoal} calories</strong> per day.</li>
+                                            <li>• Remember that sustainable weight loss is typically <strong>0.5 - 1kg</strong> per week.</li>
+                                            <li>• Track your food intake and exercise regularly to maintain this calorie deficit.</li>
+                                        </ul>
+                                    </div>
+                                </TabsContent>
 
-                            <div className="bg-blue-50 p-4 rounded-lg mt-6">
-                                <h4 className="text-dietBlue font-medium mb-2">What This Means</h4>
-                                <p className="text-sm text-gray-700">
-                                    To achieve your weight loss goal, aim to consume approximately <span className="font-bold">{calculationResults.calorieGoal} calories</span> per day.
-                                    Track your food intake and exercise regularly to maintain this calorie deficit.
-                                    Remember that sustainable weight loss is typically 0.5-1kg per week.
-                                </p>
-                            </div>
+                                <TabsContent value="nutrients" className="mt-6">
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {/* Protein - Highlighted */}
+                                            <div className="bg-secondary/10 border-2 border-secondary p-4 rounded-lg">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <Target className="h-5 w-5 text-secondary" />
+                                                    <h3 className="text-lg font-bold text-secondary">Protein</h3>
+                                                </div>
+                                                <p className="text-3xl font-bold text-secondary">{calculationResults.nutrients.protein} g</p>
+                                                <p className="text-sm text-gray-600 mt-1">30% of total calories (4 kcal/g)</p>
+                                            </div>
+
+                                            {/* Fat */}
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                                <h3 className="text-lg font-medium text-gray-700">Fat</h3>
+                                                <p className="text-3xl font-bold text-primary">{calculationResults.nutrients.fat} g</p>
+                                                <p className="text-sm text-gray-500 mt-1">25% of total calories (9 kcal/g)</p>
+                                            </div>
+
+                                            {/* Carbs */}
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                                <h3 className="text-lg font-medium text-gray-700">Carbohydrates</h3>
+                                                <p className="text-3xl font-bold text-primary">{calculationResults.nutrients.carbs} g</p>
+                                                <p className="text-sm text-gray-500 mt-1">Remaining calories (4 kcal/g)</p>
+                                            </div>
+
+                                            {/* Sugar */}
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                                <h3 className="text-lg font-medium text-gray-700">Sugar</h3>
+                                                <p className="text-3xl font-bold text-primary">≤ {calculationResults.nutrients.sugar} g</p>
+                                                <p className="text-sm text-gray-500 mt-1">Max 10% of calories or 50g limit</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mt-6">
+                                            <h4 className="font-semibold text-blue-800 mb-2">💡 Nutrition Tips</h4>
+                                            <ul className="text-sm text-blue-700 space-y-1">
+                                                <li>• These Daily Macronutrient Targets are based on your <strong>{calculationResults.calorieGoal}</strong> calorie goal</li>
+                                                <li>
+                                                    • <strong>Protein</strong> is highlighted as it's crucial for muscle maintenance during weight
+                                                    loss
+                                                </li>
+                                                <li>• Focus on whole foods and minimize processed sugar intake</li>
+                                                <li>• These targets are guidelines - listen to your body and adjust as needed</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
+
                             <div className="flex justify-center mt-6">
                                 {isGoalForm
                                     ? <Button className="bg-secondary hover:bg-secondary/90" onClick={handleSaveGoal} disabled={userFitnessData ? false : true}>
