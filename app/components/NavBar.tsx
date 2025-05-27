@@ -1,28 +1,28 @@
 "use client";
-
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { SignedIn, SignedOut, SignIn, SignOutButton, UserProfile, useUser } from '@clerk/nextjs';
+import { SignedIn, SignedOut, SignIn, SignOutButton, UserButton, UserProfile, useUser } from '@clerk/nextjs';
 import { currentUser } from '@clerk/nextjs/server';
-import { Calculator, Cpu, Goal, Home, Info, LayoutDashboard, LogOut, Menu, Settings, X } from 'lucide-react';
+import { Calculator, ClipboardList, Cpu, DotIcon, Goal, Home, Info, LayoutDashboard, ListCheck, LogOut, Menu, Settings, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { set } from 'zod';
 
-
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  const profileMobileRef = useRef<HTMLDivElement>(null);
+  // const profileMobileRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
   const { user } = useUser();
+  const isProtectedPath = ["/tracker", "/list", "/account"].some(path => pathname.includes(path));
 
+  // Desktop Profile Dropdown Menu - Signed In
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
@@ -46,11 +46,13 @@ export function Navbar() {
       document.removeEventListener("mousedown", handleClickOutside)
       document.removeEventListener("keydown", handleEscapeKey)
     }
-  }, [isProfileOpen, profileRef])
+  }, [isProfileOpen])
 
+  //Mobile Default Menu (Signout) & Profile Dropdown Menu (Sign-In)
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+      if ((mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) ||
+        (profileRef.current && !profileRef.current.contains(event.target as Node))) {
         setMobileMenuOpen(false)
       }
     }
@@ -71,7 +73,7 @@ export function Navbar() {
       document.removeEventListener("mousedown", handleClickOutside)
       document.removeEventListener("keydown", handleEscapeKey)
     }
-  }, [mobileMenuOpen, mobileMenuRef]);
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -116,6 +118,7 @@ export function Navbar() {
         : "bg-transparent py-4"
     )}>
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
+        {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
           <div className="relative h-10 w-10 md:h-12 md:w-12">
             <Image
@@ -135,8 +138,8 @@ export function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop Navigation */}
-        {pathname !== "/tracker" && <nav className="hidden md:flex items-center space-x-8">
+        {/* Desktop Navigation Links */}
+        {!isProtectedPath && <nav className="hidden md:flex items-center space-x-8">
           <SignedOut>
             <Link
               href="/calorie-calculator"
@@ -183,7 +186,7 @@ export function Navbar() {
           </Link>
         </nav>}
 
-        {/* Signed-Out Login & Get Started Buttons */}
+        {/* Desktop Login & Get Started Buttons - Signed-Out*/}
         <SignedOut>
           <div className="hidden md:flex items-center space-x-4">
             <Button variant="dietOutline" size="sm" onClick={handleLogin}>
@@ -195,7 +198,7 @@ export function Navbar() {
           </div>
         </SignedOut>
 
-        {/* Signed-Out Mobile Menu Button */}
+        {/* Mobile Default Hamburger Menu Button - Signed-Out */}
         <SignedOut>
           <button
             className="md:hidden text-dietBlue-700 outline-none"
@@ -206,13 +209,14 @@ export function Navbar() {
           </button>
         </SignedOut>
 
-        {/* User Profile Dropdown - Signed In Desktop*/}
+        {/* Desktop User Profile Avatar & Dropdown - Signed In*/}
         <SignedIn>
           <div className="hidden md:flex items-center space-x-4">
-            {pathname !== "/tracker" && <Button variant="diet" size="sm" onClick={() => router.push("/tracker")}>
+            {!isProtectedPath && <Button variant="diet" size="sm" onClick={() => router.push("/tracker")}>
               Tracker Dashboard
             </Button>}
 
+            {/* Mobile Profile Avatar */}
             <div className="relative">
               <button
                 onClick={handleProfileClick}
@@ -231,7 +235,7 @@ export function Navbar() {
                 />
               </button>
 
-              {/* User Profile Dropdown Menu - Signed-in Desktop */}
+              {/*Desktop User Profile Dropdown Menu - Signed In */}
               {isProfileOpen && (
                 <div ref={profileRef} className="absolute right-0 mt-2 w-96 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden animate-in slide-in-from-top-2 duration-200">
                   {/* User Info Section */}
@@ -266,7 +270,7 @@ export function Navbar() {
                         <span>Home Page</span>
                       </button>}
 
-                    {pathname !== "/tracker"
+                    {!isProtectedPath
                       && <button
                         onClick={() => { router.push("/tracker"); handleProfileMenuClose() }}
                         className="border-b border-gray-200 w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
@@ -284,8 +288,18 @@ export function Navbar() {
                       <Goal className="w-4 h-4 text-gray-500 font-bold" />
                       <span>Set Goal</span>
                     </button>
+
                     <button
-                      onClick={() => alert("Manage account clicked")}
+                      onClick={() => { router.push("/list"); handleProfileMenuClose() }}
+                      className="border-b border-gray-200 w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
+                      role="menuitem"
+                    >
+                      <ListCheck className="w-4 h-4 text-gray-500 font-bold" />
+                      <span>Your Listed Items</span>
+                    </button>
+
+                    <button
+                      onClick={() => { router.push("/account"); handleProfileMenuClose() }}
                       className="border-b border-gray-200 w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
                       role="menuitem"
                     >
@@ -310,11 +324,11 @@ export function Navbar() {
           </div>
         </SignedIn>
 
-        {/* Signed-In Mobile Menu Button - Profile */}
+        {/* Mobile User Profile Avatar & Dropdown - Signed In */}
         <SignedIn>
           <div className="md:hidden flex items-center gap-2">
             {/* Mobile Profile Avatar */}
-            <div className="relative">
+            <div className="relative" ref={profileRef}>
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="flex items-center justify-center w-8 h-8 rounded-full overflow-hidden border-2 border-gray-200 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-muted focus:ring-offset-2"
@@ -333,9 +347,9 @@ export function Navbar() {
                 />
               </button>
 
-              {/* Mobile Dropdown Menu - Signed-In Profile*/}
+              {/* Mobile User Profile Dropdown Menu - Signed-In*/}
               {mobileMenuOpen && (
-                <div ref={profileMobileRef} className="absolute right-0 mt-2 w-72 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden animate-in slide-in-from-top-2 duration-200">
+                <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden animate-in slide-in-from-top-2 duration-200">
                   {/* User Info Section */}
                   <div className="p-4 border-b border-gray-100">
                     <div className="flex items-center gap-3">
@@ -356,7 +370,7 @@ export function Navbar() {
                     </div>
                   </div>
 
-                  {/* Menu Items */}
+                  {/* User Profile Dropdown Menu Items */}
                   <div className="py-1">
                     {pathname !== "/"
                       && <button
@@ -368,7 +382,7 @@ export function Navbar() {
                         <span>Home Page</span>
                       </button>}
 
-                    {pathname !== "/tracker"
+                    {!isProtectedPath
                       && <button
                         onClick={() => { router.push("/tracker"); handleProfileMenuClose() }}
                         className="border-b border-gray-200 w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
@@ -389,7 +403,16 @@ export function Navbar() {
                     </button>
 
                     <button
-                      onClick={() => alert("Manage account clicked")}
+                      onClick={() => { router.push("/list"); handleProfileMenuClose() }}
+                      className="border-b border-gray-200 w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
+                      role="menuitem"
+                    >
+                      <ListCheck className="w-4 h-4 text-gray-500 font-bold" />
+                      <span>Your Listed Items</span>
+                    </button>
+
+                    <button
+                      onClick={() => { router.push("/account"); handleProfileMenuClose() }}
                       className="border-b border-gray-200 w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
                       role="menuitem"
                     >
@@ -416,7 +439,7 @@ export function Navbar() {
 
       </div>
 
-      {/* Signed-out Mobile Menu */}
+      {/* Mobile Default Menu Dropdown - Signed-Out */}
       {mobileMenuOpen && (
         <SignedOut>
           <div className="md:hidden bg-white border-t m-2 rounded-lg shadow-lg slide-in-from-top-2 duration-200" ref={mobileMenuRef}>
@@ -474,10 +497,10 @@ export function Navbar() {
               </Link>
 
               <div className="flex flex-col space-y-2 pt-2">
-                <Button variant="dietOutline" size="sm" onClick={handleLogin} className='mb-1'>
+                <Button variant="dietOutline" size="sm" onClick={() => { handleLogin(); handleProfileMenuClose(); }} className='mb-1'>
                   Login
                 </Button>
-                <Button variant="diet" size="sm" onClick={() => router.push("/sign-up")}>
+                <Button variant="diet" size="sm" onClick={() => { router.push("/sign-up"); handleProfileMenuClose(); }}>
                   Get Started
                 </Button>
               </div>

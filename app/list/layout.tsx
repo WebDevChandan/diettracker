@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "DietTracker",
-    description: "Track your Macros and Calories of your Diet",
+    description: "Your Listed Items - Track your Macros and Calories of your Diet",
 };
 
 export default function RootLayout({

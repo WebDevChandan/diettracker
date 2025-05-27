@@ -98,14 +98,14 @@ export function SpeedDial() {
             },
         },
         {
-            icon: <ChartNoAxesCombined className="h-6 w-6" />,
-            label: 'Nutrient Summary',
-            onClick: () => setIsTotalDialog(!isTotalDialog),
-        },
-        {
             icon: <Goal className="h-6 w-6" />,
             label: 'Set Goal',
             onClick: () => router.push('/goal'),
+        },
+        {
+            icon: <ChartNoAxesCombined className="h-6 w-6" />,
+            label: 'Nutrient Summary',
+            onClick: () => setIsTotalDialog(!isTotalDialog),
         },
     ];
 

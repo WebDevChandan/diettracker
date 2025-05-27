@@ -3,21 +3,23 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDiet } from '../hook/useDiet';
-
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowUpDown, HelpCircle, InfoIcon } from 'lucide-react';
 import ResponsiveHint from '@/app/components/ResponsiveHint';
-import { useMemo } from 'react';
 import useUserGoal from '@/app/hooks/userUserGoal';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Goal, InfoIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useMemo } from 'react';
 
 
 export default function NutrientSummary() {
     const { totalConsumed, subTotalConsumed } = useDiet();
     const { isTotalDialog, setIsTotalDialog } = useDialog();
     const { existedUserGoal } = useUserGoal();
+    const router = useRouter();
 
-    const { dailyNutrientData, categoryNutrientData } = useMemo(() => {
-        if (!existedUserGoal) return { dailyNutrientData: [], categoryNutrientData: [] };
+    const { dailyNutrientData } = useMemo(() => {
+        if (!existedUserGoal) return { dailyNutrientData: [] };
 
         const dailyNutrientData = [
             {
@@ -51,6 +53,12 @@ export default function NutrientSummary() {
                 remaining: `${existedUserGoal.goal.nutrients.sugar - totalConsumed.sugar} g`,
             },
         ]
+
+        return { dailyNutrientData };
+    }, [totalConsumed, subTotalConsumed]);
+
+    const { categoryNutrientData } = useMemo(() => {
+        if (!subTotalConsumed) return { categoryNutrientData: [] };
 
         const categoryNutrientData = [
             {
@@ -109,7 +117,7 @@ export default function NutrientSummary() {
             },
         ];
 
-        return { dailyNutrientData, categoryNutrientData };
+        return { categoryNutrientData };
     }, [totalConsumed, subTotalConsumed]);
 
     return (
@@ -129,53 +137,68 @@ export default function NutrientSummary() {
                         <Card>
                             <CardContent className="pt-6">
                                 <h3 className="text-lg font-semibold text-primary mb-4">Consumed vs Goals</h3>
-                                <div className="overflow-x-auto">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead className="font-semibold">Nutrient</TableHead>
-                                                <TableHead className="font-semibold">Today</TableHead>
-                                                <TableHead className="font-semibold">Goal</TableHead>
-                                                <TableHead className="font-semibold flex justify-start items-center gap-2">
-                                                    Balance <ResponsiveHint
-                                                        icon={<InfoIcon className="h-4 w-4" />}
-                                                        label="System Default Calorie Deficit"
-                                                        content={
-                                                            <>
-                                                                As you're in calorie deficit,
-                                                                <b className='text-green-600'> Green</b> shows how much you can consume to stay within your goal.
-                                                                <br />If you're over, <b className='text-red-600'>Red</b>  shows how much you need to cut back.
-                                                            </>
-                                                        }
-                                                    />
-                                                </TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {dailyNutrientData.map((row, index) => {
-                                                const remaining = parseFloat(row.remaining.split(" ")[0]);
-                                                const remainingUnit = row.remaining.split(" ")[1];
-                                                const isOver = remaining < 0;
-
-                                                return (
-                                                    <TableRow key={index} className={index === 0 ? "bg-gray-50" : ""}>
-                                                        <TableCell className="font-medium">{row.nutrient}</TableCell>
-                                                        <TableCell>{row.consumed}</TableCell>
-                                                        <TableCell>{row.goal}</TableCell>
-                                                        <TableCell
-                                                            className={`font-medium ${isOver ? "text-red-600 bg-red-50" : "text-green-600 bg-green-50"
-                                                                }`}
-                                                        >
-                                                            {
-                                                                isOver ? `(${Math.abs(remaining)}) ${remainingUnit}` : `${remaining} ${remainingUnit}`
+                                {existedUserGoal
+                                    ? <div className="overflow-x-auto">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead className="font-semibold">Nutrient</TableHead>
+                                                    <TableHead className="font-semibold">Today</TableHead>
+                                                    <TableHead className="font-semibold">Goal</TableHead>
+                                                    <TableHead className="font-semibold flex justify-start items-center gap-2">
+                                                        Balance <ResponsiveHint
+                                                            icon={<InfoIcon className="h-4 w-4" />}
+                                                            label="System Default Calorie Deficit"
+                                                            content={
+                                                                <>
+                                                                    As you're in calorie deficit,
+                                                                    <b className='text-green-600'> Green</b> shows how much you can consume to stay within your goal.
+                                                                    <br />If you're over, <b className='text-red-600'>Red</b>  shows how much you need to cut back.
+                                                                </>
                                                             }
-                                                        </TableCell>
-                                                    </TableRow>
-                                                )
-                                            })}
-                                        </TableBody>
-                                    </Table>
-                                </div>
+                                                        />
+                                                    </TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {dailyNutrientData.map((row, index) => {
+                                                    const remaining = parseFloat(row.remaining.split(" ")[0]);
+                                                    const remainingUnit = row.remaining.split(" ")[1];
+                                                    const isOver = remaining < 0;
+
+                                                    return (
+                                                        <TableRow key={index} className={index === 0 ? "bg-gray-50" : ""}>
+                                                            <TableCell className="font-medium">{row.nutrient}</TableCell>
+                                                            <TableCell>{row.consumed}</TableCell>
+                                                            <TableCell>{row.goal}</TableCell>
+                                                            <TableCell
+                                                                className={`font-medium ${isOver ? "text-red-600 bg-red-50" : "text-green-600 bg-green-50"
+                                                                    }`}
+                                                            >
+                                                                {
+                                                                    isOver ? `(${Math.abs(remaining)}) ${remainingUnit}` : `${remaining} ${remainingUnit}`
+                                                                }
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )
+                                                })}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                    : (
+                                        <div className="flex flex-col items-center justify-center py-8">
+                                            <div className="mb-4">
+                                                <Button variant="default" className="px-6 py-2 text-base rounded-lg shadow" onClick={() => router.push('/goal')}>
+                                                    <Goal className="h-6 w-6" />Set Goal
+                                                </Button>
+                                            </div>
+                                            <p className="mb-1 text-lg font-semibold text-primary">No daily goal set</p>
+                                            <p className="text-sm text-gray-500 max-w-xs text-center">
+                                                Set your daily nutrition goals to enable comparison with your current consumption.
+                                            </p>
+                                        </div>
+                                    )
+                                }
                             </CardContent>
                         </Card>
                     </TabsContent>

@@ -1,9 +1,10 @@
+import { ScrollAnimationProvider } from "@/components/scroll-animation-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
 import { Toaster } from "sonner";
-import { ErrorBoundary } from "next/dist/client/components/error-boundary";
+import { Navbar } from "./components/NavBar";
+import "./globals.css";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -30,7 +31,10 @@ export default function RootLayout({
             <html lang="en">
                 <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
                     <Toaster richColors />
-                    {children}
+                    <ScrollAnimationProvider>
+                        <Navbar />
+                        {children}
+                    </ScrollAnimationProvider>
                 </body>
             </html>
         </ClerkProvider>

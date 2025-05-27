@@ -1,9 +1,8 @@
 import { fetchUserEmail } from "@/utils/fetchUserEmail";
+import { cache } from "react";
 import UserGoalProvider from "../context/UserGoalProvider";
 import { GoalForm } from "./components/Goal-Form";
 import { fetchExistedUserGoal } from "./server/goal.action";
-import { cache } from "react";
-import { Button } from "@/components/ui/button";
 
 const fetchCachedUserEmail = cache(async () => {
     return await fetchUserEmail();
@@ -19,7 +18,7 @@ export default async function GoalPage() {
     if (!userEmail) return <div>Not signed in</div>
 
     const existedUserGoal = await fetchCachedUserGoal(userEmail);
-    
+
     return (
         <UserGoalProvider existeUserGoalData={existedUserGoal ? existedUserGoal : undefined}>
             <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
