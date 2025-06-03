@@ -1,9 +1,9 @@
 "use client";
 import { DietType } from "@/types/Diet";
+import { FoodItemType } from "@/types/FoodItem";
 import { calNutrientFormula } from "@/utils/calNutrientFormula";
 import { AllCategory } from "@prisma/client";
-import { createContext, Dispatch, ReactNode, SetStateAction, useEffect, useState } from "react";
-import { set } from "zod";
+import { createContext, Dispatch, ReactNode, SetStateAction, useMemo, useState } from "react";
 
 type SubTotalType = {
     breakfast: DietType[0],
@@ -15,6 +15,8 @@ type SubTotalType = {
 type DietContextType = {
     diet: DietType
     setDiet: Dispatch<SetStateAction<DietType>>;
+    newFoodItem: FoodItemType,
+    setNewFoodItem: Dispatch<SetStateAction<FoodItemType>>;
     totalConsumed: DietType[0],
     setTotalConsumed: Dispatch<SetStateAction<DietType[0]>>;
     subTotalConsumed: SubTotalType,
@@ -24,6 +26,22 @@ type DietContextType = {
 export const DietContext = createContext<DietContextType>({
     diet: [],
     setDiet: () => { },
+
+    newFoodItem: {
+        id: '',
+        name: '',
+        calories: 0,
+        currentWeight: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        sugar: 0,
+        amountPer: 100,
+        category: [] as AllCategory[],
+        listed: false,
+        listed_item_id: '',
+    },
+    setNewFoodItem: () => { },
     totalConsumed: {
         id: "total-id",
         name: "Total",
@@ -117,7 +135,23 @@ export const DietContext = createContext<DietContextType>({
 });
 
 export default function DietProvider({ children, dietData }: { children: ReactNode, dietData: DietType }) {
+    const [newFoodItem, setNewFoodItem] = useState<FoodItemType>({
+        id: '',
+        name: '',
+        calories: 0,
+        currentWeight: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        sugar: 0,
+        amountPer: 100,
+        category: [] as AllCategory[],
+        listed: false,
+        listed_item_id: '',
+    });
+
     const [diet, setDiet] = useState<DietType>(dietData);
+    
     const [totalConsumed, setTotalConsumed] = useState<DietType[0]>({
         id: "total-id",
         name: "Total",
@@ -206,82 +240,13 @@ export default function DietProvider({ children, dietData }: { children: ReactNo
         },
     });
 
-    useEffect(() => {
-        const calculateTotal = (dietItems: DietType) => {
-            if (dietItems.length === 0) return totalConsumed;
-
-            return {
-                ...totalConsumed,
-                currentWeight: dietItems.reduce((acc, curr) => acc + curr.currentWeight, 0),
-                calories: dietItems.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.calories, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                protein: dietItems.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.protein, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                carbs: dietItems.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.carbs, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                fat: dietItems.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.fat, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                sugar: dietItems.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-            };
-        };
-
-        const calculateSubTotal = (dietItems: DietType) => {
-            if (dietItems.length === 0) return subTotalConsumed;
-
-            return {
-                ...subTotalConsumed,
-                breakfast: {
-                    ...subTotalConsumed.breakfast,
-                    currentWeight: dietItems.filter(item => item.category.includes(AllCategory.breakfast)).reduce((acc, curr) => acc + curr.currentWeight, 0),
-                    calories: dietItems.filter(item => item.category.includes(AllCategory.breakfast)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.calories, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    protein: dietItems.filter(item => item.category.includes(AllCategory.breakfast)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.protein, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    carbs: dietItems.filter(item => item.category.includes(AllCategory.breakfast)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.carbs, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    fat: dietItems.filter(item => item.category.includes(AllCategory.breakfast)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.fat, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    sugar: dietItems.filter(item => item.category.includes(AllCategory.breakfast)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                },
-                lunch: {
-                    ...subTotalConsumed.lunch,
-                    currentWeight: dietItems.filter(item => item.category.includes(AllCategory.lunch)).reduce((acc, curr) => acc + curr.currentWeight, 0),
-                    calories: dietItems.filter(item => item.category.includes(AllCategory.lunch)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.calories, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    protein: dietItems.filter(item => item.category.includes(AllCategory.lunch)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.protein, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    carbs: dietItems.filter(item => item.category.includes(AllCategory.lunch)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.carbs, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    fat: dietItems.filter(item => item.category.includes(AllCategory.lunch)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.fat, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    sugar: dietItems.filter(item => item.category.includes(AllCategory.lunch)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                },
-                dinner: {
-                    ...subTotalConsumed.dinner,
-                    currentWeight: dietItems.filter(item => item.category.includes(AllCategory.dinner)).reduce((acc, curr) => acc + curr.currentWeight, 0),
-                    calories: dietItems.filter(item => item.category.includes(AllCategory.dinner)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.calories, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    protein: dietItems.filter(item => item.category.includes(AllCategory.dinner)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.protein, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    carbs: dietItems.filter(item => item.category.includes(AllCategory.dinner)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.carbs, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    fat: dietItems.filter(item => item.category.includes(AllCategory.dinner)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.fat, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    sugar: dietItems.filter(item => item.category.includes(AllCategory.dinner)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                },
-                snacks: {
-                    ...subTotalConsumed.snacks,
-                    currentWeight: dietItems.filter(item => item.category.includes(AllCategory.snacks)).reduce((acc, curr) => acc + curr.currentWeight, 0),
-                    calories: dietItems.filter(item => item.category.includes(AllCategory.snacks)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.calories, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    protein: dietItems.filter(item => item.category.includes(AllCategory.snacks)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.protein, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    carbs: dietItems.filter(item => item.category.includes(AllCategory.snacks)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.carbs, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    fat: dietItems.filter(item => item.category.includes(AllCategory.snacks)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.fat, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    sugar: dietItems.filter(item => item.category.includes(AllCategory.snacks)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                },
-                other: {
-                    ...subTotalConsumed.other,
-                    currentWeight: dietItems.filter(item => item.category.includes(AllCategory.other)).reduce((acc, curr) => acc + curr.currentWeight, 0),
-                    calories: dietItems.filter(item => item.category.includes(AllCategory.other)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.calories, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    protein: dietItems.filter(item => item.category.includes(AllCategory.other)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.protein, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    carbs: dietItems.filter(item => item.category.includes(AllCategory.other)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.carbs, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    fat: dietItems.filter(item => item.category.includes(AllCategory.other)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.fat, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                    sugar: dietItems.filter(item => item.category.includes(AllCategory.other)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
-                },
-            };
-        };
-
-        setTotalConsumed(calculateTotal(diet));
-        setSubTotalConsumed(calculateSubTotal(diet));
-
-    }, [diet]);
+    console.log(totalConsumed, subTotalConsumed);
 
     return (
         <DietContext.Provider value={{
             diet,
+            newFoodItem,
+            setNewFoodItem,
             setDiet,
             totalConsumed,
             setTotalConsumed,

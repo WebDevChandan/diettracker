@@ -9,14 +9,91 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Goal, InfoIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import { calNutrientFormula } from '@/utils/calNutrientFormula';
+import { DietType } from '@/types/Diet';
+import { AllCategory } from '@prisma/client';
 
 
 export default function NutrientSummary() {
-    const { totalConsumed, subTotalConsumed } = useDiet();
+    const { totalConsumed, setTotalConsumed, subTotalConsumed, setSubTotalConsumed, diet } = useDiet();
     const { isTotalDialog, setIsTotalDialog } = useDialog();
     const { existedUserGoal } = useUserGoal();
     const router = useRouter();
+
+    const calculatedTotal = useMemo(() => {
+        if (diet.length === 0) return totalConsumed;
+
+        return {
+            ...totalConsumed,
+            currentWeight: diet.reduce((acc, curr) => acc + curr.currentWeight, 0),
+            calories: diet.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.calories, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+            protein: diet.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.protein, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+            carbs: diet.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.carbs, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+            fat: diet.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.fat, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+            sugar: diet.reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+        }
+
+    }, [diet, totalConsumed]);
+
+    const calculatedSubTotal = useMemo(() => {
+        if (diet.length === 0) return subTotalConsumed;
+
+        return {
+            ...subTotalConsumed,
+            breakfast: {
+                ...subTotalConsumed.breakfast,
+                currentWeight: diet.filter(item => item.category.includes(AllCategory.breakfast)).reduce((acc, curr) => acc + curr.currentWeight, 0),
+                calories: diet.filter(item => item.category.includes(AllCategory.breakfast)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.calories, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                protein: diet.filter(item => item.category.includes(AllCategory.breakfast)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.protein, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                carbs: diet.filter(item => item.category.includes(AllCategory.breakfast)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.carbs, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                fat: diet.filter(item => item.category.includes(AllCategory.breakfast)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.fat, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                sugar: diet.filter(item => item.category.includes(AllCategory.breakfast)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+            },
+            lunch: {
+                ...subTotalConsumed.lunch,
+                currentWeight: diet.filter(item => item.category.includes(AllCategory.lunch)).reduce((acc, curr) => acc + curr.currentWeight, 0),
+                calories: diet.filter(item => item.category.includes(AllCategory.lunch)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.calories, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                protein: diet.filter(item => item.category.includes(AllCategory.lunch)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.protein, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                carbs: diet.filter(item => item.category.includes(AllCategory.lunch)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.carbs, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                fat: diet.filter(item => item.category.includes(AllCategory.lunch)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.fat, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                sugar: diet.filter(item => item.category.includes(AllCategory.lunch)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+            },
+            dinner: {
+                ...subTotalConsumed.dinner,
+                currentWeight: diet.filter(item => item.category.includes(AllCategory.dinner)).reduce((acc, curr) => acc + curr.currentWeight, 0),
+                calories: diet.filter(item => item.category.includes(AllCategory.dinner)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.calories, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                protein: diet.filter(item => item.category.includes(AllCategory.dinner)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.protein, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                carbs: diet.filter(item => item.category.includes(AllCategory.dinner)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.carbs, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                fat: diet.filter(item => item.category.includes(AllCategory.dinner)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.fat, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                sugar: diet.filter(item => item.category.includes(AllCategory.dinner)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+            },
+            snacks: {
+                ...subTotalConsumed.snacks,
+                currentWeight: diet.filter(item => item.category.includes(AllCategory.snacks)).reduce((acc, curr) => acc + curr.currentWeight, 0),
+                calories: diet.filter(item => item.category.includes(AllCategory.snacks)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.calories, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                protein: diet.filter(item => item.category.includes(AllCategory.snacks)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.protein, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                carbs: diet.filter(item => item.category.includes(AllCategory.snacks)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.carbs, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                fat: diet.filter(item => item.category.includes(AllCategory.snacks)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.fat, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                sugar: diet.filter(item => item.category.includes(AllCategory.snacks)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+            },
+            other: {
+                ...subTotalConsumed.other,
+                currentWeight: diet.filter(item => item.category.includes(AllCategory.other)).reduce((acc, curr) => acc + curr.currentWeight, 0),
+                calories: diet.filter(item => item.category.includes(AllCategory.other)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.calories, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                protein: diet.filter(item => item.category.includes(AllCategory.other)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.protein, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                carbs: diet.filter(item => item.category.includes(AllCategory.other)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.carbs, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                fat: diet.filter(item => item.category.includes(AllCategory.other)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.fat, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+                sugar: diet.filter(item => item.category.includes(AllCategory.other)).reduce((acc, curr) => parseFloat((acc + calNutrientFormula(curr.sugar, curr.amountPer, curr.currentWeight)).toFixed(2)), 0),
+            },
+        };
+
+    }, [diet, subTotalConsumed]);
+
+    useEffect(() => {
+        setTotalConsumed(calculatedTotal);
+        setSubTotalConsumed(calculatedSubTotal);
+    }, [diet]);
 
     const { dailyNutrientData } = useMemo(() => {
         if (!existedUserGoal) return { dailyNutrientData: [] };
@@ -26,36 +103,36 @@ export default function NutrientSummary() {
                 nutrient: "Calories",
                 consumed: `${totalConsumed.calories} kcal`,
                 goal: `${existedUserGoal.goal.calorieGoal} kcal`,
-                remaining: `${existedUserGoal.goal.calorieGoal - totalConsumed.calories} kcal`,
+                remaining: `${(existedUserGoal.goal.calorieGoal - totalConsumed.calories).toFixed(2)} kcal`,
             },
             {
                 nutrient: "Protein",
                 consumed: `${totalConsumed.protein} g`,
                 goal: `${existedUserGoal.goal.nutrients.protein} g`,
-                remaining: `${existedUserGoal.goal.nutrients.protein - totalConsumed.protein} g`,
+                remaining: `${(existedUserGoal.goal.nutrients.protein - totalConsumed.protein).toFixed(2)} g`,
             },
             {
                 nutrient: "Carbs",
                 consumed: `${totalConsumed.carbs} g`,
                 goal: `${existedUserGoal.goal.nutrients.carbs} g`,
-                remaining: `${existedUserGoal.goal.nutrients.carbs - totalConsumed.carbs} g`,
+                remaining: `${(existedUserGoal.goal.nutrients.carbs - totalConsumed.carbs).toFixed(2)} g`,
             },
             {
                 nutrient: "Fat",
                 consumed: `${totalConsumed.fat} g`,
                 goal: `${existedUserGoal.goal.nutrients.fat} g`,
-                remaining: `${existedUserGoal.goal.nutrients.fat - totalConsumed.fat} g`,
+                remaining: `${(existedUserGoal.goal.nutrients.fat - totalConsumed.fat).toFixed(2)} g`,
             },
             {
                 nutrient: "Sugar",
                 consumed: `${totalConsumed.sugar} g`,
                 goal: `<${existedUserGoal.goal.nutrients.sugar} g`,
-                remaining: `${existedUserGoal.goal.nutrients.sugar - totalConsumed.sugar} g`,
+                remaining: `${(existedUserGoal.goal.nutrients.sugar - totalConsumed.sugar).toFixed(2)} g`,
             },
         ]
 
         return { dailyNutrientData };
-    }, [totalConsumed, subTotalConsumed]);
+    }, [calculatedTotal, calculatedSubTotal]);
 
     const { categoryNutrientData } = useMemo(() => {
         if (!subTotalConsumed) return { categoryNutrientData: [] };
@@ -118,7 +195,7 @@ export default function NutrientSummary() {
         ];
 
         return { categoryNutrientData };
-    }, [totalConsumed, subTotalConsumed]);
+    }, [calculatedTotal, calculatedSubTotal]);
 
     return (
         <Dialog open={isTotalDialog} onOpenChange={setIsTotalDialog}>

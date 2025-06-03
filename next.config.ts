@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   experimental: {
     staleTimes: {
       dynamic: 30,
+    },
+    serverActions: {
+      bodySizeLimit: '10mb',
     }
   },
   images: {

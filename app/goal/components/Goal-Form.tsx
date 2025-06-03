@@ -73,11 +73,11 @@ export function GoalForm({ isGoalForm }: { isGoalForm: boolean }) {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            weight: existedUserGoal?.profile.weight || 80,
-            heightCm: existedUserGoal?.profile.heightCm || 170,
-            heightFeet: existedUserGoal?.profile.heightFeet || 5,
-            heightInches: existedUserGoal?.profile.heightInches || 6,
-            age: existedUserGoal?.profile.age || 25,
+            weight: existedUserGoal?.profile.weight || 0,
+            heightCm: existedUserGoal?.profile.heightCm || 0,
+            heightFeet: existedUserGoal?.profile.heightFeet || 0,
+            heightInches: existedUserGoal?.profile.heightInches || 0,
+            age: existedUserGoal?.profile.age || 0,
             weightUnit: existedUserGoal?.profile.weightUnit as "kg" | "lbs" || "kg",
             heightUnit: existedUserGoal?.profile.heightUnit as "cm" | "ft" || "cm",
             gender: existedUserGoal?.profile.gender as "male" | "female" || "male",

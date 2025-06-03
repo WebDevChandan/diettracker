@@ -3,7 +3,7 @@
 import * as React from "react"
 import { type DialogProps } from "@radix-ui/react-dialog"
 import { Command as CommandPrimitive } from "cmdk"
-import { Cross, Pointer, Search, X } from "lucide-react"
+import { Cross, Paperclip, Pointer, Search, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
@@ -37,10 +37,14 @@ const CommandDialog = ({ children, ...props }: DialogProps) => {
 
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & { removeName?: () => void, manualSearchListItem?: () => void }
->(({ className, removeName, manualSearchListItem, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & {
+    removeName?: () => void,
+    manualSearchListItem?: () => void,
+    uploadFile?: () => void
+  }
+>(({ className, removeName, manualSearchListItem, uploadFile, ...props }, ref) => (
   <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
-    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" onClick={manualSearchListItem} cursor={"Pointer"}/>
+    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" onClick={manualSearchListItem} cursor={"Pointer"} />
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
@@ -50,6 +54,7 @@ const CommandInput = React.forwardRef<
       {...props}
     />
     {props.value && <X className="mr-2 h-4 w-4 shrink-0 opacity-50 cursor-pointer" onClick={removeName} />}
+    <Paperclip className="mr-2 h-4 w-4 shrink-0 opacity-50 cursor-pointer" onClick={uploadFile} />
   </div>
 ))
 

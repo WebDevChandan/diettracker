@@ -43,10 +43,9 @@ const itemSchema = z.object({
 })
 
 export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: boolean, currentCategory: AllCategory[] }) {
-    const { diet, setDiet } = useDiet();
-    const { isListedDialog } = useDialog();
+    const { diet, newFoodItem, setDiet } = useDiet();
+    const { isListedDialog, isUploadFileDialog, setIsUploadFileDialog } = useDialog();
     const { foodItem, setFoodItem } = useManageItemAction();
-
     const [initialFoodItemstate, setInitialFoodItemstate] = useState(foodItem);
     const [hasItemChanged, setHasItemChanged] = useState(false);
 
@@ -92,6 +91,15 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
         { label: AllCategory.snacks, value: AllCategory.snacks },
         { label: AllCategory.other, value: AllCategory.other },
     ];
+
+    //AI Image Analyzer
+    useEffect(() => {
+        if (!isUploadFileDialog && isNewItem)
+            setFoodItem({
+                ...newFoodItem,
+                category: currentCategory,
+            })
+    }, [isUploadFileDialog, newFoodItem, isNewItem]);
 
     useEffect(() => {
         const userListedDiet = diet.filter(foodItem => foodItem.listed === true);
@@ -152,21 +160,6 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
 
     }, [foodItem.name, selectedListItem.id]);
 
-    const fetchItemList = async () => {
-        if (debounceValue.trim().length < 3) {
-            return;
-        };
-
-        const response: Response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/itemlist?search=${encodeURIComponent(debounceValue.trim().toLowerCase())}`, {
-            cache: "force-cache",
-            next: {
-                revalidate: 3600,
-            }
-        });
-
-        return response;
-    }
-
     useEffect(() => {
         const fetchData = async () => {
             if (debounceValue.trim().length < 3) {
@@ -186,18 +179,18 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
             }
 
             try {
-                const response = await fetchItemList();
+                // const response = await fetchItemList();
 
-                if (!response?.ok) throw new Error("Failed to fetch data");
+                // if (!response?.ok) return;
 
-                const responseData: { data: FoodItemType[] } = await response.json();
-                const transformedData: FoodItemType[] = responseData.data.map(({ ...rest }) => ({
-                    ...rest,
-                    id: createId(),
-                    listed_item_id: rest.id,
-                }));
+                // const responseData: { data: FoodItemType[] } = await response.json();
+                // const transformedData: FoodItemType[] = responseData.data.map(({ ...rest }) => ({
+                //     ...rest,
+                //     id: createId(),
+                //     listed_item_id: rest.id,
+                // }));
 
-                setUserListedItems(transformedData);
+                // setUserListedItems(transformedData);
 
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -269,6 +262,30 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
         }
 
     }, [recentlyListedItems.length, userListedItems.length])
+
+    const fetchItemList = async () => {
+        if (debounceValue.trim().length < 3) {
+            return;
+        };
+
+        try {
+            const response: Response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/itemlist?search=${encodeURIComponent(debounceValue.trim().toLowerCase())}`, {
+                cache: "force-cache",
+                next: {
+                    revalidate: 3600,
+                }
+            });
+
+            if (!response.ok)
+                return;
+            return response;
+
+        } catch (error: any) {
+            console.error("Error fetching item list:", error);
+            toast.error(error.message || "Failed to fetch item list");
+            return;
+        }
+    }
 
     const handleFoodItem = (event: ChangeEvent<HTMLInputElement>) => {
         event.preventDefault();
@@ -509,7 +526,6 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
 
         if (!response?.ok) throw new Error("Failed to fetch data");
 
-
         const responseData: { data: FoodItemType[] } = await response.json();
         const transformedData: FoodItemType[] = responseData.data.map(({ ...rest }) => ({
             ...rest,
@@ -519,7 +535,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
 
         setUserListedItems(transformedData);
     }
-    console.log(invalidItemError);
+
 
     return (
         <>
@@ -530,7 +546,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                         {!isNewItem && <TooltipProvider delayDuration={100}>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <RotateCcw ref={resetItemRef} className="ml-1 h-4 w-4 shrink-0 opacity-50 cursor-pointer inline" onClick={handleResetItem} />
+                                    <RotateCcw ref={resetItemRef} className="ml-2 mb-1 h-4 w-4 shrink-0 opacity-50 cursor-pointer inline" onClick={handleResetItem} />
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     <span>Reset Food Item</span>
@@ -553,6 +569,9 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                 if (commandInputRef.current) {
                                     commandInputRef.current.focus();
                                 }
+                            }}
+                            uploadFile={() => {
+                                setIsUploadFileDialog(true);
                             }}
                             manualSearchListItem={handleManualSearchListItem}
                             minLength={3}
@@ -671,7 +690,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                         disabled={selectedListItem.id ? true : false}
                     >
                         {foodItem.listed ? <MdOutlinePlaylistAddCheck /> : <MdOutlinePlaylistAdd />}
-                        {foodItem.listed ? "Remove Item" : "Add Item"}
+                        {foodItem.listed ? "Remove Item" : "List Item"}
                     </Button>
                 </div>
             </div >

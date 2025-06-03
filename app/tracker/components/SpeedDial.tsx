@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import dialerBG from '../styles/SpeedDial.module.css';
 import NutrientSummary from './NutrientSummary';
 import SpeedDialFoodItem from './SpeedDialFoodItem';
+import { UploadFileDialog } from './UploadFileDialog';
 
 interface SpeedDialItemProps {
     icon: React.ReactNode;
@@ -115,7 +116,7 @@ export function SpeedDial() {
 
                 <SpeedDialFoodItem />
 
-                <NutrientSummary />
+                {NutrientSummary && <NutrientSummary />}
 
                 <AnimatePresence>
                     {isDialOpen && (

@@ -58,39 +58,30 @@ export default function DietTracker({ diet, currentCategory }: { diet: DietType,
         []
     );
 
-    const FoodItemComponent = useCallback(
-        (p: any) => {
-            const itemFixedNutrientValue = diet.find((item) => item.name === p.data.name);
+    const FoodItemComponent = useCallback((p: any) => {
+        const itemFixedNutrientValue = diet.find((item) => item.name === p.data.name);
 
-            if (!itemFixedNutrientValue)
-                return <div style={{ fontWeight: "500" }}>{p.value}</div>
+        if (!itemFixedNutrientValue)
+            return <div style={{ fontWeight: "500" }}>{p.value}</div>
 
-            return (
-                // <EditFoodItem
-                //     triggerElement={<div style={{ cursor: "pointer", fontWeight: "500", color: "#181D1F" }}>{p.value}</div>}
-                //     key={itemFixedNutrientValue.id}
-                //     itemToEdit={itemFixedNutrientValue}
-                // />
+        return (
+            <Dialog>
+                <DialogTrigger asChild>
+                    <div style={{ cursor: "pointer", fontWeight: "500", color: "#181D1F" }}><label className="inline-block"><Edit size={"12px"} /></label> {p.value}</div>
+                </DialogTrigger>
 
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <div style={{ cursor: "pointer", fontWeight: "500", color: "#181D1F" }}><label className="inline-block"><Edit size={"12px"} /></label> {p.value}</div>
-                    </DialogTrigger>
-
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>Edit Item for {itemFixedNutrientValue?.category[0]}</DialogTitle>
-                            <DialogDescription>Delete or Update Item as <b>Amount Per (g)</b> </DialogDescription>
-                        </DialogHeader>
-                        <ManageItemProvider itemToManage={itemFixedNutrientValue} >
-                            <ManageItem isNewItem={false} currentCategory={[...itemFixedNutrientValue.category]} />
-                        </ManageItemProvider>
-                    </DialogContent>
-                </Dialog>
-            );
-        },
-        [diet, currentCategory]
-    );
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Edit Item for {itemFixedNutrientValue?.category[0]}</DialogTitle>
+                        <DialogDescription>Delete or Update Item as <b>Amount Per (g)</b> </DialogDescription>
+                    </DialogHeader>
+                    <ManageItemProvider itemToManage={itemFixedNutrientValue} >
+                        <ManageItem isNewItem={false} currentCategory={[...itemFixedNutrientValue.category]} />
+                    </ManageItemProvider>
+                </DialogContent>
+            </Dialog>
+        );
+    }, [diet]);
 
     const rowClassRules = useMemo(() => ({
         'bg-gray-800 text-white': (p: any) => p.data.name.trim().toLocaleLowerCase() === "SubTotal".toLocaleLowerCase()
