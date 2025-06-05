@@ -46,7 +46,7 @@ const SpeedDialItem = ({ icon, label, onClick, index }: SpeedDialItemProps) => (
 
 // Main Speed Dial Component
 export function SpeedDial() {
-    const { isAddNewItemDialog, setIsAddNewItemDialog, isListedDialog, setIsListedDialog, isTotalDialog, setIsTotalDialog } = useDialog();
+    const { isAddNewItemDialog, setIsAddNewItemDialog, isListedDialog, setIsListedDialog, isSummaryDialog, setIsSummaryDialog } = useDialog();
     const [isDialOpen, setIsDialOpen] = useState(false);
     const router = useRouter();
 
@@ -106,7 +106,7 @@ export function SpeedDial() {
         {
             icon: <ChartNoAxesCombined className="h-6 w-6" />,
             label: 'Nutrient Summary',
-            onClick: () => setIsTotalDialog(!isTotalDialog),
+            onClick: () => setIsSummaryDialog(!isSummaryDialog),
         },
     ];
 

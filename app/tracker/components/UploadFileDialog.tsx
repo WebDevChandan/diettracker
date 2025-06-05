@@ -21,22 +21,25 @@ import {
     DrawerHeader,
     DrawerTitle
 } from "@/components/ui/drawer"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
-import { cn } from "@/lib/utils"
 import * as React from "react"
 import { toast } from "sonner"
 import { useDiet } from "../hook/useDiet"
 import { useUploadFile } from "../hook/useUploadFile"
-import { UploadImage } from "./UploadImage"
 import { imageProcessingAction } from "../server/imageProcessing.action"
+import { UploadImage } from "./UploadImage"
+
 
 export function UploadFileDialog() {
-    const { files, isUploading, setIsUploading } = useUploadFile();
+    const { files, setFiles, isUploading, setIsUploading } = useUploadFile();
     const { isUploadFileDialog, setIsUploadFileDialog } = useDialog();
     const { newFoodItem, setNewFoodItem } = useDiet();
     const isDesktop = useMediaQuery("(min-width: 768px)");
+
+    React.useEffect(() => {
+        if (!isUploadFileDialog)
+            setFiles([]);
+    }, [isUploadFileDialog])
 
     const processImage = async () => {
         if (!files.length) return;

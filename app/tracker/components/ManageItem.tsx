@@ -44,7 +44,7 @@ const itemSchema = z.object({
 
 export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: boolean, currentCategory: AllCategory[] }) {
     const { diet, newFoodItem, setDiet } = useDiet();
-    const { isListedDialog, isUploadFileDialog, setIsUploadFileDialog } = useDialog();
+    const { isListedDialog, isUploadFileDialog, setIsUploadFileDialog, isAddNewItemToCatDialog, setIsAddNewItemToCatDialog } = useDialog();
     const { foodItem, setFoodItem } = useManageItemAction();
     const [initialFoodItemstate, setInitialFoodItemstate] = useState(foodItem);
     const [hasItemChanged, setHasItemChanged] = useState(false);
@@ -375,6 +375,8 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                 }
                             ]);
 
+                            setIsAddNewItemToCatDialog({ ...isAddNewItemToCatDialog, [currentCategory[0]]: false });
+
                             setFoodItem({
                                 id: '',
                                 name: '',
@@ -390,7 +392,6 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                 listed_item_id: "",
                             });
 
-                            // setIsDialogOpen(false);
                             return `${data.message}`;
                         }
 
@@ -432,7 +433,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                 })
                             });
 
-                            // setIsDialogOpen(false);
+                            setIsAddNewItemToCatDialog({ ...isAddNewItemToCatDialog, [currentCategory[0]]: false });
 
                             return `${data.message}`;
                         }
@@ -463,7 +464,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                 });
                             });
 
-                            // setIsDialogOpen(false);
+                            setIsAddNewItemToCatDialog({ ...isAddNewItemToCatDialog, [currentCategory[0]]: false });
 
                             return `${data.message}`;
                         }
@@ -744,14 +745,16 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
 
             <DialogFooter>
                 <DialogClose asChild>
-                    {isNewItem
-                        ? !isListedDialog ? <Button type="submit" onClick={handleAddFoodItem} disabled={invalidItemError.name ? true : false}>Add Item</Button> : <Button type="submit" onClick={handleAddFoodItem}>List Item</Button>
-                        : <div className="flex justify-center items-center gap-2">
-                            <Button type="submit" onClick={handleDeleteFoodItem} className="hover:bg-red-800">Delete Item</Button>
-                            <Button type="submit" onClick={handleUpdateFoodItem}>Update Item</Button>
-                        </div>
-                    }
+                    <Button type="button" variant={"dietOutline"}> Cancel </Button>
                 </DialogClose>
+                {isNewItem
+                    ? !isListedDialog ? <Button type="submit" onClick={handleAddFoodItem} disabled={!hasItemChanged ? true : false}>Add Item</Button> : <Button type="submit" onClick={handleAddFoodItem}>List Item</Button>
+                    : <div className="flex justify-center items-center gap-2">
+                        <Button type="submit" onClick={handleDeleteFoodItem} className="hover:bg-red-800">Delete Item</Button>
+                        <Button type="submit" onClick={handleUpdateFoodItem}>Update Item</Button>
+                    </div>
+                }
+
             </DialogFooter>
         </>
     )

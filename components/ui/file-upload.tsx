@@ -1072,6 +1072,7 @@ const FileUploadItemPreview = React.forwardRef<
               if (!(event.target instanceof HTMLImageElement)) return;
               URL.revokeObjectURL(event.target.src);
             }}
+            fill={true}
           />
         );
       }

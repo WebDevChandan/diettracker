@@ -91,7 +91,6 @@ export default async function Home() {
                                                 <Plus className="h-6 w-6" />
                                                 Add Food Item
                                             </Button>}
-                                        tooltipText={``}
                                     />
                                 </div>)
                             }

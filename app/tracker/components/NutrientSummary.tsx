@@ -17,7 +17,7 @@ import { AllCategory } from '@prisma/client';
 
 export default function NutrientSummary() {
     const { totalConsumed, setTotalConsumed, subTotalConsumed, setSubTotalConsumed, diet } = useDiet();
-    const { isTotalDialog, setIsTotalDialog } = useDialog();
+    const { isSummaryDialog, setIsSummaryDialog } = useDialog();
     const { existedUserGoal } = useUserGoal();
     const router = useRouter();
 
@@ -198,7 +198,7 @@ export default function NutrientSummary() {
     }, [calculatedTotal, calculatedSubTotal]);
 
     return (
-        <Dialog open={isTotalDialog} onOpenChange={setIsTotalDialog}>
+        <Dialog open={isSummaryDialog} onOpenChange={setIsSummaryDialog}>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold text-primary">Daily Nutrition Summary</DialogTitle>

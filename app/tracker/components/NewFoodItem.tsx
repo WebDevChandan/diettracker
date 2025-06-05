@@ -7,26 +7,15 @@ import { FoodItemType } from "@/types/FoodItem";
 import { AllCategory } from "@prisma/client";
 import { ReactNode } from "react";
 import { useDiet } from "../hook/useDiet";
+import useDialog from "@/app/hooks/useDialog";
 
-export default function NewFoodItem({ title, currentCategory, triggerElement, tooltipText }: { title: string, currentCategory: AllCategory[], triggerElement: ReactNode, tooltipText: string }) {
+export default function NewFoodItem({ title, currentCategory, triggerElement }: { title: string, currentCategory: AllCategory[], triggerElement?: ReactNode }) {
     const { newFoodItem } = useDiet();
+    const { isAddNewItemToCatDialog, setIsAddNewItemToCatDialog } = useDialog()
 
     return (
-        <Dialog defaultOpen={false}>
-            {tooltipText.length
-                ? <TooltipProvider delayDuration={100}>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <DialogTrigger asChild>
-                                {triggerElement}
-                            </DialogTrigger>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>{tooltipText}</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-                :
+        <Dialog open={isAddNewItemToCatDialog[currentCategory[0]]} onOpenChange={(open) => { setIsAddNewItemToCatDialog({ ...isAddNewItemToCatDialog, [currentCategory[0]]: open }) }}>
+            {triggerElement &&
                 <DialogTrigger asChild>
                     {triggerElement}
                 </DialogTrigger>
