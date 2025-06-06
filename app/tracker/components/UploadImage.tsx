@@ -1,5 +1,5 @@
 "use client";
-
+import { signUploadFile } from "@/app/server/cloudinary.config";
 import { Button } from "@/components/ui/button";
 import {
     FileUpload,
@@ -10,17 +10,21 @@ import {
     FileUploadItemPreview,
     FileUploadItemProgress,
     FileUploadList,
-    FileUploadTrigger,
-    useFileUpload,
+    FileUploadProps,
+    FileUploadTrigger
 } from "@/components/ui/file-upload";
 import { cn } from "@/lib/utils";
+import { useUser } from "@clerk/nextjs";
+import axios from "axios";
 import { Upload, X } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 import { useUploadFile } from "../hook/useUploadFile";
 
 export function UploadImage({ className }: React.ComponentProps<"form">) {
-    const { files, setFiles, isUploading } = useUploadFile();
+    const { files, setFiles, isUploading, setIsUploading, setCloudStoredFile } = useUploadFile();
+    const { user } = useUser();
+
 
     const onFileValidate = React.useCallback(
         (file: File): string | null => {
@@ -51,6 +55,64 @@ export function UploadImage({ className }: React.ComponentProps<"form">) {
         });
     }, []);
 
+
+    const onUpload: NonNullable<FileUploadProps["onUpload"]> = React.useCallback(
+        async (files, { onProgress }) => {
+            try {
+                setIsUploading(true);
+
+                const cloudName = "dnwf21zlv";
+                const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+                const file = files[0];
+                const imageFileName = file.name.match(/^([^\.]+)/)?.[0] ?? null;;
+                const folder = `diettracker/${user?.id ?? "unknownUser"}`
+                const upload_preset = 'my_pdf_preset';
+                const file_metadata = `alt=${imageFileName}`;
+
+                const signResponse = await signUploadFile(folder, upload_preset, file_metadata);
+
+                const formData = new FormData();
+
+                formData.append("file", file);
+                formData.append('folder', folder);
+                formData.append("upload_preset", upload_preset);
+                formData.append('context', file_metadata);
+                formData.append("cloud_name", cloudName);
+                formData.append('api_key', `${signResponse.apiKey}`);
+                formData.append('signature', `${signResponse.signature}`);
+                formData.append('timestamp', `${signResponse.timestamp}`);
+
+                const { secure_url, resource_type, format } = await axios.post(url, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                    onUploadProgress: (event) => {
+                        if (event.total) {
+                            const progress = Math.round((event.loaded / event.total) * 100);
+                            onProgress(file, progress);
+                        }
+                    },
+                }).then(res => res.data);
+
+                if (secure_url)
+                    setCloudStoredFile({
+                        secure_url: secure_url,
+                        type: `${resource_type}/${format}`
+                    });
+
+            } catch (error) {
+                setIsUploading(false);
+
+                toast.error(
+                    error instanceof Error ? error.message : "An unknown error occurred",
+                );
+            } finally {
+                setIsUploading(false);
+            }
+        },
+        [],
+    );
+
     return (
         <>
 
@@ -60,6 +122,7 @@ export function UploadImage({ className }: React.ComponentProps<"form">) {
                 onFileValidate={onFileValidate}
                 onFileReject={onFileReject}
                 // accept="image/*"
+                onUpload={onUpload}
                 maxFiles={2}
                 className={cn("w-full max-w-md", className)}
                 disabled={isUploading}
@@ -83,14 +146,16 @@ export function UploadImage({ className }: React.ComponentProps<"form">) {
                 <FileUploadList>
                     {files.map((file, index) => (
                         <FileUploadItem key={index} value={file}>
-                            <FileUploadItemPreview />
-                            <FileUploadItemMetadata />
-                            <FileUploadItemDelete asChild>
-                                <Button variant="ghost" size="icon" className="size-7">
-                                    <X />
-                                </Button>
-                            </FileUploadItemDelete>
-                            {/* <FileUploadItemProgress /> */}
+                            <div className="flex w-full items-center gap-2">
+                                <FileUploadItemPreview />
+                                <FileUploadItemMetadata />
+                                <FileUploadItemDelete asChild>
+                                    <Button variant="ghost" size="icon" className="size-7">
+                                        <X />
+                                    </Button>
+                                </FileUploadItemDelete>
+                            </div>
+                            <FileUploadItemProgress />
                         </FileUploadItem>
                     ))}
                 </FileUploadList>

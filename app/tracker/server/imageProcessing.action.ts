@@ -1,29 +1,35 @@
 "use server";
+import { CloudStoredFileType } from "@/types/CloudStoredFileURL";
 import { ProductNutrientLabelType } from "@/types/ProductNutrientLabel";
 import { fetchUserEmail } from "@/utils/fetchUserEmail";
 import ai from "@/utils/gemini";
 import { extractNutritionFromImage } from "@/utils/prompts/extractNutritionFromImage";
 import { GenerateContentResponse, HarmBlockThreshold, HarmCategory } from "@google/genai";
-import { revalidatePath } from "next/cache";
 
-
-export const imageProcessingAction = async (file: File) => {
+export const imageProcessingAction = async (file: CloudStoredFileType) => {
     try {
         const userEmail = await fetchUserEmail();
 
         if (!userEmail)
             throw new Error(`User not found`);
 
-        const image = await ai.files.upload({ file });
+        const uploadedImageToGeminiFM = await ai.files.upload({
+            file: await fetch(file.secure_url).then(res => res.blob()),
+        })
 
-        const imageName = image.name;
-        const fetchedFile = await ai.files.get({ name: imageName ? imageName : "" });
+        const geminiFileUri = uploadedImageToGeminiFM.uri;
+        const geminiMimeType = uploadedImageToGeminiFM.mimeType;
 
-        if (!fetchedFile || !image.uri || !image.mimeType)
+        console.log("Gemini File URI (gs://):", geminiFileUri);
+        console.log("Gemini MIME Type:", geminiMimeType);
+
+        // The check should now be against the result of Google's upload
+        if (!geminiFileUri || !geminiMimeType) {
             return {
-                errorMessage: "Image not found",
-                status: 404,
+                errorMessage: "Failed to upload image to Gemini File Manager.",
+                status: 500,
             };
+        }
 
         //gemini-1.5-flash
         const model = 'gemini-1.5-flash';
@@ -60,8 +66,8 @@ export const imageProcessingAction = async (file: File) => {
                 parts: [
                     {
                         fileData: {
-                            fileUri: image.uri,
-                            mimeType: image.mimeType,
+                            fileUri: geminiFileUri,
+                            mimeType: geminiMimeType,
                         },
                     },
                     {
@@ -104,7 +110,7 @@ export const imageProcessingAction = async (file: File) => {
 
                 } else {
                     console.error("Non-retryable error encountered:", error);
-                    throw error;
+                    return { errorMessage: "Something went wrong!", status: 500 };
                 }
             }
         }

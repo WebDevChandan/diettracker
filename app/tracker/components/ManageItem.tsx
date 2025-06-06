@@ -44,7 +44,7 @@ const itemSchema = z.object({
 
 export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: boolean, currentCategory: AllCategory[] }) {
     const { diet, newFoodItem, setDiet } = useDiet();
-    const { isListedDialog, isUploadFileDialog, setIsUploadFileDialog, isAddNewItemToCatDialog, setIsAddNewItemToCatDialog } = useDialog();
+    const { isListedDialog, isUploadFileDialog, setIsUploadFileDialog, isAddNewItemToCatDialog, setIsAddNewItemToCatDialog, setIsAddNewItemDialog } = useDialog();
     const { foodItem, setFoodItem } = useManageItemAction();
     const [initialFoodItemstate, setInitialFoodItemstate] = useState(foodItem);
     const [hasItemChanged, setHasItemChanged] = useState(false);
@@ -103,10 +103,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
 
     useEffect(() => {
         const userListedDiet = diet.filter(foodItem => foodItem.listed === true);
-        const transformedData: FoodItemType[] = userListedDiet.map(({ id, ...rest }) => ({
-            id: createId(),
-            ...rest,
-        }));
+        const transformedData: FoodItemType[] = userListedDiet.filter(({ id, category, ...rest }) => category[0] !== currentCategory[0]);
 
         setRecentlyListedItems(transformedData);
     }, [diet]);
@@ -296,8 +293,6 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
     };
 
     const handleFoodItemCategory = (value: string[]) => {
-        if (!value.length) return;
-
         setFoodItem((prevFoodItem) => {
             return {
                 ...prevFoodItem,
@@ -308,11 +303,10 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
         if (selectedListItem.id) {
             setSelectedListItem((prevSelectedListItem) => ({
                 ...prevSelectedListItem,
-                category: value as AllCategory[],
+                category: currentCategory.length ? [currentCategory, ...prevSelectedListItem.category] as AllCategory[] : [...prevSelectedListItem.category] as AllCategory[],
             }));
         }
     };
-
 
     const handleItemValidation = () => {
         setInvalidItemError({
@@ -375,7 +369,8 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                 }
                             ]);
 
-                            setIsAddNewItemToCatDialog({ ...isAddNewItemToCatDialog, [currentCategory[0]]: false });
+                            setIsAddNewItemToCatDialog({ ...isAddNewItemToCatDialog, [currentCategory[0]]: false })
+                            setIsAddNewItemDialog(false)
 
                             setFoodItem({
                                 id: '',
@@ -514,7 +509,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
 
         setSelectedListItem({
             ...listedFoodItem,
-            category: listedFoodItem.category.includes(currentCategory[0]) ? [...currentCategory] : [currentCategory, ...listedFoodItem.category] as AllCategory[],
+            category: currentCategory.length ? [currentCategory, ...listedFoodItem.category] as AllCategory[] : [...listedFoodItem.category] as AllCategory[],
         });
     }
 
@@ -536,7 +531,6 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
 
         setUserListedItems(transformedData);
     }
-
 
     return (
         <>
@@ -579,6 +573,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                             maxLength={50}
                             disabled={selectedListItem.id ? true : false}
                             ref={commandInputRef}
+                            aria-hidden={!isNewItem || selectedListItem.id ? true : false}   //Using it to hide to "uploadFile" feature
                         />
 
                         <div className="relative">
@@ -599,7 +594,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                         ))}
                                     </CommandGroup>}
 
-                                    {userListedItems.length > 0 && <CommandGroup heading="Your Listed Items">
+                                    {userListedItems.length > 0 && <CommandGroup heading="Stored Listed Items">
                                         {userListedItems.map((listedFoodItem) => (
                                             <CommandItem
                                                 key={listedFoodItem.id}
@@ -726,7 +721,7 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
                                 <MultiSelectorList>
                                     {currentCategory.length > 0 || selectedListItem.id
                                         ? CATEGORY_OPTIONS.map((option, i) => (
-                                            <MultiSelectorItem key={i} value={option.value} disabled={option.value === currentCategory[i] ? true : false}>
+                                            <MultiSelectorItem key={i} value={option.value} disabled={selectedListItem.category.includes(option.value)}>
                                                 {option.label}
                                             </MultiSelectorItem>
                                         ))
@@ -744,11 +739,13 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
             }
 
             <DialogFooter>
-                <DialogClose asChild>
-                    <Button type="button" variant={"dietOutline"}> Cancel </Button>
-                </DialogClose>
                 {isNewItem
-                    ? !isListedDialog ? <Button type="submit" onClick={handleAddFoodItem} disabled={!hasItemChanged ? true : false}>Add Item</Button> : <Button type="submit" onClick={handleAddFoodItem}>List Item</Button>
+                    ? <>
+                        <DialogClose asChild>
+                            <Button type="button" variant={"dietOutline"} className="mt-2 sm:mt-0"> Cancel </Button>
+                        </DialogClose>
+                        {!isListedDialog ? <Button type="submit" onClick={handleAddFoodItem} disabled={!hasItemChanged ? true : false}>Add Item</Button> : <Button type="submit" onClick={handleAddFoodItem}>List Item</Button>}
+                    </>
                     : <div className="flex justify-center items-center gap-2">
                         <Button type="submit" onClick={handleDeleteFoodItem} className="hover:bg-red-800">Delete Item</Button>
                         <Button type="submit" onClick={handleUpdateFoodItem}>Update Item</Button>
@@ -758,4 +755,5 @@ export default function ManageItem({ isNewItem, currentCategory }: { isNewItem: 
             </DialogFooter>
         </>
     )
+
 }

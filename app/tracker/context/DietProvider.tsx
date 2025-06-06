@@ -240,8 +240,6 @@ export default function DietProvider({ children, dietData }: { children: ReactNo
         },
     });
 
-    console.log(totalConsumed, subTotalConsumed);
-
     return (
         <DietContext.Provider value={{
             diet,

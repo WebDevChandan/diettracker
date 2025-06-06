@@ -1,4 +1,5 @@
 "use client";
+import { CloudStoredFileType } from "@/types/CloudStoredFileURL";
 import { createContext, Dispatch, ReactNode, SetStateAction, useState } from "react";
 
 type UploadFileContextType = {
@@ -6,6 +7,8 @@ type UploadFileContextType = {
     setFiles: Dispatch<SetStateAction<File[]>>,
     isUploading: boolean,
     setIsUploading: Dispatch<SetStateAction<boolean>>,
+    cloudStoredFile: CloudStoredFileType,
+    setCloudStoredFile: Dispatch<SetStateAction<CloudStoredFileType>>,
 };
 
 export const UploadFileContext = createContext<UploadFileContextType>({
@@ -13,18 +16,29 @@ export const UploadFileContext = createContext<UploadFileContextType>({
     setFiles: () => { },
     isUploading: false,
     setIsUploading: () => { },
+    cloudStoredFile: {
+        secure_url: "",
+        type: "",
+    },
+    setCloudStoredFile: () => { },
 });
 
 export default function UploadFileProvider({ children }: { children: ReactNode }) {
     const [files, setFiles] = useState<File[]>([]);
     const [isUploading, setIsUploading] = useState(false);
+    const [cloudStoredFile, setCloudStoredFile] = useState<CloudStoredFileType>({
+        secure_url: "",
+        type: "",
+    });
 
     return (
         <UploadFileContext.Provider value={{
             files,
             setFiles,
             isUploading,
-            setIsUploading
+            setIsUploading,
+            cloudStoredFile,
+            setCloudStoredFile
         }}>
             {children}
         </UploadFileContext.Provider>

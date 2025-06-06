@@ -1,5 +1,4 @@
 "use client"
-
 import useDialog from "@/app/hooks/useDialog"
 import { useMediaQuery } from "@/app/hooks/useMediaQuery"
 import { Button } from "@/components/ui/button"
@@ -29,9 +28,8 @@ import { useUploadFile } from "../hook/useUploadFile"
 import { imageProcessingAction } from "../server/imageProcessing.action"
 import { UploadImage } from "./UploadImage"
 
-
 export function UploadFileDialog() {
-    const { files, setFiles, isUploading, setIsUploading } = useUploadFile();
+    const { files, setFiles, isUploading, setIsUploading, cloudStoredFile } = useUploadFile();
     const { isUploadFileDialog, setIsUploadFileDialog } = useDialog();
     const { newFoodItem, setNewFoodItem } = useDiet();
     const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -42,12 +40,12 @@ export function UploadFileDialog() {
     }, [isUploadFileDialog])
 
     const processImage = async () => {
-        if (!files.length) return;
+        if (!files.length || !cloudStoredFile) return;
 
         try {
             setIsUploading(true);
 
-            const result = await imageProcessingAction(files[0]);
+            const result = await imageProcessingAction(cloudStoredFile);
 
             if (result.status !== 200) {
                 toast.error(result.errorMessage || "Failed to process image");
@@ -65,8 +63,9 @@ export function UploadFileDialog() {
 
                 toast.success(result.message);
 
-                setIsUploadFileDialog(false);
             }
+
+            setIsUploadFileDialog(false);
 
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Failed to process image");
