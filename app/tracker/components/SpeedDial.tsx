@@ -43,6 +43,7 @@ const SpeedDialItem = memo(({ icon, label, onClick, index }: SpeedDialItemProps)
 
     </motion.div>
 ));
+SpeedDialItem.displayName = "SpeedDialItem";
 
 export function SpeedDial() {
     const { isAddNewItemDialog, setIsAddNewItemDialog, isListedDialog, setIsListedDialog, isSummaryDialog, setIsSummaryDialog } = useDialog();

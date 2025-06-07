@@ -158,4 +158,5 @@ const ModelSelector = React.memo(({ selectedGenAIModel, handleChangeModel, genAI
             </SelectGroup>
         </SelectContent>
     </Select>
-))
+));
+ModelSelector.displayName = "ModelSelector"; 
