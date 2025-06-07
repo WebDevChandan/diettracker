@@ -20,6 +20,7 @@ import {
     DrawerHeader,
     DrawerTitle
 } from "@/components/ui/drawer"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
 import * as React from "react"
 import { toast } from "sonner"
@@ -27,7 +28,6 @@ import { useDiet } from "../hook/useDiet"
 import { useUploadFile } from "../hook/useUploadFile"
 import { imageProcessingAction } from "../server/imageProcessing.action"
 import { UploadImage } from "./UploadImage"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export function UploadFileDialog() {
     const { files, setFiles, isUploading, setIsUploading, cloudStoredFile } = useUploadFile();
@@ -35,12 +35,14 @@ export function UploadFileDialog() {
     const { newFoodItem, setNewFoodItem } = useDiet();
     const isDesktop = useMediaQuery("(min-width: 768px)");
     const [selectedGenAIModel, setSelectedGenAIModel] = React.useState<string>("gemini-2.0-flash");
-
     const genAIModel = ["gemini-2.5-flash-preview-05-20", "gemini-2.0-flash", "gemini-1.5-flash"];
 
     React.useEffect(() => {
-        if (!isUploadFileDialog)
+        //reset uploadFileDialog
+        if (!isUploadFileDialog) {
             setFiles([]);
+            setSelectedGenAIModel("gemini-2.0-flash");
+        }
     }, [isUploadFileDialog])
 
     const processImage = async () => {
@@ -93,21 +95,7 @@ export function UploadFileDialog() {
                             Upload a clear photo of the product&apos;s nutrition label by browsing an image to include this item in your diet.
                         </DialogDescription>
                     </DialogHeader>
-                    <Select value={selectedGenAIModel} onValueChange={handleChangeModel}>
-                        <SelectTrigger className="w-[180px]" tabIndex={-1}>
-                            <SelectValue placeholder="Select your model" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                <SelectLabel>Gemini</SelectLabel>
-                                {genAIModel.map((model, key) => (
-                                    <SelectItem key={key} value={model} className="cursor-pointer hover:bg-accent">
-                                        {model}
-                                    </SelectItem>
-                                ))}
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
+                    <ModelSelector selectedGenAIModel={selectedGenAIModel} handleChangeModel={handleChangeModel} genAIModel={genAIModel} />
                     <UploadImage />
                     <DialogFooter className="pt-2">
                         <Button
@@ -135,21 +123,7 @@ export function UploadFileDialog() {
                     </DrawerDescription>
                 </DrawerHeader>
                 <div className="w-full mb-2 ml-2 pl-2">
-                    <Select value={selectedGenAIModel} onValueChange={handleChangeModel}>
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Select your model" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                <SelectLabel>Gemini</SelectLabel>
-                                {genAIModel.map((model, key) => (
-                                    <SelectItem key={key} value={model} className="cursor-pointer hover:bg-accent">
-                                        {model}
-                                    </SelectItem>
-                                ))}
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
+                    <ModelSelector selectedGenAIModel={selectedGenAIModel} handleChangeModel={handleChangeModel} genAIModel={genAIModel} />
                 </div>
                 <UploadImage className="px-4" />
                 <DrawerFooter className="pt-2">
@@ -167,3 +141,21 @@ export function UploadFileDialog() {
         </Drawer>
     )
 }
+
+const ModelSelector = React.memo(({ selectedGenAIModel, handleChangeModel, genAIModel }: { selectedGenAIModel: string, handleChangeModel: (model: string) => void, genAIModel: string[] }) => (
+    <Select value={selectedGenAIModel} onValueChange={handleChangeModel}>
+        <SelectTrigger className="w-[180px]" tabIndex={-1}>
+            <SelectValue placeholder="Select your model" />
+        </SelectTrigger>
+        <SelectContent>
+            <SelectGroup>
+                <SelectLabel>Gemini</SelectLabel>
+                {genAIModel.map((model: string, key: number) => (
+                    <SelectItem key={key} value={model} className="cursor-pointer hover:bg-accent">
+                        {model}
+                    </SelectItem>
+                ))}
+            </SelectGroup>
+        </SelectContent>
+    </Select>
+))

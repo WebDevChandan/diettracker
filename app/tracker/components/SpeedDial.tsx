@@ -5,11 +5,8 @@ import { Button } from '@/components/ui/button';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Apple, ChartNoAxesCombined, Goal, ListPlus, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { lazy, memo, useEffect, useState } from 'react';
 import dialerBG from '../styles/SpeedDial.module.css';
-import NutrientSummary from './NutrientSummary';
-import SpeedDialFoodItem from './SpeedDialFoodItem';
-import { UploadFileDialog } from './UploadFileDialog';
 
 interface SpeedDialItemProps {
     icon: React.ReactNode;
@@ -18,7 +15,10 @@ interface SpeedDialItemProps {
     index: number;
 }
 
-const SpeedDialItem = ({ icon, label, onClick, index }: SpeedDialItemProps) => (
+const LazySpeedDialFoodItem = lazy(() => import('./SpeedDialFoodItem'));
+const LazyNutrientSummary = lazy(() => import('./NutrientSummary'));
+
+const SpeedDialItem = memo(({ icon, label, onClick, index }: SpeedDialItemProps) => (
     <motion.div
         initial={{ opacity: 0, y: 0 }}
         animate={{ opacity: 1, y: -60 * (index + 1) }}
@@ -42,9 +42,8 @@ const SpeedDialItem = ({ icon, label, onClick, index }: SpeedDialItemProps) => (
         </div>
 
     </motion.div>
-);
+));
 
-// Main Speed Dial Component
 export function SpeedDial() {
     const { isAddNewItemDialog, setIsAddNewItemDialog, isListedDialog, setIsListedDialog, isSummaryDialog, setIsSummaryDialog } = useDialog();
     const [isDialOpen, setIsDialOpen] = useState(false);
@@ -114,9 +113,9 @@ export function SpeedDial() {
         <>
             <div className="speed-dial-container fixed bottom-6 right-6 z-50">
 
-                <SpeedDialFoodItem />
+                <LazySpeedDialFoodItem />
 
-                {NutrientSummary && <NutrientSummary />}
+                <LazySpeedDialFoodItem />
 
                 <AnimatePresence>
                     {isDialOpen && (

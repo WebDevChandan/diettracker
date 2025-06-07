@@ -565,8 +565,6 @@ const FileUploadRoot = React.forwardRef<HTMLDivElement, FileUploadRootProps>(
     );
 
     const RootPrimitive = asChild ? Slot : "div";
-    console.log("accept")
-    console.log(accept)
     return (
       <StoreContext.Provider value={store}>
         <FileUploadContext.Provider value={contextValue}>

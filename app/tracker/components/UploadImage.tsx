@@ -20,7 +20,6 @@ import { Upload, X } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 import { useUploadFile } from "../hook/useUploadFile";
-import { Input } from "@/components/ui/input";
 
 export function UploadImage({ className }: React.ComponentProps<"form">) {
     const { files, setFiles, isUploading, setIsUploading, setCloudStoredFile } = useUploadFile();
@@ -61,9 +60,9 @@ export function UploadImage({ className }: React.ComponentProps<"form">) {
         });
     }, []);
 
-    const pauseUploadingFile = () => {
+    const pauseUploadingFile = React.useCallback(() => {
         abortController.current.abort();
-    }
+    }, [])
 
     const onUpload: NonNullable<FileUploadProps["onUpload"]> = React.useCallback(
         async (files, { onProgress }) => {
