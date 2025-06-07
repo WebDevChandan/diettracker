@@ -20,11 +20,17 @@ import { Upload, X } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 import { useUploadFile } from "../hook/useUploadFile";
+import { Input } from "@/components/ui/input";
 
 export function UploadImage({ className }: React.ComponentProps<"form">) {
     const { files, setFiles, isUploading, setIsUploading, setCloudStoredFile } = useUploadFile();
     const { user } = useUser();
+    const abortController = React.useRef(new AbortController());
 
+    React.useEffect(() => {
+        if (!files.length)
+            abortController.current.abort();
+    }, [files.length])
 
     const onFileValidate = React.useCallback(
         (file: File): string | null => {
@@ -55,9 +61,15 @@ export function UploadImage({ className }: React.ComponentProps<"form">) {
         });
     }, []);
 
+    const pauseUploadingFile = () => {
+        abortController.current.abort();
+    }
 
     const onUpload: NonNullable<FileUploadProps["onUpload"]> = React.useCallback(
         async (files, { onProgress }) => {
+            if (abortController.current)
+                abortController.current = new AbortController();
+
             try {
                 setIsUploading(true);
 
@@ -86,6 +98,7 @@ export function UploadImage({ className }: React.ComponentProps<"form">) {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                     },
+                    signal: abortController.current.signal,
                     onUploadProgress: (event) => {
                         if (event.total) {
                             const progress = Math.round((event.loaded / event.total) * 100);
@@ -115,13 +128,12 @@ export function UploadImage({ className }: React.ComponentProps<"form">) {
 
     return (
         <>
-
             <FileUpload
                 value={files}
                 onValueChange={setFiles}
                 onFileValidate={onFileValidate}
                 onFileReject={onFileReject}
-                // accept="image/*"
+                accept="image/*,application/pdf,application/msword"
                 onUpload={onUpload}
                 maxFiles={2}
                 className={cn("w-full max-w-md", className)}
@@ -150,7 +162,7 @@ export function UploadImage({ className }: React.ComponentProps<"form">) {
                                 <FileUploadItemPreview />
                                 <FileUploadItemMetadata />
                                 <FileUploadItemDelete asChild>
-                                    <Button variant="ghost" size="icon" className="size-7">
+                                    <Button variant="ghost" size="icon" className="size-7" onClick={pauseUploadingFile}>
                                         <X />
                                     </Button>
                                 </FileUploadItemDelete>

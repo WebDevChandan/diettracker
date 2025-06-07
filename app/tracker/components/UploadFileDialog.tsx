@@ -94,7 +94,7 @@ export function UploadFileDialog() {
                         </DialogDescription>
                     </DialogHeader>
                     <Select value={selectedGenAIModel} onValueChange={handleChangeModel}>
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="w-[180px]" tabIndex={-1}>
                             <SelectValue placeholder="Select your model" />
                         </SelectTrigger>
                         <SelectContent>
@@ -134,21 +134,23 @@ export function UploadFileDialog() {
                         Upload a clear photo of the product&apos;s nutrition label by using your camera or browsing an image to include this item in your diet.
                     </DrawerDescription>
                 </DrawerHeader>
-                <Select value={selectedGenAIModel} onValueChange={handleChangeModel}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Select your model" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectGroup>
-                            <SelectLabel>Gemini</SelectLabel>
-                            {genAIModel.map((model, key) => (
-                                <SelectItem key={key} value={model} className="cursor-pointer hover:bg-accent">
-                                    {model}
-                                </SelectItem>
-                            ))}
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
+                <div className="w-full mb-2 ml-2 pl-2">
+                    <Select value={selectedGenAIModel} onValueChange={handleChangeModel}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Select your model" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                <SelectLabel>Gemini</SelectLabel>
+                                {genAIModel.map((model, key) => (
+                                    <SelectItem key={key} value={model} className="cursor-pointer hover:bg-accent">
+                                        {model}
+                                    </SelectItem>
+                                ))}
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
+                </div>
                 <UploadImage className="px-4" />
                 <DrawerFooter className="pt-2">
                     <Button

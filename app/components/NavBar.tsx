@@ -270,7 +270,7 @@ export function Navbar() {
                         <span>Home Page</span>
                       </button>}
 
-                    {!isProtectedPath
+                    {pathname !== "tracker"
                       && <button
                         onClick={() => { router.push("/tracker"); handleProfileMenuClose() }}
                         className="border-b border-gray-200 w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
@@ -281,15 +281,6 @@ export function Navbar() {
                       </button>}
 
                     <button
-                      onClick={() => { router.push("/goal"); handleProfileMenuClose() }}
-                      className="border-b border-gray-200 w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
-                      role="menuitem"
-                    >
-                      <Goal className="w-4 h-4 text-gray-500 font-bold" />
-                      <span>Set Goal</span>
-                    </button>
-
-                    <button
                       onClick={() => { router.push("/list"); handleProfileMenuClose() }}
                       className="border-b border-gray-200 w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
                       role="menuitem"
@@ -297,6 +288,17 @@ export function Navbar() {
                       <ListCheck className="w-4 h-4 text-gray-500 font-bold" />
                       <span>Your Listed Items</span>
                     </button>
+
+                    <button
+                      onClick={() => { router.push("/goal"); handleProfileMenuClose() }}
+                      className="border-b border-gray-200 w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
+                      role="menuitem"
+                    >
+                      <Goal className="w-4 h-4 text-gray-500 font-bold" />
+                      <span>Set Your Goal</span>
+                    </button>
+
+
 
                     <button
                       onClick={() => { router.push("/account"); handleProfileMenuClose() }}
@@ -382,7 +384,7 @@ export function Navbar() {
                         <span>Home Page</span>
                       </button>}
 
-                    {!isProtectedPath
+                    {pathname !== "tracker"
                       && <button
                         onClick={() => { router.push("/tracker"); handleProfileMenuClose() }}
                         className="border-b border-gray-200 w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
@@ -394,21 +396,21 @@ export function Navbar() {
                     }
 
                     <button
-                      onClick={() => { router.push("/goal"); handleProfileMenuClose() }}
-                      className="border-b border-gray-200 w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
-                      role="menuitem"
-                    >
-                      <Goal className="w-4 h-4 text-gray-500" />
-                      <span>Set Goal</span>
-                    </button>
-
-                    <button
                       onClick={() => { router.push("/list"); handleProfileMenuClose() }}
                       className="border-b border-gray-200 w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
                       role="menuitem"
                     >
                       <ListCheck className="w-4 h-4 text-gray-500 font-bold" />
                       <span>Your Listed Items</span>
+                    </button>
+
+                    <button
+                      onClick={() => { router.push("/goal"); handleProfileMenuClose() }}
+                      className="border-b border-gray-200 w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
+                      role="menuitem"
+                    >
+                      <Goal className="w-4 h-4 text-gray-500" />
+                      <span>Set Your Goal</span>
                     </button>
 
                     <button
