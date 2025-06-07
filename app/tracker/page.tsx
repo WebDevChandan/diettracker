@@ -75,8 +75,6 @@ export default async function Home() {
                                     <Lunch />
                                     <Dinner />
                                     <SpeedDial />
-                                    <UploadFileDialog />
-
                                 </>)
                                 :
                                 (<div className="flex items-center justify-center min-h-[50vh]">
@@ -94,6 +92,7 @@ export default async function Home() {
                                     />
                                 </div>)
                             }
+                            <UploadFileDialog />
                         </div>
                     </UploadFileProvider>
                 </DialogProvider>

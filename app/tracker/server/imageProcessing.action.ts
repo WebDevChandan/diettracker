@@ -20,10 +20,6 @@ export const imageProcessingAction = async (file: CloudStoredFileType) => {
         const geminiFileUri = uploadedImageToGeminiFM.uri;
         const geminiMimeType = uploadedImageToGeminiFM.mimeType;
 
-        console.log("Gemini File URI (gs://):", geminiFileUri);
-        console.log("Gemini MIME Type:", geminiMimeType);
-
-        // The check should now be against the result of Google's upload
         if (!geminiFileUri || !geminiMimeType) {
             return {
                 errorMessage: "Failed to upload image to Gemini File Manager.",
@@ -31,8 +27,8 @@ export const imageProcessingAction = async (file: CloudStoredFileType) => {
             };
         }
 
-        //gemini-1.5-flash
-        const model = 'gemini-1.5-flash';
+        //gemini-1.5-flash, gemini-2.0-flash
+        const model = 'gemini-2.0-flash';
 
         const config = {
             temperature: 0.4,
@@ -95,7 +91,6 @@ export const imageProcessingAction = async (file: CloudStoredFileType) => {
 
                 const parsedLabelData: ProductNutrientLabelType = response.text ? JSON.parse(response.text) : null;
 
-                console.log(parsedLabelData);
                 return { message: "Image processed successfully", data: parsedLabelData, status: 200 };
 
             } catch (error: any) {
