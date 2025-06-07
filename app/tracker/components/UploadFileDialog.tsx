@@ -27,12 +27,16 @@ import { useDiet } from "../hook/useDiet"
 import { useUploadFile } from "../hook/useUploadFile"
 import { imageProcessingAction } from "../server/imageProcessing.action"
 import { UploadImage } from "./UploadImage"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export function UploadFileDialog() {
     const { files, setFiles, isUploading, setIsUploading, cloudStoredFile } = useUploadFile();
     const { isUploadFileDialog, setIsUploadFileDialog } = useDialog();
     const { newFoodItem, setNewFoodItem } = useDiet();
     const isDesktop = useMediaQuery("(min-width: 768px)");
+    const [selectedGenAIModel, setSelectedGenAIModel] = React.useState<string>("gemini-2.0-flash");
+
+    const genAIModel = ["gemini-2.5-flash-preview-05-20", "gemini-2.0-flash", "gemini-1.5-flash"];
 
     React.useEffect(() => {
         if (!isUploadFileDialog)
@@ -45,7 +49,7 @@ export function UploadFileDialog() {
         try {
             setIsUploading(true);
 
-            const result = await imageProcessingAction(cloudStoredFile);
+            const result = await imageProcessingAction(cloudStoredFile, selectedGenAIModel);
 
             if (result.status !== 200) {
                 toast.error(result.errorMessage || "Failed to process image");
@@ -75,6 +79,10 @@ export function UploadFileDialog() {
         }
     }
 
+    const handleChangeModel = (selectedModel: string) => {
+        setSelectedGenAIModel(selectedModel);
+    };
+
     if (isDesktop) {
         return (
             <Dialog open={isUploadFileDialog} onOpenChange={setIsUploadFileDialog}>
@@ -85,6 +93,21 @@ export function UploadFileDialog() {
                             Upload a clear photo of the product&apos;s nutrition label by browsing an image to include this item in your diet.
                         </DialogDescription>
                     </DialogHeader>
+                    <Select value={selectedGenAIModel} onValueChange={handleChangeModel}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Select your model" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                <SelectLabel>Gemini</SelectLabel>
+                                {genAIModel.map((model, key) => (
+                                    <SelectItem key={key} value={model} className="cursor-pointer hover:bg-accent">
+                                        {model}
+                                    </SelectItem>
+                                ))}
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
                     <UploadImage />
                     <DialogFooter className="pt-2">
                         <Button
@@ -111,6 +134,21 @@ export function UploadFileDialog() {
                         Upload a clear photo of the product&apos;s nutrition label by using your camera or browsing an image to include this item in your diet.
                     </DrawerDescription>
                 </DrawerHeader>
+                <Select value={selectedGenAIModel} onValueChange={handleChangeModel}>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select your model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup>
+                            <SelectLabel>Gemini</SelectLabel>
+                            {genAIModel.map((model, key) => (
+                                <SelectItem key={key} value={model} className="cursor-pointer hover:bg-accent">
+                                    {model}
+                                </SelectItem>
+                            ))}
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
                 <UploadImage className="px-4" />
                 <DrawerFooter className="pt-2">
                     <Button

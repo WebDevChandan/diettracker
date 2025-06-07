@@ -6,7 +6,7 @@ import ai from "@/utils/gemini";
 import { extractNutritionFromImage } from "@/utils/prompts/extractNutritionFromImage";
 import { GenerateContentResponse, HarmBlockThreshold, HarmCategory } from "@google/genai";
 
-export const imageProcessingAction = async (file: CloudStoredFileType) => {
+export const imageProcessingAction = async (file: CloudStoredFileType, selectedGenAIModel: string) => {
     try {
         const userEmail = await fetchUserEmail();
 
@@ -28,7 +28,7 @@ export const imageProcessingAction = async (file: CloudStoredFileType) => {
         }
 
         //gemini-1.5-flash, gemini-2.0-flash
-        const model = 'gemini-2.0-flash';
+        const model = selectedGenAIModel;
 
         const config = {
             temperature: 0.4,
