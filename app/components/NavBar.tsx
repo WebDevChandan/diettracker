@@ -1,14 +1,12 @@
 "use client";
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { SignedIn, SignedOut, SignIn, SignOutButton, UserButton, UserProfile, useUser } from '@clerk/nextjs';
-import { currentUser } from '@clerk/nextjs/server';
-import { Calculator, ClipboardList, Cpu, DotIcon, Goal, Home, Info, LayoutDashboard, ListCheck, LogOut, Menu, Settings, X } from 'lucide-react';
+import { SignedIn, SignedOut, SignOutButton, useUser } from '@clerk/nextjs';
+import { Calculator, Cpu, Goal, Home, Info, LayoutDashboard, ListCheck, LogOut, Menu, Settings, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { set } from 'zod';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -270,7 +268,7 @@ export function Navbar() {
                         <span>Home Page</span>
                       </button>}
 
-                    {pathname !== "tracker"
+                    {pathname !== "/tracker"
                       && <button
                         onClick={() => { router.push("/tracker"); handleProfileMenuClose() }}
                         className="border-b border-gray-200 w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
@@ -384,7 +382,7 @@ export function Navbar() {
                         <span>Home Page</span>
                       </button>}
 
-                    {pathname !== "tracker"
+                    {pathname !== "/tracker"
                       && <button
                         onClick={() => { router.push("/tracker"); handleProfileMenuClose() }}
                         className="border-b border-gray-200 w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
@@ -510,6 +508,7 @@ export function Navbar() {
           </div>
         </SignedOut>
       )}
+
 
     </header>
   );

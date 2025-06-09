@@ -116,7 +116,7 @@ export function SpeedDial() {
 
                 <LazySpeedDialFoodItem />
 
-                <LazySpeedDialFoodItem />
+                <LazyNutrientSummary />
 
                 <AnimatePresence>
                     {isDialOpen && (
