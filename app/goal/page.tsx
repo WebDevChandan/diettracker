@@ -8,16 +8,16 @@ const fetchCachedUserEmail = cache(async () => {
     return await fetchUserEmail();
 });
 
-const fetchCachedUserGoal = cache(async (email: string) => {
+const fetchCachedUserGoal = cache(async (email: string | null) => {
+    if (!email) return undefined;
+
     return await fetchExistedUserGoal(email);
 });
 
 export default async function GoalPage() {
     const userEmail = await fetchCachedUserEmail();
 
-    if (!userEmail) return <div>Not signed in</div>
-
-    const existedUserGoal = await fetchCachedUserGoal(userEmail);
+    const existedUserGoal = await fetchCachedUserGoal(userEmail ?? null);
 
     return (
         <UserGoalProvider existeUserGoalData={existedUserGoal ? existedUserGoal : undefined}>
@@ -26,13 +26,13 @@ export default async function GoalPage() {
                     <div className="max-w-3xl mx-auto mt-14 sm:mt-8">
                         <div className="mb-8 text-center">
                             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-primary">
-                                Set Your Weight Loss Goals
+                                {userEmail ? "Set Your Weight Loss Goals" : "Find your daily calorie needs"}
                             </h1>
                             <p className="mt-4 text-gray-500 md:text-l/relaxed">
                                 Let's calculate your daily calorie needs and set an appropriate deficit for healthy weight loss.
                             </p>
                         </div>
-                        <GoalForm isGoalForm={true} />
+                        <GoalForm />
                     </div>
                 </main>
             </div>

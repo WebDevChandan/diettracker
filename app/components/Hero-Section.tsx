@@ -1,12 +1,12 @@
 "use client";
 import { Button } from '@/components/ui/button';
+import { SignedIn, SignedOut, useUser } from '@clerk/nextjs';
 import { useInView } from 'framer-motion';
 import { ArrowRight, Check } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useRef } from 'react';
 import { useCarousel } from '../hooks/useCarousel';
-import { SignedIn, SignedOut } from '@clerk/nextjs';
 
 const heroImages = [
     "https://images.pexels.com/photos/3621181/pexels-photo-3621181.jpeg",
@@ -22,6 +22,7 @@ export function HeroSection() {
     const isInView = useInView(heroRef, { once: true });
     const { currentIndex, currentItem } = useCarousel(heroImages, 5000);
     const router = useRouter();
+    const { user } = useUser();
 
     return (
         <section className="relative pt-24 pb-20 overflow-hidden bg-gradient-to-b from-white to-gray-50">
@@ -93,8 +94,8 @@ export function HeroSection() {
                                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                                 </Button>
                             </SignedIn>
-                            <Button variant="dietOutline" size="xl" onClick={() => router.push("/calorie-calculator")}>
-                                Calculate Calorie
+                            <Button variant="dietOutline" size="xl" className="group" onClick={() => router.push("/goal")}>
+                                {!user?.id ? "Calculate Calorie" : "Set Your Goal"}
                             </Button>
                         </div>
                     </div>
@@ -136,9 +137,6 @@ export function HeroSection() {
                 </div>
             </div>
 
-            {/* Decorative Elements */}
-            <div className="absolute top-1/3 right-0 w-64 h-64 bg-dietGreen-400/5 rounded-full blur-3xl -z-8" />
-            <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-dietBlue-700/5 rounded-full blur-3xl -z-8" />
         </section >
     );
 }

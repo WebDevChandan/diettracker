@@ -1,10 +1,10 @@
 "use client";
-import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
-import { useInView } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import { SignedIn, SignedOut } from '@clerk/nextjs';
+import { useInView } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useRef } from 'react';
 
 export function CtaSection() {
     const sectionRef = useRef<HTMLDivElement>(null);
@@ -42,7 +42,7 @@ export function CtaSection() {
                                 Get Started Free
                                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                             </Button>
-                            <Button variant="outline" size="xl" className="bg-transparent border-white text-white hover:bg-white/10:text-white" onClick={() => router.push("/calorie-calculator")}>
+                            <Button variant="outline" size="xl" className="bg-transparent border-white text-white hover:bg-white/10:text-white" onClick={() => router.push("/goal")}>
                                 Calorie Calculator
                             </Button>
                         </SignedOut>

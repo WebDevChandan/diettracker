@@ -140,7 +140,7 @@ export function Navbar() {
         {!isProtectedPath && <nav className="hidden md:flex items-center space-x-8">
           <SignedOut>
             <Link
-              href="/calorie-calculator"
+              href="/goal"
               className={cn(
                 "text-sm font-medium transition-colors hover:text-dietGreen-400",
                 isScrolled ? "text-dietBlue-700" : "text-dietBlue-700"
@@ -460,7 +460,7 @@ export function Navbar() {
               </Link>
 
               <Link
-                href="/calorie-calculator"
+                href="/goal"
                 onNavigate={handleProfileMenuClose}
                 className={cn(
                   "border-b border-gray-200 pb-3 text-sm font-medium transition-colors hover:text-dietGreen-400",

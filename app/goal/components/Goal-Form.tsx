@@ -4,7 +4,6 @@ import { setLocalStorageData } from "@/app/client/localstorage.action"
 import ResponsiveHint from "@/app/components/ResponsiveHint"
 import { fetchGoal, saveGoal, type GoalFormValues } from "@/app/goal/server/goal.action"
 import useUserGoal from "@/app/hooks/userUserGoal"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -13,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useUser } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRight, HelpCircle, Target } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -62,20 +62,21 @@ export type UserFitnessType = {
     goal: UserGoal
 } | null
 
-export function GoalForm({ isGoalForm }: { isGoalForm: boolean }) {
+export function GoalForm() {
     const { existedUserGoal } = useUserGoal();
     const router = useRouter();
     const [calculationResults, setCalculationResults] = useState<UserGoal>(existedUserGoal?.id ? existedUserGoal?.goal : null)
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const { user } = useUser();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             weight: existedUserGoal?.profile.weight || 0,
             heightCm: existedUserGoal?.profile.heightCm || 0,
-            heightFeet: existedUserGoal?.profile.heightFeet || 0,
+            heightFeet: existedUserGoal?.profile.heightFeet || 5,
             heightInches: existedUserGoal?.profile.heightInches || 0,
             age: existedUserGoal?.profile.age || 0,
             weightUnit: existedUserGoal?.profile.weightUnit as "kg" | "lbs" || "kg",
@@ -267,53 +268,56 @@ export function GoalForm({ isGoalForm }: { isGoalForm: boolean }) {
                                         />
                                     </div>
 
-                                    {/* Age */}
-                                    <FormField
-                                        control={form.control}
-                                        name="age"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Age</FormLabel>
-                                                <FormControl>
-                                                    <Input type="number" placeholder="Age" {...field} min={18} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* Age */}
+                                        <FormField
+                                            control={form.control}
+                                            name="age"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Age</FormLabel>
+                                                    <FormControl>
+                                                        <Input type="number" placeholder="Age" {...field} min={18} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
 
-                                    {/* Gender */}
-                                    <FormField
-                                        control={form.control}
-                                        name="gender"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Gender</FormLabel>
-                                                <FormDescription>This is used for BMR calculation purposes only.</FormDescription>
-                                                <FormControl>
-                                                    <RadioGroup
-                                                        onValueChange={field.onChange}
-                                                        defaultValue={field.value}
-                                                        className="flex space-x-4"
-                                                    >
-                                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                                            <FormControl>
-                                                                <RadioGroupItem value="male" />
-                                                            </FormControl>
-                                                            <FormLabel className="font-normal">Male</FormLabel>
-                                                        </FormItem>
-                                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                                            <FormControl>
-                                                                <RadioGroupItem value="female" />
-                                                            </FormControl>
-                                                            <FormLabel className="font-normal">Female</FormLabel>
-                                                        </FormItem>
-                                                    </RadioGroup>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                        {/* Gender */}
+                                        <FormField
+                                            control={form.control}
+                                            name="gender"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Gender</FormLabel>
+                                                    <FormDescription>This is used for BMR calculation purposes only.</FormDescription>
+                                                    <FormControl>
+                                                        <RadioGroup
+                                                            onValueChange={field.onChange}
+                                                            defaultValue={field.value}
+                                                            className="flex space-x-4"
+                                                        >
+                                                            <FormItem className="flex items-center space-x-2 space-y-0">
+                                                                <FormControl>
+                                                                    <RadioGroupItem value="male" />
+                                                                </FormControl>
+                                                                <FormLabel className="font-normal">Male</FormLabel>
+                                                            </FormItem>
+                                                            <FormItem className="flex items-center space-x-2 space-y-0">
+                                                                <FormControl>
+                                                                    <RadioGroupItem value="female" />
+                                                                </FormControl>
+                                                                <FormLabel className="font-normal">Female</FormLabel>
+                                                            </FormItem>
+                                                        </RadioGroup>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+
                                 </div>
 
                                 {/* Activity Level */}
@@ -503,7 +507,7 @@ export function GoalForm({ isGoalForm }: { isGoalForm: boolean }) {
                         )}
                     />
                     <div className="flex justify-center gap-8">
-                        {isGoalForm
+                        {user?.id
                             ? (
                                 <>
                                     <Button
@@ -511,7 +515,7 @@ export function GoalForm({ isGoalForm }: { isGoalForm: boolean }) {
                                         variant="dietOutline"
                                         size="lg"
                                         onClick={() => router.push("/tracker")}
-                                        className="p-4" 
+                                        className="p-4"
                                     >
                                         Back to Tracker
                                     </Button>
@@ -570,7 +574,7 @@ export function GoalForm({ isGoalForm }: { isGoalForm: boolean }) {
 
                                             </h3>
                                             <p className="text-3xl font-bold text-secondary">{calculationResults.calorieDeficit} calories</p>
-                                            {form.getValues("weeklyWeightLoss") && form.getValues("calorieDeficitPreference")
+                                            {form.getValues("weeklyWeightLoss") || form.getValues("calorieDeficitPreference")
                                                 ? <p className="text-sm text-gray-500 mt-1">Your recommended daily calorie reduction</p>
                                                 : <p className="text-sm text-gray-500 mt-1"><span className="font-bold">System default</span> daily calorie reduction</p>
                                             }
@@ -645,7 +649,7 @@ export function GoalForm({ isGoalForm }: { isGoalForm: boolean }) {
                             </Tabs>
 
                             <div className="flex justify-center mt-6">
-                                {isGoalForm
+                                {user?.id
                                     ? <Button className="bg-secondary hover:bg-secondary/90" onClick={handleSaveGoal} disabled={userFitnessData ? false : true}>
                                         Save & Continue Tracking
                                         <ArrowRight className="ml-2 h-4 w-4" />
