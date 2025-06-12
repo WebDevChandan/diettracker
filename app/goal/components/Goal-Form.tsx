@@ -1,8 +1,7 @@
 "use client"
 
-import { setLocalStorageData } from "@/app/client/localstorage.action"
 import ResponsiveHint from "@/app/components/ResponsiveHint"
-import { fetchGoal, saveGoal, type GoalFormValues } from "@/app/goal/server/goal.action"
+import { fetchGoal, saveGoal, type userFitnessProfileFormValues } from "@/app/goal/server/goal.action"
 import useUserGoal from "@/app/hooks/userUserGoal"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -14,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useUser } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { setCookie } from 'cookies-next'
 import { ArrowRight, HelpCircle, Target } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
@@ -37,7 +37,7 @@ const formSchema = z.object({
         .max(100, { message: "Age must be 100 or less" }),
     gender: z.enum(["male", "female"]),
     activityLevel: z.enum(["1.2", "1.375", "1.55", "1.725", "1.9"]),
-    weeklyWeightLoss: z.enum(["0.25", "0.5", "1", ""]).optional(),
+    weeklyWeightLoss: z.enum(["0.25", "0.5", "1", ""], { message: "select weeklyWeightLoss!" }).optional(),
     calorieDeficitPreference: z.enum(["mild", "moderate", "aggressive"]).optional(),
     privacyConsent: z.boolean().refine(val => val === true),
 })
@@ -58,7 +58,7 @@ type UserGoal = {
 } | null
 
 export type UserFitnessType = {
-    profile: GoalFormValues,
+    profile: userFitnessProfileFormValues,
     goal: UserGoal
 } | null
 
@@ -85,7 +85,7 @@ export function GoalForm() {
             activityLevel: existedUserGoal?.profile.activityLevel as "1.2" | "1.375" | "1.55" | "1.725" | "1.9" || "1.2",
             weeklyWeightLoss: existedUserGoal?.profile.weeklyWeightLoss as "0.25" | "0.5" | "1" | "" || undefined,
             calorieDeficitPreference: existedUserGoal?.profile.calorieDeficitPreference as "mild" | "moderate" | "aggressive" | "" || undefined,
-            privacyConsent: false,
+            privacyConsent: true,
         },
         mode: 'onChange',
     });
@@ -103,19 +103,19 @@ export function GoalForm() {
     async function onSubmit(values: FormValues) {
         setIsSubmitting(true)
         try {
-            const result = await fetchGoal(values as GoalFormValues)
+            const result = await fetchGoal(values as userFitnessProfileFormValues)
             if (result.success && result.data) {
                 setCalculationResults(result.data);
 
                 setUserFitnessData({
                     profile: {
-                        ...values as GoalFormValues
+                        ...values as userFitnessProfileFormValues
                     },
                     goal: {
                         ...result.data
                     }
                 });
-                setLocalStorageData("user-data", userFitnessData);
+                // setLocalStorageData("user-data", userFitnessData);
 
             }
             else if (result.error) {
@@ -129,26 +129,45 @@ export function GoalForm() {
     }
 
     async function handleSaveGoal() {
-        setIsSaving(true)
+        setIsSaving(true);
         try {
             if (!calculationResults) return null;
-            toast.promise(
-                saveGoal(userFitnessData),
-                {
-                    loading: 'Saving Goal...',
-                    success: (data) => {
-                        router.push("/tracker");
-                        return `${data?.message}`;
-                    },
-                    error: (error) => {
-                        return error.message || "Something went wrong";
-                    },
+
+            if (!user?.id) {
+                setCookie("userFitnessData", JSON.stringify(userFitnessData), {
+                    path: '/',
+                    httpOnly: false,
+                    maxAge: 60 * 60
+                })
+
+                router.push("/sign-in");
+
+            } else {
+                const userEmail = user?.primaryEmailAddress?.emailAddress;
+
+                if (!userEmail) {
+                    toast.error("Please sign-in!")
+                    return;
                 }
-            );
+
+                toast.promise(
+                    saveGoal(userFitnessData, userEmail),
+                    {
+                        loading: 'Saving Goal...',
+                        success: (data) => {
+                            router.push("/tracker");
+                            return `${data?.message}`;
+                        },
+                        error: (error) => {
+                            return error.message || "Something went wrong";
+                        },
+                    }
+                );
+            }
         } catch (error) {
             console.error("Error submitting form:", error)
         } finally {
-            setIsSaving(false)
+            setIsSaving(false);
         }
     }
 
@@ -649,15 +668,10 @@ export function GoalForm() {
                             </Tabs>
 
                             <div className="flex justify-center mt-6">
-                                {user?.id
-                                    ? <Button className="bg-secondary hover:bg-secondary/90" onClick={handleSaveGoal} disabled={userFitnessData ? false : true}>
-                                        Save & Continue Tracking
-                                        <ArrowRight className="ml-2 h-4 w-4" />
-                                    </Button>
-                                    : <Button className="bg-secondary hover:bg-secondary/90" onClick={() => { router.push("/tracker") }}>
-                                        Start Tracking
-                                        <ArrowRight className="ml-2 h-4 w-4" />
-                                    </Button>}
+                                <Button className="bg-secondary hover:bg-secondary/90" onClick={handleSaveGoal} disabled={userFitnessData || !isSaving ? false : true}>
+                                    {user?.id ? `Save & Continue Tracking` : "Start Tracking"}
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
                             </div>
 
                             {/* Reference div placed at the end of scrollable content */}

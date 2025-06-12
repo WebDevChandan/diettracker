@@ -14,6 +14,8 @@ import { SpeedDial } from "./components/SpeedDial";
 import DietProvider from "./context/DietProvider";
 import { UploadFileDialog } from "./components/UploadFileDialog";
 import UploadFileProvider from "./context/UploadFileProvider";
+import { cookies } from "next/headers";
+import { saveGoal } from "../goal/server/goal.action";
 
 const fetchUserData = async (userEmail: string) => {
     try {
@@ -55,6 +57,16 @@ export default async function Home() {
     }
 
     const { DietData, UserFitness } = await fetchUserData(userEmail) as { DietData: DietType, UserFitness: existedUserGoalType };
+
+    const cookie = await cookies();
+    const userFitnessData = cookie.get("userFitnessData")?.value;
+
+    if (userFitnessData && !UserFitness) {
+        const parseUserFitnessData = JSON.parse(userFitnessData);
+
+        await saveGoal(parseUserFitnessData, userEmail);
+    }
+
 
     return (
         <DietProvider dietData={DietData ? DietData : []}>

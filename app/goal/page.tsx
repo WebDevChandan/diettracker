@@ -3,6 +3,7 @@ import { cache } from "react";
 import UserGoalProvider from "../context/UserGoalProvider";
 import { GoalForm } from "./components/Goal-Form";
 import { fetchExistedUserGoal } from "./server/goal.action";
+import { cookies } from "next/headers";
 
 const fetchCachedUserEmail = cache(async () => {
     return await fetchUserEmail();

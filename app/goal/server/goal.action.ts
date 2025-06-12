@@ -6,8 +6,8 @@ import { z, ZodError } from "zod"
 import { UserFitnessType } from "../components/Goal-Form"
 import { cookies } from "next/headers"
 
-// Define the schema for form validation
-const goalFormSchema = z.object({
+//Schema for FitnessProfile validation
+const userFitnessProfileFormSchema = z.object({
     weight: z.number().positive().min(10, "Should be at least 10"),
     weightUnit: z.enum(["kg", "lbs"], { message: "Invlid WeightUnit" }),
     heightCm: z.number().positive().min(10, "Should be at least 10"),
@@ -21,11 +21,11 @@ const goalFormSchema = z.object({
     calorieDeficitPreference: z.enum(["mild", "moderate", "aggressive"], { message: "Invlid Preference Value" }).optional(),
 })
 
-export type GoalFormValues = z.infer<typeof goalFormSchema>
+export type userFitnessProfileFormValues = z.infer<typeof userFitnessProfileFormSchema>
 
-export async function fetchGoal(formData: GoalFormValues) {
+export async function fetchGoal(formData: userFitnessProfileFormValues) {
     try {
-        const validatedData = goalFormSchema.parse(formData);
+        const validatedData = userFitnessProfileFormSchema.parse(formData);
 
         // Convert weight to kg if needed
         let weightInKg = validatedData.weight
@@ -116,15 +116,18 @@ export async function fetchGoal(formData: GoalFormValues) {
     }
 }
 
-export async function saveGoal(userFitnessData: UserFitnessType) {
+export async function saveGoal(userFitnessData: UserFitnessType, userEmail: string) {
     try {
-        const userEmail = await fetchUserEmail();
-
         if (!userEmail)
-            throw new Error(`User not found`);
+            throw new Error(`Please sign-in!`);
 
         if (!userFitnessData)
             throw new Error(`Re-Calculate Daily Calorie Goal`);
+
+        const validatedData = userFitnessProfileFormSchema.parse(userFitnessData.profile);
+
+        if (!validatedData)
+            throw new Error(`Invalid Profile Data`);
 
         const userGoalExisted = await fetchExistedUserGoal(userEmail);
 
@@ -176,7 +179,6 @@ export async function saveGoal(userFitnessData: UserFitnessType) {
             })
 
             if (response.success) {
-                revalidatePath("/goal");
                 return { message: response.message }
 
             } else {
@@ -228,7 +230,9 @@ export async function saveGoal(userFitnessData: UserFitnessType) {
             })
 
             if (response.success) {
-                revalidatePath("/goal");
+                const cookie = await cookies();
+                cookie.delete("userFitnessData");
+
                 return { message: response.message }
 
             } else {
